@@ -12,7 +12,7 @@ import SubPage from "./components/SubPage";
 import Orbit from "./components/Orbit";
 import Nav from "./components/Nav";
 
-const VERSION = "1.3.0";
+const VERSION = "1.3.1";
 
 export default function App() {
   const [onb, setOnb] = useState(false);
