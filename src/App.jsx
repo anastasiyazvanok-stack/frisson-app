@@ -18,7 +18,8 @@ export default function App() {
   const [onb, setOnb] = useState(() => localStorage.getItem("frisson_onb") === "1");
   const [tour, setTour] = useState(() => localStorage.getItem("frisson_tour") === "1");
   const [screen, setScreen] = useState("home");
-  const [theme, setTheme] = useState("full");
+  const [theme, setTheme] = useState(() => localStorage.getItem("frisson-theme") || "full");
+  const setThemePersisted = (t) => { localStorage.setItem("frisson-theme", t); setTheme(t); };
   const [eScore, setEScore] = useState(null);
   const [eHist, setEHist] = useState([
     { score: 42, date: "1 мар" },
@@ -41,7 +42,7 @@ export default function App() {
   if (!tour) return (<><GlobalStyles /><AppTour onDone={() => { localStorage.setItem("frisson_tour", "1"); setTour(true); }} theme={theme} /></>);
 
   const screens = {
-    home: <Home setScreen={setScreen} theme={theme} setTheme={setTheme} eScore={eScore} pLog={pLog} setLibSec={setLibSec} />,
+    home: <Home setScreen={setScreen} theme={theme} setTheme={setThemePersisted} eScore={eScore} pLog={pLog} setLibSec={setLibSec} />,
     library: <Library setScreen={setScreen} theme={theme} initSec={libSec} />,
     orbit: <Orbit setScreen={setScreen} />,
     journal: <Journal theme={theme} addGems={addGems} />,
