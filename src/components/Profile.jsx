@@ -4,7 +4,7 @@ import { TEST_QUESTIONS } from "../data/content";
 import { FONT_SERIF, FONT_SANS } from "../utils/helpers";
 import Orb from "./Orb";
 
-export default function Profile({ setScreen, theme, eScore, setEScore, eHist, setEHist, pLog }) {
+export default function Profile({ setScreen, theme, eScore, setEScore, eHist, setEHist, pLog, gems = 0 }) {
   const T = THEMES[theme] || THEMES.full;
   const [showT, setShowT] = useState(false);
   const [tI, setTI] = useState(0);
@@ -119,7 +119,7 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, margin: "0 24px 18px", position: "relative", zIndex: 1 }}>
-        {[["0", "Медитаций"], ["0", "Минут"], ["0", "Дней подряд"], ["0 ⟡", "Кристаллов"]].map((pr, i) => (
+        {[["0", "Медитаций"], ["0", "Минут"], ["0", "Дней подряд"], [`${gems} ⟡`, "Кристаллов"]].map((pr, i) => (
           <div key={i} style={{ padding: "16px 14px", background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, textAlign: "center" }}>
             <div style={{ fontFamily: FONT_SERIF, fontSize: 32, fontWeight: 300, lineHeight: 1, marginBottom: 4, color: "rgba(242,232,226,.95)" }}>{pr[0]}</div>
             <div style={{ fontSize: 9, letterSpacing: ".14em", textTransform: "uppercase", color: "rgba(242,232,226,.4)", fontFamily: FONT_SANS }}>{pr[1]}</div>

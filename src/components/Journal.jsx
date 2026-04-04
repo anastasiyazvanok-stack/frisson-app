@@ -27,7 +27,7 @@ function todayStr() {
   return `${day} ${mon} ${d.getFullYear()}`;
 }
 
-export default function Journal({ theme }) {
+export default function Journal({ theme, addGems }) {
   const T = THEMES[theme] || THEMES.full;
   const [tab, setTab] = useState("intent");
   const [data, setData] = useState(load);
@@ -40,11 +40,14 @@ export default function Journal({ theme }) {
 
   const pop = () => { const id = Date.now(); setCrystals((p) => [...p, { id, x: Math.random() * 60 + 20 }]); setTimeout(() => setCrystals((p) => p.filter((c) => c.id !== id)), 1200); };
 
+  const award = (n) => { if (addGems) addGems(n); };
+
   const addEntry = (section) => {
     if (!text.trim()) return;
     const entry = { id: Date.now(), text: text.trim(), ts: Date.now() };
     setData((d) => ({ ...d, [section]: [entry, ...d[section]] }));
     setText("");
+    award(1);
     pop();
   };
 
@@ -54,6 +57,7 @@ export default function Journal({ theme }) {
     setData((d) => ({ ...d, reflect: [entry, ...d.reflect] }));
     setText("");
     setMood(null);
+    award(1);
     pop();
   };
 
@@ -62,6 +66,7 @@ export default function Journal({ theme }) {
     const entry = { id: Date.now(), text: goalText.trim(), ts: Date.now(), done: false };
     setData((d) => ({ ...d, goals: [entry, ...d.goals] }));
     setGoalText("");
+    award(1);
     pop();
   };
 
@@ -70,7 +75,11 @@ export default function Journal({ theme }) {
   };
 
   const toggleGoal = (id) => {
-    setData((d) => ({ ...d, goals: d.goals.map((g) => g.id === id ? { ...g, done: !g.done } : g) }));
+    setData((d) => {
+      const goal = d.goals.find((g) => g.id === id);
+      if (goal && !goal.done) award(2);
+      return { ...d, goals: d.goals.map((g) => g.id === id ? { ...g, done: !g.done } : g) };
+    });
   };
 
   const taStyle = { width: "100%", minHeight: 100, background: "transparent", border: "none", outline: "none", resize: "vertical", padding: "14px 16px", fontFamily: FONT_SERIF, fontSize: 16, color: "rgba(242,232,226,.85)", lineHeight: 1.7, WebkitAppearance: "none", display: "block" };

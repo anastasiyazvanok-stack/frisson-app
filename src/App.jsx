@@ -12,7 +12,7 @@ import SubPage from "./components/SubPage";
 import Orbit from "./components/Orbit";
 import Nav from "./components/Nav";
 
-export const VERSION = "1.5.3";
+export const VERSION = "1.6.0";
 
 export default function App() {
   const [onb, setOnb] = useState(() => localStorage.getItem("frisson_onb") === "1");
@@ -28,6 +28,8 @@ export default function App() {
   ]);
   const [pLog] = useState([0, 1, 0, 2, 1, 0, 0]);
   const [libSec, setLibSec] = useState("all");
+  const [gems, setGems] = useState(() => parseInt(localStorage.getItem("frisson_gems")) || 0);
+  const addGems = (n) => setGems((g) => { const v = g + n; localStorage.setItem("frisson_gems", v); return v; });
 
   const scrollRef = useRef(null);
   useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = 0; }, [screen]);
@@ -42,9 +44,9 @@ export default function App() {
     home: <Home setScreen={setScreen} theme={theme} setTheme={setTheme} eScore={eScore} pLog={pLog} setLibSec={setLibSec} />,
     library: <Library setScreen={setScreen} theme={theme} initSec={libSec} />,
     orbit: <Orbit setScreen={setScreen} />,
-    journal: <Journal theme={theme} />,
+    journal: <Journal theme={theme} addGems={addGems} />,
     situations: <Situations setScreen={setScreen} theme={theme} />,
-    profile: <Profile setScreen={setScreen} theme={theme} eScore={eScore} setEScore={setEScore} eHist={eHist} setEHist={setEHist} pLog={pLog} />,
+    profile: <Profile setScreen={setScreen} theme={theme} eScore={eScore} setEScore={setEScore} eHist={eHist} setEHist={setEHist} pLog={pLog} gems={gems} />,
     sub: <SubPage setScreen={setScreen} theme={theme} />,
   };
 
