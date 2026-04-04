@@ -128,10 +128,36 @@ export default function Orbit({ setScreen }) {
     const state = {
       curIdx: 0, tR: 22, cR: 22, tS: 0.18, cS: 0.18, tB: 0.82, cB: 0.82, tSz: 0.42, cSz: 0.42,
       lAmt: 0.6, tLAmt: 0.6, sX: 0, sY: 0, sZ: 0, transE: 0, cZ: 0, cZV: 0,
+      // touch drag
+      dragging: false, lastPX: 0, lastPY: 0, dragVX: 0, dragVY: 0,
     };
     stateRef.current = state;
     const aEl = [], conns = [];
     let lastSp = 0;
+
+    // Touch/mouse drag handlers
+    const onDown = (e) => {
+      const pt = e.touches ? e.touches[0] : e;
+      state.dragging = true; state.lastPX = pt.clientX; state.lastPY = pt.clientY;
+      state.dragVX = 0; state.dragVY = 0;
+    };
+    const onMove = (e) => {
+      if (!state.dragging) return;
+      const pt = e.touches ? e.touches[0] : e;
+      const dx = pt.clientX - state.lastPX, dy = pt.clientY - state.lastPY;
+      state.dragVX = dx * 0.004; state.dragVY = dy * 0.004;
+      state.sY += dx * 0.004; state.sX += dy * 0.004;
+      state.lastPX = pt.clientX; state.lastPY = pt.clientY;
+    };
+    const onUp = () => { state.dragging = false; };
+
+    canvas.addEventListener("mousedown", onDown);
+    canvas.addEventListener("mousemove", onMove);
+    canvas.addEventListener("mouseup", onUp);
+    canvas.addEventListener("mouseleave", onUp);
+    canvas.addEventListener("touchstart", onDown, { passive: true });
+    canvas.addEventListener("touchmove", onMove, { passive: true });
+    canvas.addEventListener("touchend", onUp);
 
     const clock = new THREE.Clock();
     let animId;
@@ -155,6 +181,13 @@ export default function Orbit({ setScreen }) {
       state.lAmt += (state.tLAmt - state.lAmt) * K;
       state.transE *= 0.982;
       if (state.transE > 0.05) { state.sX += state.transE * 0.013 * Math.sin(t * 1.8); state.sY += state.transE * 0.016; state.sZ += state.transE * 0.009 * Math.cos(t * 1.4); }
+
+      // Inertia when not dragging
+      if (!state.dragging) {
+        state.sY += state.dragVY * 0.3 + 0.001; // gentle auto-rotate Y
+        state.sX += state.dragVX * 0.3;
+        state.dragVX *= 0.96; state.dragVY *= 0.96;
+      }
 
       const zF = l.id === 3 ? 0.28 : l.id === 5 ? 0.5 : 0.1, zA = l.id === 3 ? 14 : l.id === 5 ? 12 : 7;
       state.cZV += (Math.sin(t * zF) * zA - state.cZ) * 0.007; state.cZV *= 0.94; state.cZ += state.cZV;
@@ -230,6 +263,13 @@ export default function Orbit({ setScreen }) {
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", onResize);
+      canvas.removeEventListener("mousedown", onDown);
+      canvas.removeEventListener("mousemove", onMove);
+      canvas.removeEventListener("mouseup", onUp);
+      canvas.removeEventListener("mouseleave", onUp);
+      canvas.removeEventListener("touchstart", onDown);
+      canvas.removeEventListener("touchmove", onMove);
+      canvas.removeEventListener("touchend", onUp);
       renderer.dispose(); geo.dispose(); mat.dispose(); lineGeo.dispose(); lineMat.dispose(); elGeo.dispose(); elMat.dispose();
       stopSound();
     };
@@ -269,8 +309,8 @@ export default function Orbit({ setScreen }) {
         <div style={{ fontSize: 8, letterSpacing: 2, color: "rgba(220,195,172,.3)", marginTop: 3, ...ss }}>{layer.sub}</div>
       </div>
 
-      {/* Tap orb area to toggle panel */}
-      <div onClick={() => setPanelOpen(!panelOpen)} style={{ position: "absolute", top: 80, left: 44, right: 0, bottom: 0, zIndex: 10 }} />
+      {/* Tap orb area to close panel if open */}
+      {panelOpen && <div onClick={() => setPanelOpen(false)} style={{ position: "absolute", top: 80, left: 44, right: 0, bottom: 0, zIndex: 10 }} />}
 
       {/* Bottom panel — compact */}
       <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 25, transform: panelOpen ? "translateY(0)" : "translateY(100%)", transition: "transform .4s cubic-bezier(.32,.72,0,1)" }}>
