@@ -158,6 +158,18 @@ export default function Orbit({ setScreen }) {
     renderer.setSize(canvas.clientWidth, canvas.clientHeight);
     renderer.setClearColor(0x060208, 1);
 
+    // Soft circular sprite for particles (prevents white square artifacts)
+    const spriteCanvas = document.createElement("canvas");
+    spriteCanvas.width = 64; spriteCanvas.height = 64;
+    const spriteCtx = spriteCanvas.getContext("2d");
+    const grad = spriteCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, "rgba(255,255,255,1)");
+    grad.addColorStop(0.4, "rgba(255,255,255,0.6)");
+    grad.addColorStop(1, "rgba(255,255,255,0)");
+    spriteCtx.fillStyle = grad;
+    spriteCtx.fillRect(0, 0, 64, 64);
+    const sprite = new THREE.CanvasTexture(spriteCanvas);
+
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 1, 1000);
     camera.position.z = 85;
@@ -173,7 +185,7 @@ export default function Orbit({ setScreen }) {
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute("position", new THREE.BufferAttribute(PA, 3));
-    const mat = new THREE.PointsMaterial({ color: new THREE.Color(LAYERS[0].col), size: 0.42, transparent: true, opacity: 0.82, sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false });
+    const mat = new THREE.PointsMaterial({ color: new THREE.Color(LAYERS[0].col), size: 0.8, map: sprite, transparent: true, opacity: 0.82, sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false });
     const points = new THREE.Points(geo, mat); scene.add(points);
 
     const MAX_L = 8000, LPA = new Float32Array(MAX_L * 6);
@@ -187,7 +199,7 @@ export default function Orbit({ setScreen }) {
     const elGeo = new THREE.BufferGeometry();
     elGeo.setAttribute("position", new THREE.BufferAttribute(EPA, 3));
     elGeo.setDrawRange(0, 0);
-    const elMat = new THREE.PointsMaterial({ color: 0xffddcc, size: 1.1, transparent: true, opacity: 1, sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false });
+    const elMat = new THREE.PointsMaterial({ color: 0xffddcc, size: 2.2, map: sprite, transparent: true, opacity: 1, sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false });
     const electrons = new THREE.Points(elGeo, elMat); scene.add(electrons);
 
     const state = {
@@ -303,7 +315,7 @@ export default function Orbit({ setScreen }) {
       const targetCol = sc ? new THREE.Color(sc.tint) : new THREE.Color(l.col);
       const targetLc = sc ? new THREE.Color(sc.tint).multiplyScalar(0.6) : new THREE.Color(l.lc);
       mat.color.lerp(targetCol, 0.018); lineMat.color.lerp(targetLc, 0.018);
-      mat.opacity = state.cB + bass * 0.08; mat.size = state.cSz + bass * 0.05;
+      mat.opacity = state.cB + bass * 0.08; mat.size = (state.cSz + bass * 0.05) * 2.2;
 
       camera.position.x = Math.sin(t * 0.018) * 6;
       camera.position.y = Math.cos(t * 0.024) * 4;
@@ -323,7 +335,7 @@ export default function Orbit({ setScreen }) {
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", onResize);
-      renderer.dispose(); geo.dispose(); mat.dispose(); lineGeo.dispose(); lineMat.dispose(); elGeo.dispose(); elMat.dispose();
+      renderer.dispose(); geo.dispose(); mat.dispose(); lineGeo.dispose(); lineMat.dispose(); elGeo.dispose(); elMat.dispose(); sprite.dispose();
       stopSound();
     };
   }, []);
