@@ -3,6 +3,7 @@ import { THEMES, getEnergyLevel } from "../data/themes";
 import { TEST_QUESTIONS } from "../data/content";
 import { FONT_SERIF, FONT_SANS } from "../utils/helpers";
 import Orb from "./Orb";
+import { VERSION } from "../App";
 
 export default function Profile({ setScreen, theme, eScore, setEScore, eHist, setEHist, pLog, gems = 0 }) {
   const T = THEMES[theme] || THEMES.full;
@@ -138,6 +139,10 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
             <div key={t} style={{ padding: "4px 10px", background: "rgba(125,23,54,.28)", border: "1px solid rgba(125,23,54,.35)", borderRadius: 20, fontSize: 9, letterSpacing: ".1em", textTransform: "uppercase", color: "rgba(242,232,226,.6)", fontFamily: FONT_SANS }}>{t}</div>
           ))}
         </div>
+      </div>
+
+      <div style={{ textAlign: "center", paddingBottom: 24, position: "relative", zIndex: 1 }}>
+        <span style={{ fontFamily: FONT_SANS, fontSize: 9, color: "rgba(242,232,226,.2)", letterSpacing: ".1em" }}>v{VERSION}</span>
       </div>
     </div>
   );
