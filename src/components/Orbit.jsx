@@ -450,7 +450,7 @@ export default function Orbit({ setScreen }) {
   const ss = { fontFamily: "Georgia, serif" };
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "100%", background: "#060208", overflow: "hidden" }}>
+    <div style={{ position: "relative", width: "100%", flex: 1, minHeight: 0, background: "#060208", overflow: "hidden" }}>
       <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }} />
 
       {/* Touch interaction layer — above canvas, below UI */}
@@ -496,7 +496,7 @@ export default function Orbit({ setScreen }) {
 
       {/* Bottom panel — compact */}
       <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 25, transform: panelOpen ? "translateY(0)" : "translateY(100%)", transition: "transform .4s cubic-bezier(.32,.72,0,1)" }}>
-        <div style={{ maxWidth: 640, margin: "0 auto", background: "linear-gradient(180deg, rgba(6,2,8,0) 0%, rgba(6,2,8,.94) 18%, rgba(6,2,8,.98) 100%)", backdropFilter: "blur(20px)", borderTop: `1px solid ${((panelMode === "scenario" && activeScenario) ? activeScenario.hex : layer.hex)}22`, padding: "0 16px 20px 52px", position: "relative", maxHeight: "46vh", overflowY: "auto" }}>
+        <div style={{ maxWidth: 640, margin: "0 auto", background: "linear-gradient(180deg, rgba(6,2,8,0) 0%, rgba(6,2,8,.94) 18%, rgba(6,2,8,.98) 100%)", backdropFilter: "blur(20px)", borderTop: `1px solid ${((panelMode === "scenario" && activeScenario) ? activeScenario.hex : layer.hex)}22`, padding: "0 16px 20px 52px", position: "relative", maxHeight: "44%", overflowY: "auto" }}>
           <div onClick={() => setPanelOpen(false)} style={{ display: "flex", justifyContent: "center", padding: "10px 0 8px", cursor: "pointer", position: "sticky", top: 0, background: "linear-gradient(180deg, rgba(6,2,8,.95) 70%, transparent)" }}>
             <i style={{ display: "block", width: 28, height: 3, borderRadius: 2, background: `${((panelMode === "scenario" && activeScenario) ? activeScenario.hex : layer.hex)}55` }} />
           </div>

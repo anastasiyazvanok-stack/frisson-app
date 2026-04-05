@@ -12,7 +12,7 @@ import SubPage from "./components/SubPage";
 import Orbit from "./components/Orbit";
 import Nav from "./components/Nav";
 
-export const VERSION = "1.11.0";
+export const VERSION = "1.11.1";
 
 export default function App() {
   const [onb, setOnb] = useState(() => localStorage.getItem("frisson_onb") === "1");
@@ -43,7 +43,7 @@ export default function App() {
   useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = 0; }, [screen]);
 
   const T = THEMES[theme] || THEMES.full;
-  const showNav = screen !== "sub" && screen !== "situations" && screen !== "orbit";
+  const showNav = screen !== "sub" && screen !== "situations";
 
   if (!onb) return (<><GlobalStyles /><Onboarding onDone={() => { localStorage.setItem("frisson_onb", "1"); setOnb(true); }} /></>);
   if (!tour) return (<><GlobalStyles /><AppTour onDone={() => { localStorage.setItem("frisson_tour", "1"); setTour(true); }} theme={theme} /></>);
@@ -80,7 +80,7 @@ export default function App() {
               ))}
             </div>
           )}
-          <div ref={scrollRef} key={screen} className="screen-in" style={{ flex: 1, overflowY: "auto", overflowX: "hidden", position: "relative", zIndex: 1 }}>{screens[screen]}</div>
+          <div ref={scrollRef} key={screen} className="screen-in" style={{ flex: 1, overflowY: screen === "orbit" ? "hidden" : "auto", overflowX: "hidden", position: "relative", zIndex: 1, display: "flex", flexDirection: "column" }}>{screens[screen]}</div>
           {showNav && <Nav active={screen} setScreen={setScreen} theme={theme} />}
           <div style={{ position: "absolute", bottom: showNav ? 22 : 4, right: 6, fontSize: 8, color: "rgba(255,255,255,.12)", fontFamily: "sans-serif", pointerEvents: "none", zIndex: 50 }}>v{VERSION}</div>
         </div>
