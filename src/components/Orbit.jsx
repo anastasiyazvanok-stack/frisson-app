@@ -117,7 +117,12 @@ export default function Orbit({ setScreen }) {
   const [panelMode, setPanelMode] = useState("layer"); // "layer" | "scenario"
   const scenarioRef = useRef(null);
   const [panelOpen, setPanelOpen] = useState(true);
-  const [panelExpanded, setPanelExpanded] = useState(false); // starts collapsed — just title visible
+  const [panelExpanded, setPanelExpanded] = useState(false);
+  const [meditating, setMeditating] = useState(false);
+  const [medTime, setMedTime] = useState(0); // seconds remaining
+  const [medDuration, setMedDuration] = useState(0);
+  const [showTimerPicker, setShowTimerPicker] = useState(false);
+  const timerRef = useRef(null);
   const [soundOn, setSoundOn] = useState(false);
   const audioRef = useRef({ ctx: null, gain: null, oscs: [], analyser: null, freq: new Uint8Array(64), bass: 0, mid: 0 });
 
@@ -208,13 +213,38 @@ export default function Orbit({ setScreen }) {
     setTimeout(() => cleanupAudio(), 1000);
   }
 
+  function startMeditation(seconds) {
+    setShowTimerPicker(false);
+    buildSound(activeScenario?.id || "neutral");
+    setSoundOn(true);
+    setMeditating(true);
+    setMedDuration(seconds);
+    setMedTime(seconds);
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setMedTime((t) => {
+        if (t <= 1) {
+          stopMeditation();
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+  }
+
+  function stopMeditation() {
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    stopSound();
+    setSoundOn(false);
+    setMeditating(false);
+    setMedTime(0);
+  }
+
   function toggleSound() {
-    if (soundOn) {
-      stopSound();
-      setSoundOn(false);
+    if (soundOn || meditating) {
+      stopMeditation();
     } else {
-      buildSound(activeScenario?.id || "neutral");
-      setSoundOn(true);
+      setShowTimerPicker(true);
     }
   }
 
@@ -488,16 +518,17 @@ export default function Orbit({ setScreen }) {
   }, []);
 
   const ss = { fontFamily: "Georgia, serif" };
+  const fmtTimer = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const acHex = activeScenario ? activeScenario.hex : layer.hex;
+  const hideUI = meditating ? 0 : 1;
 
   return (
     <div style={{ position: "relative", width: "100%", flex: 1, minHeight: 0, background: "#060208", overflow: "hidden" }}>
       <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }} />
-
-      {/* Touch interaction layer — above canvas, below UI */}
       <div ref={touchRef} style={{ position: "absolute", inset: 0, zIndex: 5, touchAction: "none" }} />
 
-      {/* Sidebar */}
-      <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 44, zIndex: 20, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, padding: "80px 0", background: "linear-gradient(90deg, rgba(6,2,8,.7), transparent)" }}>
+      {/* Sidebar — hides during meditation */}
+      <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 44, zIndex: 20, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, padding: "80px 0", background: "linear-gradient(90deg, rgba(6,2,8,.7), transparent)", opacity: hideUI, transition: "opacity .8s", pointerEvents: meditating ? "none" : "auto" }}>
         {LAYERS.map((l) => (
           <div key={l.id} onClick={() => openLayer(l.id)} style={{ width: 36, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer", opacity: activeId === l.id ? 1 : 0.38, transition: "opacity .3s", padding: "4px 0" }}>
             <span style={{ width: activeId === l.id ? 10 : 7, height: activeId === l.id ? 10 : 7, borderRadius: "50%", background: l.hex, boxShadow: activeId === l.id ? `0 0 12px ${l.hex}` : `0 0 4px ${l.hex}66`, display: "block", transition: "all .3s" }} />
@@ -506,26 +537,50 @@ export default function Orbit({ setScreen }) {
         ))}
       </div>
 
-      {/* Top bar */}
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px 0 52px", background: "linear-gradient(180deg, rgba(6,2,8,.86), transparent)", zIndex: 30, pointerEvents: "none" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div onClick={() => setScreen("home")} style={{ pointerEvents: "all", cursor: "pointer", fontSize: 15, color: "rgba(210,175,145,.5)", padding: "4px 8px" }}>←</div>
+      {/* Top bar — partially hides during meditation */}
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px 0 52px", background: meditating ? "transparent" : "linear-gradient(180deg, rgba(6,2,8,.86), transparent)", zIndex: 30, pointerEvents: "none", transition: "background .8s" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, opacity: hideUI, transition: "opacity .8s" }}>
+          <div onClick={() => { if (meditating) return; setScreen("home"); }} style={{ pointerEvents: meditating ? "none" : "all", cursor: "pointer", fontSize: 15, color: "rgba(210,175,145,.5)", padding: "4px 8px" }}>←</div>
           <div>
             <div style={{ fontSize: 8, letterSpacing: 5, textTransform: "uppercase", color: "rgba(190,130,90,.42)", ...ss }}>Frisson</div>
             <div style={{ fontSize: 14, fontStyle: "italic", color: "rgba(228,202,182,.38)", marginTop: 2, ...ss }}>Орбита Психики</div>
           </div>
         </div>
-        <button onClick={toggleSound} style={{ pointerEvents: "all", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, background: soundOn ? "rgba(140,30,60,.36)" : "rgba(100,20,50,.2)", border: `1px solid ${soundOn ? "rgba(200,130,90,.5)" : "rgba(190,130,90,.25)"}`, borderRadius: 16, padding: "5px 11px", fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: soundOn ? "rgba(240,210,178,.92)" : "rgba(210,175,145,.6)", transition: "all .3s", whiteSpace: "nowrap", ...ss }}>{soundOn ? "■ Стоп" : `♫ ${getProfile().label}`}</button>
+        <button onClick={toggleSound} style={{ pointerEvents: "all", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, background: soundOn ? "rgba(140,30,60,.36)" : "rgba(100,20,50,.2)", border: `1px solid ${soundOn ? "rgba(200,130,90,.5)" : "rgba(190,130,90,.25)"}`, borderRadius: 16, padding: "5px 11px", fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: soundOn ? "rgba(240,210,178,.92)" : "rgba(210,175,145,.6)", transition: "all .3s", whiteSpace: "nowrap", ...ss }}>{meditating ? "■ Стоп" : soundOn ? "■ Стоп" : `♫ ${getProfile().label}`}</button>
       </div>
 
-      {/* Active label + name */}
-      <div style={{ position: "absolute", top: 62, left: "50%", transform: "translateX(-50%)", textAlign: "center", pointerEvents: "none", zIndex: 20 }}>
+      {/* Meditation timer — center screen */}
+      {meditating && (
+        <div style={{ position: "absolute", inset: 0, zIndex: 28, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+          <div style={{ fontSize: 48, fontWeight: 200, color: `${acHex}cc`, letterSpacing: 4, ...ss }}>{fmtTimer(medTime)}</div>
+          <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase", color: `${acHex}66`, marginTop: 8, ...ss }}>{getProfile().label}</div>
+          <div style={{ width: 120, height: 2, borderRadius: 1, background: "rgba(255,255,255,.06)", marginTop: 16, overflow: "hidden" }}>
+            <div style={{ height: "100%", background: acHex, borderRadius: 1, width: medDuration ? `${(medTime / medDuration) * 100}%` : "0%", transition: "width 1s linear" }} />
+          </div>
+          <div onClick={stopMeditation} style={{ pointerEvents: "all", cursor: "pointer", marginTop: 24, padding: "8px 20px", borderRadius: 20, background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: "rgba(220,195,172,.5)", ...ss }}>Завершить</div>
+        </div>
+      )}
+
+      {/* Timer picker overlay */}
+      {showTimerPicker && (
+        <div style={{ position: "absolute", inset: 0, zIndex: 35, background: "rgba(6,2,8,.88)", backdropFilter: "blur(12px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12 }}>
+          <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase", color: `${acHex}88`, marginBottom: 8, ...ss }}>Время медитации</div>
+          <div style={{ fontSize: 13, color: "rgba(200,175,158,.6)", marginBottom: 16, textAlign: "center", maxWidth: 260, lineHeight: 1.6, ...ss }}>Смотрите на орбиту и слушайте звук. Все отвлекающие элементы исчезнут.</div>
+          {[{ label: "3 минуты", sec: 180 }, { label: "5 минут", sec: 300 }, { label: "10 минут", sec: 600 }, { label: "15 минут", sec: 900 }].map((opt) => (
+            <div key={opt.sec} onClick={() => startMeditation(opt.sec)} style={{ cursor: "pointer", width: 200, padding: "13px 0", borderRadius: 14, textAlign: "center", background: `${acHex}18`, border: `1px solid ${acHex}33`, fontSize: 13, color: acHex, transition: "all .2s", ...ss }}>{opt.label}</div>
+          ))}
+          <div onClick={() => setShowTimerPicker(false)} style={{ cursor: "pointer", marginTop: 10, fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: "rgba(200,175,158,.35)", ...ss }}>Отмена</div>
+        </div>
+      )}
+
+      {/* Active label + name — hides during meditation */}
+      <div style={{ position: "absolute", top: 62, left: "50%", transform: "translateX(-50%)", textAlign: "center", pointerEvents: "none", zIndex: 20, opacity: hideUI, transition: "opacity .8s" }}>
         <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase", color: (panelMode === "scenario" && activeScenario) ? activeScenario.hex : layer.hex, whiteSpace: "nowrap", ...ss }}>{(panelMode === "scenario" && activeScenario) ? activeScenario.name : layer.name}</div>
         <div style={{ fontSize: 8, letterSpacing: 2, color: "rgba(220,195,172,.3)", marginTop: 3, ...ss }}>{(panelMode === "scenario" && activeScenario) ? "сценарий" : layer.sub}</div>
       </div>
 
-      {/* Scenario chips row */}
-      <div style={{ position: "absolute", top: 96, left: 0, right: 0, zIndex: 20, overflowX: "auto", padding: "0 16px 0 52px", WebkitOverflowScrolling: "touch" }}>
+      {/* Scenario chips row — hides during meditation */}
+      <div style={{ position: "absolute", top: 96, left: 0, right: 0, zIndex: 20, overflowX: "auto", padding: "0 16px 0 52px", WebkitOverflowScrolling: "touch", opacity: hideUI, transition: "opacity .8s", pointerEvents: meditating ? "none" : "auto" }}>
         <div style={{ display: "flex", gap: 6, whiteSpace: "nowrap" }}>
           <div onClick={() => { scenarioRef.current = null; setActiveScenarioState(null); }} style={{ cursor: "pointer", padding: "5px 11px", borderRadius: 14, background: !activeScenario ? "rgba(190,130,90,.25)" : "rgba(30,20,25,.5)", border: `1px solid ${!activeScenario ? "rgba(200,150,110,.45)" : "rgba(190,130,90,.15)"}`, fontSize: 8, letterSpacing: 1.5, textTransform: "uppercase", color: !activeScenario ? "rgba(240,210,178,.92)" : "rgba(200,175,158,.5)", whiteSpace: "nowrap", flexShrink: 0, ...ss }}>Нейтрально</div>
           {SCENARIOS.map((sc) => (
@@ -534,8 +589,8 @@ export default function Orbit({ setScreen }) {
         </div>
       </div>
 
-      {/* Bottom panel — collapsed/expanded */}
-      {panelOpen && (() => {
+      {/* Bottom panel — collapsed/expanded, hidden during meditation */}
+      {panelOpen && !meditating && (() => {
         const acHex = activeScenario ? activeScenario.hex : layer.hex;
         const panelTitle = activeScenario ? activeScenario.name : layer.name;
         const panelSub = activeScenario ? `Сценарий · ${layer.name}` : `Уровень ${layer.id}`;
