@@ -12,7 +12,7 @@ import SubPage from "./components/SubPage";
 import Orbit from "./components/Orbit";
 import Nav from "./components/Nav";
 
-export const VERSION = "2.0.3";
+export const VERSION = "2.1.0";
 
 export default function App() {
   const [onb, setOnb] = useState(() => localStorage.getItem("frisson_onb") === "1");

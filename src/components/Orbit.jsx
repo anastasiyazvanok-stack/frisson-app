@@ -367,10 +367,34 @@ export default function Orbit({ setScreen, addGems }) {
       [points, lines, electrons].forEach((o) => { o.rotation.x = state.sX; o.rotation.y = state.sY; o.rotation.z = state.sZ; o.position.z = state.cZ; });
 
       const sc = scenarioRef.current;
-      const scS = sc ? sc.speedMul : 1;
+
+      // Healing progress: 0 = start of meditation, 1 = fully healed
+      // Negative scenarios (anxiety, fear, conflict) gradually open up
+      // Positive scenarios (love, feminine, power) gradually intensify
+      let hp = 0;
+      if (medStartRef.current > 0 && medDurationRef.current > 0) {
+        const medElapsed = (Date.now() - medStartRef.current) / 1000;
+        hp = Math.min(1, medElapsed / medDurationRef.current);
+        hp = hp * hp * (3 - 2 * hp); // smoothstep easing
+      }
+
+      const isNegative = sc && (sc.id === "anxiety" || sc.id === "fear" || sc.id === "conflict");
+      const isPositive = sc && (sc.id === "love" || sc.id === "feminine" || sc.id === "power" || sc.id === "abundance" || sc.id === "capital");
+
+      // During meditation: negative scenarios fade out, radius expands, speed calms
+      const healFade = isNegative ? (1 - hp * 0.85) : 1; // negative effects reduce to 15%
+      const healExpand = isNegative ? (1 + hp * 0.4) : (isPositive ? (1 + hp * 0.15) : 1); // expand radius
+      const healSpeed = isNegative ? (1 - hp * 0.6) : (isPositive ? (1 + hp * 0.1) : 1); // slow down
+      // Positive scenarios get a gentle breath expansion during meditation
+      const healBreath = isPositive && hp > 0 ? Math.sin(t * 0.4) * 0.0008 * hp : 0;
+
+      const scS = sc ? sc.speedMul * healSpeed : 1;
       const effS = state.cS * scS;
-      const scPulse = sc ? Math.sin(t * (sc.pulseFreq || 1)) * (sc.pulseAmp || 0) : 0;
-      const joltActive = sc && sc.jolt && (Math.sin(t * 1.3) > 0.95);
+      const scPulse = sc ? Math.sin(t * (sc.pulseFreq || 1)) * (sc.pulseAmp || 0) * healFade : 0;
+      const joltActive = sc && sc.jolt && healFade > 0.3 && (Math.sin(t * 1.3) > 0.95);
+
+      // Expand radius during healing
+      if (hp > 0) { state.tR = l.radius * healExpand; }
 
       const p = geo.getAttribute("position"), a = p.array;
       for (let i = 0; i < N; i++) {
@@ -385,16 +409,20 @@ export default function Orbit({ setScreen, addGems }) {
         if (l.id === 5) { VA[i3] += (Math.random() - 0.5) * 0.004; VA[i3 + 1] += (Math.random() - 0.5) * 0.004; VA[i3 + 2] += (Math.random() - 0.5) * 0.004; }
         if (l.id === 3) { const nx = -y / d, ny = x / d; VA[i3] += nx * 0.003 * state.cS; VA[i3 + 1] += ny * 0.003 * state.cS; }
 
-        // Scenario physics
+        // Scenario physics — modulated by healing progress
         if (sc) {
-          if (sc.chaos) { VA[i3] += (Math.random() - 0.5) * sc.chaos; VA[i3+1] += (Math.random() - 0.5) * sc.chaos; VA[i3+2] += (Math.random() - 0.5) * sc.chaos; }
+          if (sc.chaos) { const c = sc.chaos * healFade; VA[i3] += (Math.random() - 0.5) * c; VA[i3+1] += (Math.random() - 0.5) * c; VA[i3+2] += (Math.random() - 0.5) * c; }
           if (sc.pulseAmp) { VA[i3] += (x/d) * scPulse; VA[i3+1] += (y/d) * scPulse; VA[i3+2] += (z/d) * scPulse; }
-          if (sc.contract) { VA[i3] -= (x/d) * sc.contract; VA[i3+1] -= (y/d) * sc.contract; VA[i3+2] -= (z/d) * sc.contract; }
-          if (sc.split) { const pullX = (x > 0 ? 14 : -14) - x; VA[i3] += pullX * 0.00015; }
-          if (joltActive) { VA[i3] += (Math.random() - 0.5) * 0.02; VA[i3+1] += (Math.random() - 0.5) * 0.02; VA[i3+2] += (Math.random() - 0.5) * 0.02; }
-          if (sc.radiate) { const pulse = (0.5 + 0.5 * Math.sin(t * 0.55)); VA[i3] += (x/d) * sc.radiate * pulse; VA[i3+1] += (y/d) * sc.radiate * pulse; VA[i3+2] += (z/d) * sc.radiate * pulse; }
-          if (sc.swirl) { const hxy = Math.sqrt(x*x + z*z) || 0.01; VA[i3] += (-z/hxy) * sc.swirl; VA[i3+2] += (x/hxy) * sc.swirl; VA[i3+1] += Math.sin(t * 0.8 + px * 0.3) * sc.swirl * 0.4; }
+          if (sc.contract) { const ct = sc.contract * (isNegative ? healFade : 1); VA[i3] -= (x/d) * ct; VA[i3+1] -= (y/d) * ct; VA[i3+2] -= (z/d) * ct; }
+          if (sc.split) { const pullX = (x > 0 ? 14 : -14) - x; VA[i3] += pullX * 0.00015 * healFade; }
+          if (joltActive) { const j = 0.02 * healFade; VA[i3] += (Math.random() - 0.5) * j; VA[i3+1] += (Math.random() - 0.5) * j; VA[i3+2] += (Math.random() - 0.5) * j; }
+          if (sc.radiate) { const pulse = (0.5 + 0.5 * Math.sin(t * 0.55)); const r = sc.radiate * (isPositive ? (1 + hp * 0.5) : 1); VA[i3] += (x/d) * r * pulse; VA[i3+1] += (y/d) * r * pulse; VA[i3+2] += (z/d) * r * pulse; }
+          if (sc.swirl) { const sw = sc.swirl * (isPositive ? (1 + hp * 0.3) : 1); const hxy = Math.sqrt(x*x + z*z) || 0.01; VA[i3] += (-z/hxy) * sw; VA[i3+2] += (x/hxy) * sw; VA[i3+1] += Math.sin(t * 0.8 + px * 0.3) * sw * 0.4; }
           if (sc.structured) { VA[i3] *= 0.996; VA[i3+1] *= 0.996; VA[i3+2] *= 0.996; }
+          // Healing breath for positive scenarios during meditation
+          if (healBreath) { VA[i3] += (x/d) * healBreath; VA[i3+1] += (y/d) * healBreath; VA[i3+2] += (z/d) * healBreath; }
+          // Gentle expansion push for all scenarios during meditation
+          if (hp > 0 && isNegative) { const expand = 0.0004 * hp; VA[i3] += (x/d) * expand; VA[i3+1] += (y/d) * expand; VA[i3+2] += (z/d) * expand; }
         }
 
         VA[i3] *= 0.992; VA[i3 + 1] *= 0.992; VA[i3 + 2] *= 0.992;
@@ -433,8 +461,18 @@ export default function Orbit({ setScreen, addGems }) {
       }
       elGeo.setDrawRange(0, alive); ep.needsUpdate = true;
 
-      const targetCol = sc ? new THREE.Color(sc.tint) : new THREE.Color(l.col);
-      const targetLc = sc ? new THREE.Color(sc.tint).multiplyScalar(0.6) : new THREE.Color(l.lc);
+      // Color shifts toward warm calm during meditation healing
+      let targetCol = sc ? new THREE.Color(sc.tint) : new THREE.Color(l.col);
+      let targetLc = sc ? new THREE.Color(sc.tint).multiplyScalar(0.6) : new THREE.Color(l.lc);
+      if (hp > 0 && isNegative) {
+        const healCol = new THREE.Color(0xF0A0D0); // warm pink = healed state
+        targetCol = new THREE.Color(sc.tint).lerp(healCol, hp * 0.7);
+        targetLc = targetCol.clone().multiplyScalar(0.5);
+      } else if (hp > 0 && isPositive) {
+        const brightCol = new THREE.Color(sc.tint).multiplyScalar(1 + hp * 0.3);
+        targetCol = brightCol;
+        targetLc = brightCol.clone().multiplyScalar(0.6);
+      }
       mat.color.lerp(targetCol, 0.018); lineMat.color.lerp(targetLc, 0.018);
       mat.opacity = state.cB + bass * 0.08; mat.size = (state.cSz + bass * 0.05) * 2.2;
 
