@@ -12,7 +12,7 @@ import SubPage from "./components/SubPage";
 import Orbit from "./components/Orbit";
 import Nav from "./components/Nav";
 
-export const VERSION = "1.13.0";
+export const VERSION = "1.13.1";
 
 export default function App() {
   const [onb, setOnb] = useState(() => localStorage.getItem("frisson_onb") === "1");
@@ -37,7 +37,8 @@ export default function App() {
   const [pLog] = useState([0, 1, 0, 2, 1, 0, 0]);
   const [libSec, setLibSec] = useState("all");
   const [openMed, setOpenMed] = useState(null);
-  const goToMed = (medTitle) => { setOpenMed(medTitle); setScreen("library"); };
+  const [medFrom, setMedFrom] = useState(null);
+  const goToMed = (medTitle, from) => { setOpenMed(medTitle); setMedFrom(from || null); setScreen("library"); };
   const [gems, setGems] = useState(() => parseInt(localStorage.getItem("frisson_gems")) || 0);
   const addGems = (n) => setGems((g) => { const v = g + n; localStorage.setItem("frisson_gems", v); return v; });
 
@@ -52,7 +53,7 @@ export default function App() {
 
   const screens = {
     home: <Home setScreen={setScreen} theme={theme} setTheme={setThemePersisted} eScore={eScore} pLog={pLog} setLibSec={setLibSec} />,
-    library: <Library setScreen={setScreen} theme={theme} initSec={libSec} initMed={openMed} clearMed={() => setOpenMed(null)} />,
+    library: <Library setScreen={setScreen} theme={theme} initSec={libSec} initMed={openMed} clearMed={() => setOpenMed(null)} medFrom={medFrom} clearMedFrom={() => setMedFrom(null)} />,
     orbit: <Orbit setScreen={setScreen} />,
     journal: <Journal theme={theme} addGems={addGems} />,
     situations: <Situations setScreen={setScreen} theme={theme} goToMed={goToMed} />,

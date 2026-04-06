@@ -67,7 +67,7 @@ export default function Situations({ setScreen, theme, goToMed }) {
                         const title = extractTitle(r);
                         const canGo = title && goToMed;
                         return (
-                          <div key={ri} onClick={canGo ? () => goToMed(title) : undefined} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 6px", marginBottom: 2, cursor: canGo ? "pointer" : "default", borderRadius: 10, background: "transparent", transition: "background .2s" }}>
+                          <div key={ri} onClick={canGo ? () => goToMed(title, "situations") : undefined} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 6px", marginBottom: 2, cursor: canGo ? "pointer" : "default", borderRadius: 10, background: "transparent", transition: "background .2s" }}>
                             <div style={{ width: 30, height: 30, borderRadius: "50%", background: `${st.hex}22`, border: `1px solid ${st.hex}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: st.hex, flexShrink: 0 }}>▶</div>
                             <div style={{ flex: 1 }}>
                               <div style={{ fontFamily: FONT_SERIF, fontSize: 13.5, color: "rgba(242,232,226,.9)", lineHeight: 1.45 }}>{r}</div>

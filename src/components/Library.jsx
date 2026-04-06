@@ -5,7 +5,7 @@ import { FONT_SERIF, FONT_SANS } from "../utils/helpers";
 import Orb from "./Orb";
 import Lock from "./Lock";
 
-export default function Library({ setScreen, theme, initSec, initMed, clearMed }) {
+export default function Library({ setScreen, theme, initSec, initMed, clearMed, medFrom, clearMedFrom }) {
   const T = THEMES[theme] || THEMES.full;
   const ALL_MEDS = SECTIONS.flatMap((s) => s.meds);
   const [det, setDet] = useState(() => {
@@ -30,9 +30,12 @@ export default function Library({ setScreen, theme, initSec, initMed, clearMed }
     const ac = (sec && sec.color) || T.accent;
     return (
       <div style={{ minHeight: "100%", background: T.bg, paddingBottom: 20, transition: "background .6s" }}>
-        <div onClick={() => { setDet(null); setPlay(false); setProg(0); }} style={{ padding: "20px 24px 12px", display: "flex", alignItems: "center", gap: 9, cursor: "pointer", borderBottom: `1px solid ${T.border}` }}>
+        <div onClick={() => {
+          setDet(null); setPlay(false); setProg(0);
+          if (medFrom) { setScreen(medFrom); if (clearMedFrom) clearMedFrom(); }
+        }} style={{ padding: "20px 24px 12px", display: "flex", alignItems: "center", gap: 9, cursor: "pointer", borderBottom: `1px solid ${T.border}` }}>
           <span style={{ fontSize: 15, color: "rgba(242,232,226,.45)" }}>←</span>
-          <span style={{ fontSize: 11, letterSpacing: ".15em", textTransform: "uppercase", color: "rgba(242,232,226,.45)", fontFamily: FONT_SANS }}>Назад</span>
+          <span style={{ fontSize: 11, letterSpacing: ".15em", textTransform: "uppercase", color: "rgba(242,232,226,.45)", fontFamily: FONT_SANS }}>{medFrom ? "Назад к навигатору" : "Назад"}</span>
         </div>
         <div style={{ position: "relative", height: 180, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ width: play ? 170 : 135, height: play ? 170 : 135, borderRadius: "50%", background: `radial-gradient(circle at 40% 35%,rgba(255,255,255,.3) 0%,${ac}cc 35%,${ac}44 70%,transparent 100%)`, filter: "blur(2px)", transition: "all 1.2s ease", animation: "breathe 4s ease-in-out infinite", boxShadow: `0 0 60px ${ac}66` }} />
