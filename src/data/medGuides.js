@@ -1,10 +1,11 @@
 // Guided meditation scripts per scenario
-// Each entry: { at: seconds from start (fraction 0-1 of duration), text, breath }
+// Each entry: { at: fraction 0-1 of duration, text, breath }
 // breath: "in" = вдох, "out" = выдох, "hold" = задержка, null = just text
+// Eyes stay OPEN — the orb is the meditation object
 
 export const MED_GUIDES = {
   neutral: [
-    { at: 0, text: "Закройте глаза. Найдите удобное положение.", breath: null },
+    { at: 0, text: "Смотрите на орбиту. Найдите удобное положение.", breath: null },
     { at: 0.05, text: "Глубокий вдох через нос...", breath: "in" },
     { at: 0.08, text: "Медленный выдох через рот...", breath: "out" },
     { at: 0.12, text: "Почувствуйте, как тело становится тяжелее.", breath: null },
@@ -20,7 +21,7 @@ export const MED_GUIDES = {
     { at: 0.82, text: "Глубокий вдох благодарности...", breath: "in" },
     { at: 0.86, text: "Мягкий выдох...", breath: "out" },
     { at: 0.92, text: "Вы наполнены. Вы спокойны.", breath: null },
-    { at: 0.97, text: "Медленно возвращайтесь...", breath: null },
+    { at: 0.97, text: "Сделайте глубокий вдох и мягко вернитесь.", breath: null },
   ],
   anxiety: [
     { at: 0, text: "Остановитесь. Вы в безопасности прямо сейчас.", breath: null },
@@ -42,10 +43,10 @@ export const MED_GUIDES = {
     { at: 0.80, text: "Глубокий вдох... самый глубокий...", breath: "in" },
     { at: 0.85, text: "Длинный выдох... отпустите всё...", breath: "out" },
     { at: 0.90, text: "Вы справились. Тревога отступила.", breath: null },
-    { at: 0.96, text: "Откройте глаза, когда будете готовы.", breath: null },
+    { at: 0.96, text: "Сделайте последний глубокий вдох и вернитесь.", breath: null },
   ],
   love: [
-    { at: 0, text: "Положите руки на сердце. Почувствуйте тепло.", breath: null },
+    { at: 0, text: "Положите руки на сердце. Смотрите на орбиту.", breath: null },
     { at: 0.05, text: "Вдох — я открываю сердце...", breath: "in" },
     { at: 0.09, text: "Выдох — я разрешаю себе любить...", breath: "out" },
     { at: 0.15, text: "Представьте розовый свет в центре груди.", breath: null },
@@ -62,7 +63,7 @@ export const MED_GUIDES = {
     { at: 0.80, text: "Вдох — любовь — это моя природа...", breath: "in" },
     { at: 0.84, text: "Выдох — я разрешаю себе получать...", breath: "out" },
     { at: 0.90, text: "Вы наполнены. Вы красивы. Вы любовь.", breath: null },
-    { at: 0.96, text: "Улыбнитесь. Откройте глаза.", breath: null },
+    { at: 0.96, text: "Улыбнитесь. Почувствуйте тепло в груди.", breath: null },
   ],
   power: [
     { at: 0, text: "Выпрямите спину. Почувствуйте свой центр.", breath: null },
@@ -82,7 +83,7 @@ export const MED_GUIDES = {
     { at: 0.76, text: "Выдох — я действую...", breath: "out" },
     { at: 0.84, text: "Вы — сила. Вы — огонь. Вы — решение.", breath: null },
     { at: 0.92, text: "Сожмите кулаки. Почувствуйте мощь.", breath: null },
-    { at: 0.97, text: "Откройте глаза. Действуйте.", breath: null },
+    { at: 0.97, text: "Вы готовы. Действуйте.", breath: null },
   ],
   conflict: [
     { at: 0, text: "Остановитесь. Не нужно выбирать прямо сейчас.", breath: null },
@@ -101,7 +102,7 @@ export const MED_GUIDES = {
     { at: 0.80, text: "Вдох — я выбираю себя...", breath: "in" },
     { at: 0.84, text: "Выдох — остальное приложится...", breath: "out" },
     { at: 0.92, text: "Вы нашли покой посреди неопределённости.", breath: null },
-    { at: 0.97, text: "Откройте глаза. Решение внутри вас.", breath: null },
+    { at: 0.97, text: "Решение уже внутри вас. Доверьтесь ему.", breath: null },
   ],
   fear: [
     { at: 0, text: "Вы в безопасности. Ничего не угрожает вам прямо сейчас.", breath: null },
@@ -121,7 +122,7 @@ export const MED_GUIDES = {
     { at: 0.82, text: "Вдох — я больше, чем мой страх...", breath: "in" },
     { at: 0.86, text: "Выдох — я выбираю доверие...", breath: "out" },
     { at: 0.92, text: "Вы в безопасности. Вы справились.", breath: null },
-    { at: 0.97, text: "Мягко откройте глаза.", breath: null },
+    { at: 0.97, text: "Сделайте глубокий вдох. Вы свободны.", breath: null },
   ],
   abundance: [
     { at: 0, text: "Расслабьте плечи. Откройте ладони вверх.", breath: null },
@@ -140,7 +141,7 @@ export const MED_GUIDES = {
     { at: 0.80, text: "Вдох — благодарность за то, что уже есть...", breath: "in" },
     { at: 0.84, text: "Выдох — готовность к большему...", breath: "out" },
     { at: 0.92, text: "Вы — сосуд изобилия. Вы наполнены.", breath: null },
-    { at: 0.97, text: "Откройте глаза. Примите этот день.", breath: null },
+    { at: 0.97, text: "Примите этот день с открытыми руками.", breath: null },
   ],
   feminine: [
     { at: 0, text: "Расслабьте всё тело. Позвольте себе быть мягкой.", breath: null },
@@ -160,7 +161,7 @@ export const MED_GUIDES = {
     { at: 0.79, text: "Выдох — я разрешаю себе наслаждаться...", breath: "out" },
     { at: 0.86, text: "Вы — женщина. Это больше, чем роль. Это состояние.", breath: null },
     { at: 0.92, text: "Улыбнитесь. Почувствуйте губы.", breath: null },
-    { at: 0.97, text: "Откройте глаза. Вы сияете.", breath: null },
+    { at: 0.97, text: "Вы сияете. Почувствуйте это.", breath: null },
   ],
   capital: [
     { at: 0, text: "Сядьте прямо. Почувствуйте свою ось.", breath: null },
@@ -180,6 +181,6 @@ export const MED_GUIDES = {
     { at: 0.76, text: "Выдох — я гибкая и сильная одновременно...", breath: "out" },
     { at: 0.84, text: "Надежда + стойкость + оптимизм + вера в себя = ваш капитал.", breath: null },
     { at: 0.92, text: "Вы устойчивы. Вы способны. Вы знаете это.", breath: null },
-    { at: 0.97, text: "Откройте глаза. Вы готовы.", breath: null },
+    { at: 0.97, text: "Вы готовы. Почувствуйте свою силу.", breath: null },
   ],
 };
