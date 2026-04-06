@@ -9,7 +9,7 @@ export default function GlobalStyles() {
       @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
       @keyframes shimmer{0%,100%{opacity:.15}50%{opacity:.5}}
       @keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-44px) scale(1.2)}}
-      @keyframes gemBurst{0%{opacity:0;transform:scale(.5) translateY(20px)}15%{opacity:1;transform:scale(1.3) translateY(-10px)}40%{transform:scale(1) translateY(-30px)}100%{opacity:0;transform:scale(.8) translateY(-80px)}}
+      @keyframes gemBurst{0%{opacity:0;transform:scale(.5) translateY(20px)}12%{opacity:1;transform:scale(1.3) translateY(-8px)}30%{opacity:1;transform:scale(1) translateY(-16px)}75%{opacity:1;transform:scale(1) translateY(-24px)}100%{opacity:0;transform:scale(.9) translateY(-50px)}}
       @keyframes gemGlow{0%,100%{text-shadow:0 0 8px currentColor,0 0 20px currentColor}50%{text-shadow:0 0 16px currentColor,0 0 40px currentColor,0 0 60px currentColor}}
       @keyframes moonHalo{0%,100%{transform:scale(1);opacity:.35}50%{transform:scale(1.35);opacity:.6}}
       @keyframes floatBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}

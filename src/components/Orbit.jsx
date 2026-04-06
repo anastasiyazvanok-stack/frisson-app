@@ -123,7 +123,9 @@ export default function Orbit({ setScreen, addGems }) {
   const [medDuration, setMedDuration] = useState(0);
   const [showTimerPicker, setShowTimerPicker] = useState(false);
   const timerRef = useRef(null);
-  const [gemPop, setGemPop] = useState(null); // { amount, id } for crystal animation
+  const [gemPop, setGemPop] = useState(null);
+  const medDurationRef = useRef(0);
+  const medStartRef = useRef(0);
   const [soundOn, setSoundOn] = useState(false);
   const audioRef = useRef({ ctx: null, gain: null, oscs: [], analyser: null, freq: new Uint8Array(64), bass: 0, mid: 0 });
 
@@ -214,6 +216,13 @@ export default function Orbit({ setScreen, addGems }) {
     setTimeout(() => cleanupAudio(), 1000);
   }
 
+  function awardCrystals(seconds) {
+    const earned = Math.max(1, Math.round(seconds / 60));
+    if (addGems) addGems(earned);
+    setGemPop({ amount: earned, id: Date.now() });
+    setTimeout(() => setGemPop(null), 4000);
+  }
+
   function startMeditation(seconds) {
     setShowTimerPicker(false);
     buildSound(activeScenario?.id || "neutral");
@@ -221,47 +230,32 @@ export default function Orbit({ setScreen, addGems }) {
     setMeditating(true);
     setMedDuration(seconds);
     setMedTime(seconds);
+    medDurationRef.current = seconds;
+    medStartRef.current = Date.now();
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
-      setMedTime((t) => {
-        if (t <= 1) {
-          completeMeditation();
-          return 0;
-        }
-        return t - 1;
-      });
-    }, 1000);
-  }
-
-  function completeMeditation() {
-    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
-    stopSound();
-    setSoundOn(false);
-    setMeditating(false);
-    // Award crystals: 1 per minute meditated
-    const earned = Math.max(1, Math.round(medDuration / 60));
-    if (addGems) addGems(earned);
-    const id = Date.now();
-    setGemPop({ amount: earned, id });
-    setTimeout(() => setGemPop(null), 2500);
-    setMedTime(0);
+      const elapsed = Math.floor((Date.now() - medStartRef.current) / 1000);
+      const remaining = Math.max(0, medDurationRef.current - elapsed);
+      setMedTime(remaining);
+      if (remaining <= 0) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+        stopSound();
+        setSoundOn(false);
+        setMeditating(false);
+        awardCrystals(medDurationRef.current);
+      }
+    }, 200);
   }
 
   function stopMeditation() {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
-    const elapsed = medDuration - medTime;
+    const elapsed = Math.floor((Date.now() - medStartRef.current) / 1000);
     stopSound();
     setSoundOn(false);
     setMeditating(false);
-    // Award partial crystals if meditated at least 30 seconds
-    if (elapsed >= 30) {
-      const earned = Math.max(1, Math.round(elapsed / 60));
-      if (addGems) addGems(earned);
-      const id = Date.now();
-      setGemPop({ amount: earned, id });
-      setTimeout(() => setGemPop(null), 2500);
-    }
     setMedTime(0);
+    if (elapsed >= 30) awardCrystals(elapsed);
   }
 
   function toggleSound() {
@@ -590,11 +584,15 @@ export default function Orbit({ setScreen, addGems }) {
         </div>
       )}
 
-      {/* Crystal reward popup */}
+      {/* Crystal reward popup — large and celebratory */}
       {gemPop && (
-        <div key={gemPop.id} style={{ position: "absolute", top: "38%", left: "50%", transform: "translateX(-50%)", zIndex: 40, pointerEvents: "none", textAlign: "center", animation: "gemBurst 2.2s ease forwards" }}>
-          <div style={{ fontSize: 36, color: "#F0D060", animation: "gemGlow 1s ease-in-out 3" }}>+{gemPop.amount} ⟡</div>
-          <div style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: "rgba(240,208,96,.6)", marginTop: 4, ...ss }}>кристаллов</div>
+        <div key={gemPop.id} style={{ position: "absolute", inset: 0, zIndex: 40, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 50% 50%, rgba(240,208,96,.12) 0%, transparent 60%)", animation: "breathe 2s ease-in-out" }} />
+          <div style={{ textAlign: "center", animation: "gemBurst 3.5s ease forwards" }}>
+            <div style={{ fontSize: 56, color: "#F0D060", animation: "gemGlow 1.2s ease-in-out 3", lineHeight: 1 }}>+{gemPop.amount}</div>
+            <div style={{ fontSize: 32, color: "#F0D060", marginTop: 4, animation: "gemGlow 1.2s ease-in-out 3" }}>⟡</div>
+            <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: "rgba(240,208,96,.7)", marginTop: 10, ...ss }}>кристаллов получено</div>
+          </div>
         </div>
       )}
 
