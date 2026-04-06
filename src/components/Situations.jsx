@@ -41,9 +41,10 @@ export default function Situations({ setScreen, theme, goToMed }) {
               const key = `${si}-${ii}`;
               const isOpen = openItem === key;
               return (
-                <div key={ii} style={{ marginBottom: 6 }}>
+                <div key={ii} className="list-item" style={{ marginBottom: 6, animationDelay: `${ii * 0.04}s` }}>
                   <div
                     onClick={() => setOpenItem(isOpen ? null : key)}
+                    className="press-card"
                     style={{
                       padding: "13px 16px", cursor: "pointer",
                       background: isOpen ? `${st.hex}14` : T.card,

@@ -3,7 +3,7 @@ import { THEMES, getEnergyLevel } from "../data/themes";
 import { TEST_QUESTIONS } from "../data/content";
 import { FONT_SERIF, FONT_SANS } from "../utils/helpers";
 import Orb from "./Orb";
-import Garden from "./Garden";
+
 import { VERSION } from "../App";
 
 export default function Profile({ setScreen, theme, eScore, setEScore, eHist, setEHist, pLog, gems = 0 }) {
@@ -118,12 +118,6 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
         <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 60 }}>
           {days.map((d, i) => { const v = pd[i] || 0; const h = Math.max(4, v * 20); return (<div key={d} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}><div style={{ width: "100%", borderRadius: "3px 3px 0 0", height: h, transition: "height .8s ease", background: v > 0 ? T.accent : "rgba(255,255,255,.06)" }} /><div style={{ fontSize: 8, color: "rgba(242,232,226,.3)", fontFamily: FONT_SANS }}>{d}</div></div>); })}
         </div>
-      </div>
-
-      {/* Inner Garden */}
-      <div style={{ margin: "0 24px 18px", padding: "16px 14px 8px", background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, position: "relative", zIndex: 1 }}>
-        <div style={{ fontFamily: FONT_SANS, fontSize: 9, letterSpacing: ".22em", textTransform: "uppercase", color: "rgba(242,232,226,.4)", marginBottom: 4, textAlign: "center" }}>Внутренний сад</div>
-        <Garden gems={gems} theme={theme} />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, margin: "0 24px 18px", position: "relative", zIndex: 1 }}>

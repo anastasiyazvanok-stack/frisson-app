@@ -18,12 +18,21 @@ export default function GlobalStyles() {
       @keyframes navPop{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
       .fu1{animation:fadeUp .5s .06s ease both}.fu2{animation:fadeUp .5s .12s ease both}
       .fu3{animation:fadeUp .5s .18s ease both}.fu4{animation:fadeUp .5s .24s ease both}.fu5{animation:fadeUp .5s .3s ease both}
-      .pc{transition:transform .15s ease}.pc:active{transform:scale(.97)}
+      @keyframes pulseGlow{0%,100%{box-shadow:0 0 4px var(--glow-color,rgba(176,32,160,.3))}50%{box-shadow:0 0 16px var(--glow-color,rgba(176,32,160,.5)),0 0 32px var(--glow-color,rgba(176,32,160,.2))}}
+      @keyframes shimmerSlide{0%{background-position:-200% 0}100%{background-position:200% 0}}
+      @keyframes listSlideIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+      @keyframes pressDown{0%{transform:scale(1)}50%{transform:scale(.95)}100%{transform:scale(1)}}
+      @keyframes glowPulse{0%,100%{opacity:.6}50%{opacity:1}}
+      .pc{transition:transform .15s cubic-bezier(.2,.8,.4,1)}.pc:active{transform:scale(.95)}
       .screen-in{animation:screenFade .35s ease both}
       .moon-halo{animation:moonHalo 4s ease-in-out infinite}
       .card-float{animation:floatBob 5s ease-in-out infinite}
       .nav-active-pop{animation:navPop .5s ease}
       .ambient-dot{animation:driftY 8s ease-in-out infinite}
+      .pulse-glow{animation:pulseGlow 3s ease-in-out infinite}
+      .shimmer-bg{background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.04) 50%,transparent 100%);background-size:200% 100%;animation:shimmerSlide 3s ease-in-out infinite}
+      .list-item{animation:listSlideIn .4s ease both}
+      .press-card{transition:transform .2s cubic-bezier(.2,.8,.4,1),box-shadow .2s}.press-card:active{transform:scale(.96) translateY(1px)}
     `}</style>
   );
 }

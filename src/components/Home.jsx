@@ -61,7 +61,7 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: FONT_SANS, fontSize: 9, letterSpacing: ".2em", textTransform: "uppercase", color: "rgba(242,232,226,.38)", marginBottom: 3 }}>Психологическая энергия</div>
           <div style={{ fontFamily: FONT_SERIF, fontSize: 18, color: T.text }}>{lv ? `${eScore} — ${lv.l}` : "Пройдите тест в профиле"}</div>
-          <div style={{ height: 2.5, background: "rgba(255,255,255,.06)", borderRadius: 2, marginTop: 7, overflow: "hidden" }}><div style={{ height: "100%", borderRadius: 2, background: T.accent, width: lv ? `${eScore}%` : "0%", transition: "width 1.2s ease" }} /></div>
+          <div style={{ height: 3, background: "rgba(255,255,255,.06)", borderRadius: 2, marginTop: 7, overflow: "hidden" }}><div className={lv ? "pulse-glow" : ""} style={{ height: "100%", borderRadius: 2, background: T.accent, width: lv ? `${eScore}%` : "0%", transition: "width 1.2s ease", "--glow-color": `${T.accent}66` }} /></div>
         </div>
         <div style={{ fontSize: 10, color: T.accent, fontFamily: FONT_SANS }}>→</div>
       </div>
@@ -87,7 +87,7 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
         </div>
       </div>
 
-      <div className="fu3" onClick={() => setScreen("situations")} style={{ margin: "0 24px 20px", padding: "18px 20px", background: T.dim, border: `1px solid ${T.border}`, borderRadius: 18, display: "flex", alignItems: "center", gap: 14, cursor: "pointer", position: "relative", zIndex: 1, transition: "background .6s" }}>
+      <div className="fu3 press-card" onClick={() => setScreen("situations")} style={{ margin: "0 24px 20px", padding: "18px 20px", background: T.dim, border: `1px solid ${T.border}`, borderRadius: 18, display: "flex", alignItems: "center", gap: 14, cursor: "pointer", position: "relative", zIndex: 1, transition: "background .6s" }}>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: FONT_SERIF, fontSize: 17, color: T.text, marginBottom: 3 }}>Что меня беспокоит прямо сейчас?</div>
           <div style={{ fontSize: 11, color: "rgba(242,232,226,.42)", fontFamily: FONT_SANS, lineHeight: 1.45 }}>Выберите ситуацию — получите практики именно для вас</div>
@@ -104,7 +104,7 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
           const sec = SECTIONS.find((s) => s.id === r.sec);
           const lc = r.free ? "rgba(160,130,50,.8)" : (sec?.color || T.accent);
           return (
-            <div key={r.t} onClick={() => setScreen("library")} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, marginBottom: 7, cursor: "pointer", position: "relative", overflow: "hidden", transition: "background .6s" }}>
+            <div key={r.t} onClick={() => setScreen("library")} className="press-card" style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, marginBottom: 7, cursor: "pointer", position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 2.5, background: lc, borderRadius: "2px 0 0 2px" }} />
               <div style={{ width: 34, height: 34, borderRadius: 10, background: `${lc}22`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontFamily: FONT_SERIF, fontSize: 16, color: lc }}>◦</div>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -117,7 +117,7 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
         })}
       </div>
 
-      <div className="fu4" onClick={() => setScreen("sub")} style={{ margin: "0 24px 22px", borderRadius: 22, overflow: "hidden", cursor: "pointer", background: `linear-gradient(145deg,${T.gF},${T.gT})`, border: `1.5px solid ${T.border}`, position: "relative", zIndex: 1, transition: "background .6s" }}>
+      <div className="fu4 press-card shimmer-bg" onClick={() => setScreen("sub")} style={{ margin: "0 24px 22px", borderRadius: 22, overflow: "hidden", cursor: "pointer", background: `linear-gradient(145deg,${T.gF},${T.gT})`, border: `1.5px solid ${T.border}`, position: "relative", zIndex: 1 }}>
         <Orb style={{ top: -60, right: -60 }} color={T.o1} opacity={0.3} w={200} h={200} />
         <div style={{ position: "relative", zIndex: 1, padding: "24px 22px 20px" }}>
           <div style={{ fontFamily: FONT_SANS, fontSize: 9, letterSpacing: ".22em", textTransform: "uppercase", color: T.accent, marginBottom: 10 }}>Frisson Premium</div>
@@ -130,7 +130,7 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
         </div>
       </div>
 
-      <div className="fu5" onClick={() => setScreen("journal")} style={{ margin: "0 24px 24px", padding: "17px 20px", background: "linear-gradient(135deg,rgba(160,130,50,.1),rgba(125,23,54,.08))", border: "1px solid rgba(160,138,65,.18)", borderRadius: 18, display: "flex", alignItems: "center", gap: 13, cursor: "pointer", position: "relative", zIndex: 1 }}>
+      <div className="fu5 press-card" onClick={() => setScreen("journal")} style={{ margin: "0 24px 24px", padding: "17px 20px", background: "linear-gradient(135deg,rgba(160,130,50,.1),rgba(125,23,54,.08))", border: "1px solid rgba(160,138,65,.18)", borderRadius: 18, display: "flex", alignItems: "center", gap: 13, cursor: "pointer", position: "relative", zIndex: 1 }}>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: FONT_SERIF, fontSize: 16.5, color: T.text, marginBottom: 2 }}>Дневник</div>
           <div style={{ fontSize: 10.5, color: "rgba(242,232,226,.4)", fontFamily: FONT_SANS }}>Сегодня у вас нет записи</div>

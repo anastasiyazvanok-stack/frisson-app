@@ -99,7 +99,7 @@ export default function Library({ setScreen, theme, initSec, initMed, clearMed, 
               <div style={{ fontFamily: FONT_SERIF, fontSize: 15, color: "rgba(242,232,226,.82)" }}>{sec.title}</div>
             </div>
             {sec.meds.map((med) => (
-              <div key={med.n} onClick={() => setDet(med)} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "13px 14px", background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, marginBottom: 8, cursor: "pointer", position: "relative", overflow: "hidden", transition: "background .6s" }}>
+              <div key={med.n} onClick={() => setDet(med)} className="list-item press-card" style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "13px 14px", background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, marginBottom: 8, cursor: "pointer", position: "relative", overflow: "hidden", animationDelay: `${med.n * 0.05}s` }}>
                 <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: med.free ? "linear-gradient(to bottom,rgba(160,138,65,.9),rgba(160,138,65,.2))" : `linear-gradient(to bottom,${sec.color},${sec.color}22)`, borderRadius: "3px 0 0 3px" }} />
                 <div style={{ fontFamily: FONT_SERIF, fontSize: 20, color: sec.color, width: 26, textAlign: "center", flexShrink: 0, lineHeight: 1, paddingTop: 2 }}>{med.n}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
