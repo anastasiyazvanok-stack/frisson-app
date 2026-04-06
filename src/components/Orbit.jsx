@@ -619,31 +619,47 @@ export default function Orbit({ setScreen, addGems }) {
         <button onClick={toggleSound} style={{ pointerEvents: "all", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, background: soundOn ? "rgba(140,30,60,.36)" : "rgba(100,20,50,.2)", border: `1px solid ${soundOn ? "rgba(200,130,90,.5)" : "rgba(190,130,90,.25)"}`, borderRadius: 16, padding: "5px 11px", fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: soundOn ? "rgba(240,210,178,.92)" : "rgba(210,175,145,.6)", transition: "all .3s", whiteSpace: "nowrap", ...ss }}>{meditating ? "■ Стоп" : soundOn ? "■ Стоп" : `♫ ${getProfile().label}`}</button>
       </div>
 
-      {/* Meditation: guide text + timer — all at bottom */}
-      {meditating && (
-        <div style={{ position: "absolute", left: 0, right: 0, bottom: 10, zIndex: 28, display: "flex", flexDirection: "column", alignItems: "center", pointerEvents: "none" }}>
-          {/* Guide text — above timer */}
-          {guideText && (
-            <div key={guideText.text} style={{ textAlign: "center", padding: "0 24px", marginBottom: 10, animation: "fadeUp .6s ease both", maxWidth: 340 }}>
-              {guideText.breath && (
-                <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase", color: guideText.breath === "in" ? "rgba(160,212,228,.5)" : guideText.breath === "hold" ? "rgba(240,208,96,.4)" : "rgba(200,160,180,.45)", marginBottom: 6, ...ss }}>
-                  {guideText.breath === "in" ? "вдох ↑" : guideText.breath === "hold" ? "задержка ◦" : "выдох ↓"}
+      {/* Meditation: guide text + timer */}
+      {meditating && (() => {
+        const textBottom = isNegative; // fear/anxiety/conflict → text at bottom; others → centered over orb
+        const breathEl = guideText?.breath && (
+          <div style={{ fontSize: 10, letterSpacing: 3, textTransform: "uppercase", color: guideText.breath === "in" ? "rgba(160,212,228,.55)" : guideText.breath === "hold" ? "rgba(240,208,96,.45)" : "rgba(200,160,180,.5)", marginBottom: 6, ...ss }}>
+            {guideText.breath === "in" ? "вдох ↑" : guideText.breath === "hold" ? "задержка ◦" : "выдох ↓"}
+          </div>
+        );
+        const textEl = guideText && (
+          <div style={{ fontSize: 14, fontStyle: "italic", lineHeight: 1.65, color: textBottom ? "rgba(242,232,226,.65)" : "rgba(242,232,226,.4)", ...ss }}>{guideText.text}</div>
+        );
+        return (
+          <>
+            {/* Centered text for positive/neutral — subtle, see-through */}
+            {guideText && !textBottom && (
+              <div key={guideText.text} style={{ position: "absolute", left: 0, right: 0, top: "50%", transform: "translateY(-50%)", zIndex: 27, pointerEvents: "none", textAlign: "center", padding: "0 36px", animation: "fadeUp .8s ease both" }}>
+                {breathEl}
+                {textEl}
+              </div>
+            )}
+
+            {/* Bottom block: text (if negative) + timer */}
+            <div style={{ position: "absolute", left: 0, right: 0, bottom: 10, zIndex: 28, display: "flex", flexDirection: "column", alignItems: "center", pointerEvents: "none" }}>
+              {guideText && textBottom && (
+                <div key={guideText.text} style={{ textAlign: "center", padding: "0 24px", marginBottom: 10, animation: "fadeUp .6s ease both", maxWidth: 340 }}>
+                  {breathEl}
+                  {textEl}
                 </div>
               )}
-              <div style={{ fontSize: 13, fontStyle: "italic", lineHeight: 1.6, color: "rgba(242,232,226,.65)", ...ss }}>{guideText.text}</div>
+              <div style={{ background: "rgba(6,2,8,.7)", backdropFilter: "blur(12px)", borderRadius: 20, padding: "10px 20px", display: "flex", alignItems: "center", gap: 14, border: `1px solid ${acHex}22` }}>
+                <div style={{ fontSize: 22, fontWeight: 200, color: `${acHex}cc`, letterSpacing: 2, ...ss }}>{fmtTimer(medTime)}</div>
+                <div style={{ width: 1, height: 24, background: `${acHex}22` }} />
+                <div onClick={stopMeditation} style={{ pointerEvents: "all", cursor: "pointer", padding: "6px 14px", borderRadius: 12, background: `${acHex}18`, border: `1px solid ${acHex}33`, fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: `${acHex}aa`, ...ss }}>Завершить</div>
+              </div>
+              <div style={{ width: 80, height: 2, borderRadius: 1, background: "rgba(255,255,255,.06)", marginTop: 6, overflow: "hidden" }}>
+                <div style={{ height: "100%", background: acHex, borderRadius: 1, width: medDuration ? `${(medTime / medDuration) * 100}%` : "0%", transition: "width 1s linear" }} />
+              </div>
             </div>
-          )}
-          {/* Timer pill */}
-          <div style={{ background: "rgba(6,2,8,.7)", backdropFilter: "blur(12px)", borderRadius: 20, padding: "10px 20px", display: "flex", alignItems: "center", gap: 14, border: `1px solid ${acHex}22` }}>
-            <div style={{ fontSize: 22, fontWeight: 200, color: `${acHex}cc`, letterSpacing: 2, ...ss }}>{fmtTimer(medTime)}</div>
-            <div style={{ width: 1, height: 24, background: `${acHex}22` }} />
-            <div onClick={stopMeditation} style={{ pointerEvents: "all", cursor: "pointer", padding: "6px 14px", borderRadius: 12, background: `${acHex}18`, border: `1px solid ${acHex}33`, fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: `${acHex}aa`, ...ss }}>Завершить</div>
-          </div>
-          <div style={{ width: 80, height: 2, borderRadius: 1, background: "rgba(255,255,255,.06)", marginTop: 6, overflow: "hidden" }}>
-            <div style={{ height: "100%", background: acHex, borderRadius: 1, width: medDuration ? `${(medTime / medDuration) * 100}%` : "0%", transition: "width 1s linear" }} />
-          </div>
-        </div>
-      )}
+          </>
+        );
+      })()}
 
       {/* Crystal reward popup — large and celebratory */}
       {gemPop && (
