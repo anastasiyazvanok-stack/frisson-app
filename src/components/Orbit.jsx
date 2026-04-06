@@ -1,6 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
+// Sound profiles: each scenario has therapeutic frequencies
+// Neutral: 528 Hz (Solfeggio love/repair) + 8 Hz binaural → alpha
+const SOUND_PROFILES = {
+  neutral:  { label: "528 Hz · Исцеление", base: 528, beat: 8, sub: 132, overtone: 1056, lfoRate: 0.05, lfoDepth: 0.06, desc: "528 Гц — частота исцеления ДНК (Solfeggio). Бинауральный бит 8 Гц переводит мозг в альфа-состояние: спокойное бодрствование и внутренняя тишина." },
+  anxiety:  { label: "396 Hz · Освобождение", base: 396, beat: 4, sub: 99, overtone: 792, lfoRate: 0.035, lfoDepth: 0.04, desc: "396 Гц — освобождение от страха и вины (Solfeggio). Бинауральный бит 4 Гц (тета) мягко замедляет тревожный мозг. Нейроны постепенно перестают дрожать и находят опору." },
+  love:     { label: "639 Hz · Связь", base: 639, beat: 7.83, sub: 160, overtone: 1278, lfoRate: 0.04, lfoDepth: 0.07, desc: "639 Гц — гармонизация отношений и сердечная связь (Solfeggio). Бинауральный бит 7.83 Гц (резонанс Шумана) синхронизирует с частотой Земли. Нейроны начинают дышать в унисон." },
+  power:    { label: "741 Hz · Пробуждение", base: 741, beat: 14, sub: 185, overtone: 1482, lfoRate: 0.08, lfoDepth: 0.05, desc: "741 Гц — пробуждение интуиции и силы (Solfeggio). Бинауральный бит 14 Гц (бета) активирует решительность. Нейроны собираются в единый направленный поток." },
+  conflict: { label: "417 Hz · Трансформация", base: 417, beat: 6, sub: 104, overtone: 834, lfoRate: 0.06, lfoDepth: 0.08, desc: "417 Гц — трансформация и очищение от негативных паттернов (Solfeggio). Бинауральный бит 6 Гц (тета) помогает мозгу отпустить одну из сторон конфликта и найти единый центр." },
+  fear:     { label: "396 Hz · Безопасность", base: 396, beat: 3, sub: 99, overtone: 792, lfoRate: 0.025, lfoDepth: 0.03, desc: "396 Гц — освобождение от страха (Solfeggio). Бинауральный бит 3 Гц (глубокая дельта) возвращает ощущение безопасности на уровне нервной системы. Сжатые нейроны начинают расслабляться." },
+  abundance:{ label: "852 Hz · Изобилие", base: 852, beat: 10, sub: 213, overtone: 1704, lfoRate: 0.045, lfoDepth: 0.06, desc: "852 Гц — возвращение к духовному порядку и открытость к получению (Solfeggio). Бинауральный бит 10 Гц (альфа) настраивает мозг на расслабленную готовность принимать." },
+  feminine: { label: "432 Hz · Женственность", base: 432, beat: 7.83, sub: 108, overtone: 864, lfoRate: 0.03, lfoDepth: 0.09, desc: "432 Гц — природная гармония (Верди). Бинауральный бит 7.83 Гц (резонанс Шумана) соединяет с ритмами природы. Нейроны начинают танцевать — текуче, плавно, женственно." },
+  capital:  { label: "528 Hz · Устойчивость", base: 528, beat: 12, sub: 132, overtone: 1056, lfoRate: 0.05, lfoDepth: 0.04, desc: "528 Гц — восстановление и целостность (Solfeggio). Бинауральный бит 12 Гц (альфа-бета граница) — частота сфокусированной уверенности. Нейроны выстраиваются в устойчивую структуру." },
+};
+
 const SCENARIOS = [
   { id: "anxiety", name: "Тревога", hex: "#D4453C", speedMul: 2.4, chaos: 0.0035, pulseAmp: 0.0018, pulseFreq: 4.5, contract: 0.001, tint: 0xFF5040,
     byLayer: {
@@ -112,6 +126,8 @@ export default function Orbit({ setScreen }) {
     scenarioRef.current = sc;
     setActiveScenarioState(sc);
     if (sc) { setPanelMode("scenario"); setPanelOpen(true); }
+    // Rebuild sound with new profile if playing
+    if (soundOn) { buildSound(sc?.id || "neutral"); }
   }
 
   function openLayer(id) {
@@ -126,7 +142,13 @@ export default function Orbit({ setScreen }) {
     }
   }
 
-  function buildSound() {
+  function getProfile() {
+    return SOUND_PROFILES[activeScenario?.id] || SOUND_PROFILES.neutral;
+  }
+
+  function buildSound(profileId) {
+    stopSoundImmediate();
+    const prof = SOUND_PROFILES[profileId] || SOUND_PROFILES.neutral;
     const a = audioRef.current;
     a.ctx = new (window.AudioContext || window.webkitAudioContext)();
     a.gain = a.ctx.createGain();
@@ -136,26 +158,31 @@ export default function Orbit({ setScreen }) {
     a.gain.connect(a.analyser); a.gain.connect(a.ctx.destination);
     a.freq = new Uint8Array(a.analyser.frequencyBinCount);
 
+    // Sub bass (base / 4)
     const sub = a.ctx.createOscillator(), sg = a.ctx.createGain();
-    sub.type = "sine"; sub.frequency.value = 132; sg.gain.value = 0.55;
+    sub.type = "sine"; sub.frequency.value = prof.sub; sg.gain.value = 0.5;
     sub.connect(sg); sg.connect(a.gain); sub.start();
 
+    // Binaural: base Hz left + (base + beat) Hz right
     const merger = a.ctx.createChannelMerger(2); merger.connect(a.gain);
     const oL = a.ctx.createOscillator(), gL = a.ctx.createGain();
-    oL.type = "sine"; oL.frequency.value = 528; gL.gain.value = 0.45;
+    oL.type = "sine"; oL.frequency.value = prof.base; gL.gain.value = 0.42;
     oL.connect(gL); gL.connect(merger, 0, 0); oL.start();
     const oR = a.ctx.createOscillator(), gR = a.ctx.createGain();
-    oR.type = "sine"; oR.frequency.value = 536; gR.gain.value = 0.45;
+    oR.type = "sine"; oR.frequency.value = prof.base + prof.beat; gR.gain.value = 0.42;
     oR.connect(gR); gR.connect(merger, 0, 1); oR.start();
 
+    // Overtone (base * 2)
     const ov = a.ctx.createOscillator(), og = a.ctx.createGain();
-    ov.type = "sine"; ov.frequency.value = 1056; og.gain.value = 0.06;
+    ov.type = "sine"; ov.frequency.value = prof.overtone; og.gain.value = 0.05;
     ov.connect(og); og.connect(a.gain); ov.start();
 
+    // Breath LFO
     const lfo = a.ctx.createOscillator(), lg = a.ctx.createGain();
-    lfo.type = "sine"; lfo.frequency.value = 0.05; lg.gain.value = 0.06;
+    lfo.type = "sine"; lfo.frequency.value = prof.lfoRate; lg.gain.value = prof.lfoDepth;
     lfo.connect(lg); lg.connect(a.gain.gain); lfo.start();
 
+    // Heartbeat LFO on overtone
     const hb = a.ctx.createOscillator(), hg = a.ctx.createGain();
     hb.type = "sine"; hb.frequency.value = 0.18; hg.gain.value = 0.03;
     hb.connect(hg); hg.connect(og.gain); hb.start();
@@ -163,18 +190,25 @@ export default function Orbit({ setScreen }) {
     a.oscs = [sub, oL, oR, ov, lfo, hb];
   }
 
+  function stopSoundImmediate() {
+    const a = audioRef.current;
+    if (!a.ctx) return;
+    try {
+      a.oscs.forEach((o) => { try { o.stop(); } catch (e) {} });
+      a.ctx.close();
+    } catch (e) {}
+    a.ctx = null; a.analyser = null; a.oscs = []; a.bass = 0; a.mid = 0;
+  }
+
   function stopSound() {
     const a = audioRef.current;
     if (!a.ctx) return;
     a.gain.gain.linearRampToValueAtTime(0, a.ctx.currentTime + 1.2);
-    setTimeout(() => {
-      a.oscs.forEach((o) => { try { o.stop(); } catch (e) {} });
-      a.ctx.close(); a.ctx = null; a.analyser = null; a.oscs = []; a.bass = 0; a.mid = 0;
-    }, 1400);
+    setTimeout(() => stopSoundImmediate(), 1400);
   }
 
   function toggleSound() {
-    if (!soundOn) { buildSound(); } else { stopSound(); }
+    if (!soundOn) { buildSound(activeScenario?.id || "neutral"); } else { stopSound(); }
     setSoundOn(!soundOn);
   }
 
@@ -475,7 +509,7 @@ export default function Orbit({ setScreen }) {
             <div style={{ fontSize: 14, fontStyle: "italic", color: "rgba(228,202,182,.38)", marginTop: 2, ...ss }}>Орбита Психики</div>
           </div>
         </div>
-        <button onClick={toggleSound} style={{ pointerEvents: "all", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, background: soundOn ? "rgba(140,30,60,.36)" : "rgba(100,20,50,.2)", border: `1px solid ${soundOn ? "rgba(200,130,90,.5)" : "rgba(190,130,90,.25)"}`, borderRadius: 16, padding: "5px 11px", fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: soundOn ? "rgba(240,210,178,.92)" : "rgba(210,175,145,.6)", transition: "all .3s", whiteSpace: "nowrap", ...ss }}>{soundOn ? "■ Стоп" : "♫ 528 Hz"}</button>
+        <button onClick={toggleSound} style={{ pointerEvents: "all", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, background: soundOn ? "rgba(140,30,60,.36)" : "rgba(100,20,50,.2)", border: `1px solid ${soundOn ? "rgba(200,130,90,.5)" : "rgba(190,130,90,.25)"}`, borderRadius: 16, padding: "5px 11px", fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: soundOn ? "rgba(240,210,178,.92)" : "rgba(210,175,145,.6)", transition: "all .3s", whiteSpace: "nowrap", ...ss }}>{soundOn ? "■ Стоп" : `♫ ${getProfile().label}`}</button>
       </div>
 
       {/* Active label + name */}
@@ -504,13 +538,21 @@ export default function Orbit({ setScreen }) {
             <>
               <div style={{ fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: "rgba(190,130,90,.45)", marginBottom: 6, ...ss }}>Сценарий · {layer.name}</div>
               <div style={{ fontSize: 15, fontStyle: "italic", fontWeight: "normal", color: activeScenario.hex, lineHeight: 1.25, marginBottom: 8, ...ss }}>{activeScenario.name}</div>
-              <div style={{ fontSize: 11, lineHeight: 1.75, color: "rgba(200,175,158,.78)", wordWrap: "break-word", ...ss }}>{activeScenario.byLayer[layer.id]}</div>
+              <div style={{ fontSize: 11, lineHeight: 1.75, color: "rgba(200,175,158,.78)", wordWrap: "break-word", marginBottom: 12, ...ss }}>{activeScenario.byLayer[layer.id]}</div>
+              <div style={{ padding: "10px 14px", background: `${activeScenario.hex}0c`, border: `1px solid ${activeScenario.hex}22`, borderRadius: 10 }}>
+                <div style={{ fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: activeScenario.hex, marginBottom: 5, ...ss }}>♫ {getProfile().label}</div>
+                <div style={{ fontSize: 10, lineHeight: 1.7, color: "rgba(200,175,158,.6)", ...ss }}>{getProfile().desc}</div>
+              </div>
             </>
           ) : (
             <>
               <div style={{ fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: "rgba(190,130,90,.45)", marginBottom: 6, ...ss }}>Уровень {layer.id}</div>
               <div style={{ fontSize: 15, fontStyle: "italic", fontWeight: "normal", color: layer.hex, lineHeight: 1.25, marginBottom: 8, ...ss }}>{layer.name}</div>
-              <div style={{ fontSize: 11, lineHeight: 1.75, color: "rgba(200,175,158,.78)", wordWrap: "break-word", ...ss }}>{layer.desc}</div>
+              <div style={{ fontSize: 11, lineHeight: 1.75, color: "rgba(200,175,158,.78)", wordWrap: "break-word", marginBottom: 12, ...ss }}>{layer.desc}</div>
+              <div style={{ padding: "10px 14px", background: "rgba(190,130,90,.06)", border: "1px solid rgba(190,130,90,.15)", borderRadius: 10 }}>
+                <div style={{ fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: "rgba(190,130,90,.55)", marginBottom: 5, ...ss }}>♫ {getProfile().label}</div>
+                <div style={{ fontSize: 10, lineHeight: 1.7, color: "rgba(200,175,158,.5)", ...ss }}>{getProfile().desc}</div>
+              </div>
             </>
           )}
         </div>
