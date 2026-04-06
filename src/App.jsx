@@ -12,7 +12,7 @@ import SubPage from "./components/SubPage";
 import Orbit from "./components/Orbit";
 import Nav from "./components/Nav";
 
-export const VERSION = "2.0.1";
+export const VERSION = "2.0.2";
 
 export default function App() {
   const [onb, setOnb] = useState(() => localStorage.getItem("frisson_onb") === "1");
@@ -54,7 +54,7 @@ export default function App() {
   const screens = {
     home: <Home setScreen={setScreen} theme={theme} setTheme={setThemePersisted} eScore={eScore} pLog={pLog} setLibSec={setLibSec} />,
     library: <Library setScreen={setScreen} theme={theme} initSec={libSec} initMed={openMed} clearMed={() => setOpenMed(null)} medFrom={medFrom} clearMedFrom={() => setMedFrom(null)} />,
-    orbit: <Orbit setScreen={setScreen} />,
+    orbit: <Orbit setScreen={setScreen} addGems={addGems} />,
     journal: <Journal theme={theme} addGems={addGems} />,
     situations: <Situations setScreen={setScreen} theme={theme} goToMed={goToMed} />,
     profile: <Profile setScreen={setScreen} theme={theme} eScore={eScore} setEScore={setEScore} eHist={eHist} setEHist={setEHist} pLog={pLog} gems={gems} />,

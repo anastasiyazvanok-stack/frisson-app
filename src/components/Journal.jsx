@@ -88,7 +88,9 @@ export default function Journal({ theme, addGems }) {
   return (
     <div style={{ minHeight: "100%", background: T.bg, paddingBottom: 100, position: "relative", transition: "background .6s" }}>
       {crystals.map((cr) => (
-        <div key={cr.id} style={{ position: "fixed", bottom: 120, left: `${cr.x}%`, zIndex: 999, pointerEvents: "none", animation: "floatUp 1.1s ease forwards", fontFamily: FONT_SERIF, fontSize: 22, color: T.accent, textShadow: `0 0 12px rgba(${T.ar},.8)` }}>+1 ⟡</div>
+        <div key={cr.id} style={{ position: "fixed", bottom: 140, left: `${cr.x}%`, zIndex: 999, pointerEvents: "none", animation: "gemBurst 2s ease forwards", textAlign: "center" }}>
+          <div style={{ fontSize: 28, color: "#F0D060", animation: "gemGlow .8s ease-in-out 2" }}>+1 ⟡</div>
+        </div>
       ))}
 
       <div style={{ padding: "50px 24px 18px", position: "relative", zIndex: 1 }}>

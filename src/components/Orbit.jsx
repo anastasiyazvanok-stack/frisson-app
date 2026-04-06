@@ -107,7 +107,7 @@ const LAYERS = [
   { id:6, name:"Поведение", sub:"внешний слой", hex:"#C8960A", col:0xC8960A, lc:0xA07808, radius:30, speed:0.15, bright:0.60, sz:0.46, lineAmt:0.3, desc:"То, что видит мир. Когда бессознательное исцелено, а сознательное выбрало новое, поведение меняется органично, без насилия над собой." },
 ];
 
-export default function Orbit({ setScreen }) {
+export default function Orbit({ setScreen, addGems }) {
   const canvasRef = useRef(null);
   const touchRef = useRef(null);
   const stateRef = useRef(null);
@@ -123,6 +123,7 @@ export default function Orbit({ setScreen }) {
   const [medDuration, setMedDuration] = useState(0);
   const [showTimerPicker, setShowTimerPicker] = useState(false);
   const timerRef = useRef(null);
+  const [gemPop, setGemPop] = useState(null); // { amount, id } for crystal animation
   const [soundOn, setSoundOn] = useState(false);
   const audioRef = useRef({ ctx: null, gain: null, oscs: [], analyser: null, freq: new Uint8Array(64), bass: 0, mid: 0 });
 
@@ -224,7 +225,7 @@ export default function Orbit({ setScreen }) {
     timerRef.current = setInterval(() => {
       setMedTime((t) => {
         if (t <= 1) {
-          stopMeditation();
+          completeMeditation();
           return 0;
         }
         return t - 1;
@@ -232,11 +233,34 @@ export default function Orbit({ setScreen }) {
     }, 1000);
   }
 
-  function stopMeditation() {
+  function completeMeditation() {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
     stopSound();
     setSoundOn(false);
     setMeditating(false);
+    // Award crystals: 1 per minute meditated
+    const earned = Math.max(1, Math.round(medDuration / 60));
+    if (addGems) addGems(earned);
+    const id = Date.now();
+    setGemPop({ amount: earned, id });
+    setTimeout(() => setGemPop(null), 2500);
+    setMedTime(0);
+  }
+
+  function stopMeditation() {
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    const elapsed = medDuration - medTime;
+    stopSound();
+    setSoundOn(false);
+    setMeditating(false);
+    // Award partial crystals if meditated at least 30 seconds
+    if (elapsed >= 30) {
+      const earned = Math.max(1, Math.round(elapsed / 60));
+      if (addGems) addGems(earned);
+      const id = Date.now();
+      setGemPop({ amount: earned, id });
+      setTimeout(() => setGemPop(null), 2500);
+    }
     setMedTime(0);
   }
 
@@ -549,15 +573,28 @@ export default function Orbit({ setScreen }) {
         <button onClick={toggleSound} style={{ pointerEvents: "all", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, background: soundOn ? "rgba(140,30,60,.36)" : "rgba(100,20,50,.2)", border: `1px solid ${soundOn ? "rgba(200,130,90,.5)" : "rgba(190,130,90,.25)"}`, borderRadius: 16, padding: "5px 11px", fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: soundOn ? "rgba(240,210,178,.92)" : "rgba(210,175,145,.6)", transition: "all .3s", whiteSpace: "nowrap", ...ss }}>{meditating ? "■ Стоп" : soundOn ? "■ Стоп" : `♫ ${getProfile().label}`}</button>
       </div>
 
-      {/* Meditation timer — center screen */}
+      {/* Meditation timer — bottom bar, orb stays visible */}
       {meditating && (
-        <div style={{ position: "absolute", inset: 0, zIndex: 28, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-          <div style={{ fontSize: 48, fontWeight: 200, color: `${acHex}cc`, letterSpacing: 4, ...ss }}>{fmtTimer(medTime)}</div>
-          <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase", color: `${acHex}66`, marginTop: 8, ...ss }}>{getProfile().label}</div>
-          <div style={{ width: 120, height: 2, borderRadius: 1, background: "rgba(255,255,255,.06)", marginTop: 16, overflow: "hidden" }}>
+        <div style={{ position: "absolute", left: 0, right: 0, bottom: 12, zIndex: 28, display: "flex", flexDirection: "column", alignItems: "center", pointerEvents: "none" }}>
+          <div style={{ background: "rgba(6,2,8,.7)", backdropFilter: "blur(12px)", borderRadius: 20, padding: "12px 24px", display: "flex", alignItems: "center", gap: 16, border: `1px solid ${acHex}22` }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 28, fontWeight: 200, color: `${acHex}dd`, letterSpacing: 3, ...ss }}>{fmtTimer(medTime)}</div>
+              <div style={{ fontSize: 7, letterSpacing: 2, textTransform: "uppercase", color: `${acHex}55`, marginTop: 2, ...ss }}>{getProfile().label}</div>
+            </div>
+            <div style={{ width: 1, height: 32, background: `${acHex}22` }} />
+            <div onClick={stopMeditation} style={{ pointerEvents: "all", cursor: "pointer", padding: "8px 16px", borderRadius: 14, background: `${acHex}18`, border: `1px solid ${acHex}33`, fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: `${acHex}aa`, ...ss }}>Завершить</div>
+          </div>
+          <div style={{ width: 100, height: 2, borderRadius: 1, background: "rgba(255,255,255,.06)", marginTop: 8, overflow: "hidden" }}>
             <div style={{ height: "100%", background: acHex, borderRadius: 1, width: medDuration ? `${(medTime / medDuration) * 100}%` : "0%", transition: "width 1s linear" }} />
           </div>
-          <div onClick={stopMeditation} style={{ pointerEvents: "all", cursor: "pointer", marginTop: 24, padding: "8px 20px", borderRadius: 20, background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: "rgba(220,195,172,.5)", ...ss }}>Завершить</div>
+        </div>
+      )}
+
+      {/* Crystal reward popup */}
+      {gemPop && (
+        <div key={gemPop.id} style={{ position: "absolute", top: "38%", left: "50%", transform: "translateX(-50%)", zIndex: 40, pointerEvents: "none", textAlign: "center", animation: "gemBurst 2.2s ease forwards" }}>
+          <div style={{ fontSize: 36, color: "#F0D060", animation: "gemGlow 1s ease-in-out 3" }}>+{gemPop.amount} ⟡</div>
+          <div style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: "rgba(240,208,96,.6)", marginTop: 4, ...ss }}>кристаллов</div>
         </div>
       )}
 
