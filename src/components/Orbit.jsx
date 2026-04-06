@@ -117,6 +117,7 @@ export default function Orbit({ setScreen }) {
   const [panelMode, setPanelMode] = useState("layer"); // "layer" | "scenario"
   const scenarioRef = useRef(null);
   const [panelOpen, setPanelOpen] = useState(true);
+  const [panelExpanded, setPanelExpanded] = useState(false); // starts collapsed — just title visible
   const [soundOn, setSoundOn] = useState(false);
   const audioRef = useRef({ ctx: null, gain: null, oscs: [], analyser: null, freq: new Uint8Array(64), bass: 0, mid: 0 });
 
@@ -125,8 +126,8 @@ export default function Orbit({ setScreen }) {
   function setScenario(sc) {
     scenarioRef.current = sc;
     setActiveScenarioState(sc);
-    if (sc) { setPanelMode("scenario"); setPanelOpen(true); }
-    // Rebuild sound with new profile if playing
+    if (sc) { setPanelMode("scenario"); setPanelOpen(true); setPanelExpanded(true); }
+    else { setPanelExpanded(false); }
     if (soundOn) { buildSound(sc?.id || "neutral"); }
   }
 
@@ -134,6 +135,7 @@ export default function Orbit({ setScreen }) {
     setActiveId(id);
     setPanelMode("layer");
     setPanelOpen(true);
+    setPanelExpanded(true);
     const l = LAYERS[id - 1];
     const s = stateRef.current;
     if (s) {
@@ -528,35 +530,42 @@ export default function Orbit({ setScreen }) {
         </div>
       </div>
 
-      {/* Bottom panel — compact */}
-      <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 25, transform: panelOpen ? "translateY(0)" : "translateY(100%)", transition: "transform .4s cubic-bezier(.32,.72,0,1)" }}>
-        <div style={{ maxWidth: 640, margin: "0 auto", background: "linear-gradient(180deg, rgba(6,2,8,0) 0%, rgba(6,2,8,.94) 18%, rgba(6,2,8,.98) 100%)", backdropFilter: "blur(20px)", borderTop: `1px solid ${((panelMode === "scenario" && activeScenario) ? activeScenario.hex : layer.hex)}22`, padding: "0 16px 20px 52px", position: "relative", maxHeight: "44%", overflowY: "auto" }}>
-          <div onClick={() => setPanelOpen(false)} style={{ display: "flex", justifyContent: "center", padding: "10px 0 8px", cursor: "pointer", position: "sticky", top: 0, background: "linear-gradient(180deg, rgba(6,2,8,.95) 70%, transparent)" }}>
-            <i style={{ display: "block", width: 28, height: 3, borderRadius: 2, background: `${((panelMode === "scenario" && activeScenario) ? activeScenario.hex : layer.hex)}55` }} />
+      {/* Bottom panel — collapsed/expanded */}
+      {panelOpen && (() => {
+        const acHex = activeScenario ? activeScenario.hex : layer.hex;
+        const panelTitle = activeScenario ? activeScenario.name : layer.name;
+        const panelSub = activeScenario ? `Сценарий · ${layer.name}` : `Уровень ${layer.id}`;
+        const panelDesc = activeScenario ? activeScenario.byLayer[layer.id] : layer.desc;
+        const prof = getProfile();
+        return (
+          <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 25, transition: "all .35s cubic-bezier(.32,.72,0,1)" }}>
+            <div style={{ maxWidth: 640, margin: "0 auto", background: "linear-gradient(180deg, rgba(6,2,8,0) 0%, rgba(6,2,8,.94) 16%, rgba(6,2,8,.98) 100%)", backdropFilter: "blur(20px)", borderTop: `1px solid ${acHex}22`, padding: `0 16px ${panelExpanded ? 20 : 10}px 52px`, position: "relative", maxHeight: panelExpanded ? "52%" : "auto", overflowY: panelExpanded ? "auto" : "hidden" }}>
+              {/* Drag handle — toggles expanded */}
+              <div onClick={() => setPanelExpanded(!panelExpanded)} style={{ display: "flex", justifyContent: "center", padding: "10px 0 6px", cursor: "pointer", position: panelExpanded ? "sticky" : "relative", top: 0, background: panelExpanded ? "linear-gradient(180deg, rgba(6,2,8,.95) 70%, transparent)" : "transparent", zIndex: 2 }}>
+                <i style={{ display: "block", width: 28, height: 3, borderRadius: 2, background: `${acHex}55`, transition: "all .2s" }} />
+              </div>
+              {/* Title row — always visible */}
+              <div onClick={() => setPanelExpanded(!panelExpanded)} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 10, marginBottom: panelExpanded ? 8 : 0 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: "rgba(190,130,90,.45)", marginBottom: 3, ...ss }}>{panelSub}</div>
+                  <div style={{ fontSize: 14, fontStyle: "italic", fontWeight: "normal", color: acHex, lineHeight: 1.25, ...ss }}>{panelTitle}</div>
+                </div>
+                <div style={{ fontSize: 11, color: `${acHex}88`, transform: panelExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform .3s" }}>▾</div>
+              </div>
+              {/* Expanded content */}
+              {panelExpanded && (
+                <div style={{ animation: "fadeUp .25s ease both" }}>
+                  <div style={{ fontSize: 11, lineHeight: 1.75, color: "rgba(200,175,158,.78)", wordWrap: "break-word", marginBottom: 12, marginTop: 4, ...ss }}>{panelDesc}</div>
+                  <div style={{ padding: "10px 14px", background: `${acHex}0c`, border: `1px solid ${acHex}22`, borderRadius: 10 }}>
+                    <div style={{ fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: acHex, marginBottom: 5, ...ss }}>♫ {prof.label}</div>
+                    <div style={{ fontSize: 10, lineHeight: 1.7, color: "rgba(200,175,158,.6)", ...ss }}>{prof.desc}</div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-          {activeScenario ? (
-            <>
-              <div style={{ fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: "rgba(190,130,90,.45)", marginBottom: 6, ...ss }}>Сценарий · {layer.name}</div>
-              <div style={{ fontSize: 15, fontStyle: "italic", fontWeight: "normal", color: activeScenario.hex, lineHeight: 1.25, marginBottom: 8, ...ss }}>{activeScenario.name}</div>
-              <div style={{ fontSize: 11, lineHeight: 1.75, color: "rgba(200,175,158,.78)", wordWrap: "break-word", marginBottom: 12, ...ss }}>{activeScenario.byLayer[layer.id]}</div>
-              <div style={{ padding: "10px 14px", background: `${activeScenario.hex}0c`, border: `1px solid ${activeScenario.hex}22`, borderRadius: 10 }}>
-                <div style={{ fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: activeScenario.hex, marginBottom: 5, ...ss }}>♫ {getProfile().label}</div>
-                <div style={{ fontSize: 10, lineHeight: 1.7, color: "rgba(200,175,158,.6)", ...ss }}>{getProfile().desc}</div>
-              </div>
-            </>
-          ) : (
-            <>
-              <div style={{ fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: "rgba(190,130,90,.45)", marginBottom: 6, ...ss }}>Уровень {layer.id}</div>
-              <div style={{ fontSize: 15, fontStyle: "italic", fontWeight: "normal", color: layer.hex, lineHeight: 1.25, marginBottom: 8, ...ss }}>{layer.name}</div>
-              <div style={{ fontSize: 11, lineHeight: 1.75, color: "rgba(200,175,158,.78)", wordWrap: "break-word", marginBottom: 12, ...ss }}>{layer.desc}</div>
-              <div style={{ padding: "10px 14px", background: "rgba(190,130,90,.06)", border: "1px solid rgba(190,130,90,.15)", borderRadius: 10 }}>
-                <div style={{ fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: "rgba(190,130,90,.55)", marginBottom: 5, ...ss }}>♫ {getProfile().label}</div>
-                <div style={{ fontSize: 10, lineHeight: 1.7, color: "rgba(200,175,158,.5)", ...ss }}>{getProfile().desc}</div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+        );
+      })()}
     </div>
   );
 }
