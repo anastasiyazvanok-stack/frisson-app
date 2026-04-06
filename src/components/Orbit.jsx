@@ -148,11 +148,21 @@ export default function Orbit({ setScreen }) {
     return SOUND_PROFILES[activeScenario?.id] || SOUND_PROFILES.neutral;
   }
 
+  function cleanupAudio() {
+    const a = audioRef.current;
+    if (!a.ctx) return;
+    a.oscs.forEach((o) => { try { o.stop(); } catch (e) {} });
+    try { a.ctx.close(); } catch (e) {}
+    a.ctx = null; a.analyser = null; a.oscs = []; a.bass = 0; a.mid = 0;
+  }
+
   function buildSound(profileId) {
-    stopSoundImmediate();
+    cleanupAudio();
     const prof = SOUND_PROFILES[profileId] || SOUND_PROFILES.neutral;
     const a = audioRef.current;
-    a.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    try {
+      a.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) { return; }
     a.gain = a.ctx.createGain();
     a.gain.gain.setValueAtTime(0, a.ctx.currentTime);
     a.gain.gain.linearRampToValueAtTime(0.13, a.ctx.currentTime + 2.5);
@@ -160,12 +170,10 @@ export default function Orbit({ setScreen }) {
     a.gain.connect(a.analyser); a.gain.connect(a.ctx.destination);
     a.freq = new Uint8Array(a.analyser.frequencyBinCount);
 
-    // Sub bass (base / 4)
     const sub = a.ctx.createOscillator(), sg = a.ctx.createGain();
     sub.type = "sine"; sub.frequency.value = prof.sub; sg.gain.value = 0.5;
     sub.connect(sg); sg.connect(a.gain); sub.start();
 
-    // Binaural: base Hz left + (base + beat) Hz right
     const merger = a.ctx.createChannelMerger(2); merger.connect(a.gain);
     const oL = a.ctx.createOscillator(), gL = a.ctx.createGain();
     oL.type = "sine"; oL.frequency.value = prof.base; gL.gain.value = 0.42;
@@ -174,17 +182,14 @@ export default function Orbit({ setScreen }) {
     oR.type = "sine"; oR.frequency.value = prof.base + prof.beat; gR.gain.value = 0.42;
     oR.connect(gR); gR.connect(merger, 0, 1); oR.start();
 
-    // Overtone (base * 2)
     const ov = a.ctx.createOscillator(), og = a.ctx.createGain();
     ov.type = "sine"; ov.frequency.value = prof.overtone; og.gain.value = 0.05;
     ov.connect(og); og.connect(a.gain); ov.start();
 
-    // Breath LFO
     const lfo = a.ctx.createOscillator(), lg = a.ctx.createGain();
     lfo.type = "sine"; lfo.frequency.value = prof.lfoRate; lg.gain.value = prof.lfoDepth;
     lfo.connect(lg); lg.connect(a.gain.gain); lfo.start();
 
-    // Heartbeat LFO on overtone
     const hb = a.ctx.createOscillator(), hg = a.ctx.createGain();
     hb.type = "sine"; hb.frequency.value = 0.18; hg.gain.value = 0.03;
     hb.connect(hg); hg.connect(og.gain); hb.start();
@@ -192,26 +197,25 @@ export default function Orbit({ setScreen }) {
     a.oscs = [sub, oL, oR, ov, lfo, hb];
   }
 
-  function stopSoundImmediate() {
-    const a = audioRef.current;
-    if (!a.ctx) return;
-    try {
-      a.oscs.forEach((o) => { try { o.stop(); } catch (e) {} });
-      a.ctx.close();
-    } catch (e) {}
-    a.ctx = null; a.analyser = null; a.oscs = []; a.bass = 0; a.mid = 0;
-  }
-
   function stopSound() {
     const a = audioRef.current;
-    if (!a.ctx) return;
-    a.gain.gain.linearRampToValueAtTime(0, a.ctx.currentTime + 1.2);
-    setTimeout(() => stopSoundImmediate(), 1400);
+    if (!a.ctx || !a.gain) { cleanupAudio(); return; }
+    try {
+      a.gain.gain.cancelScheduledValues(a.ctx.currentTime);
+      a.gain.gain.setValueAtTime(a.gain.gain.value, a.ctx.currentTime);
+      a.gain.gain.linearRampToValueAtTime(0, a.ctx.currentTime + 0.8);
+    } catch (e) {}
+    setTimeout(() => cleanupAudio(), 1000);
   }
 
   function toggleSound() {
-    if (!soundOn) { buildSound(activeScenario?.id || "neutral"); } else { stopSound(); }
-    setSoundOn(!soundOn);
+    if (soundOn) {
+      stopSound();
+      setSoundOn(false);
+    } else {
+      buildSound(activeScenario?.id || "neutral");
+      setSoundOn(true);
+    }
   }
 
   useEffect(() => {
@@ -405,7 +409,7 @@ export default function Orbit({ setScreen }) {
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", onResize);
       renderer.dispose(); geo.dispose(); mat.dispose(); lineGeo.dispose(); lineMat.dispose(); elGeo.dispose(); elMat.dispose(); sprite.dispose();
-      stopSound();
+      cleanupAudio();
     };
   }, []);
 
