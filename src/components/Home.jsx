@@ -16,10 +16,10 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
   const spd = theme === "power" ? "4s" : theme === "empty" ? "14s" : "8s";
 
   const cards = [
-    { sub: "Ресурс", title: "Наполниться", sec: "resource", bg: "#10080a", blobs: [{ x: "55%", y: "20%", w: 165, h: 135, c: "rgba(200,120,64,.88)", b: 22 }, { x: "10%", y: "60%", w: 135, h: 108, c: "rgba(160,212,228,.45)", b: 18 }, { x: "74%", y: "68%", w: 104, h: 82, c: "rgba(212,56,120,.55)", b: 16 }] },
-    { sub: "Женское", title: "Женственность", sec: "feminine", bg: "#0e0610", blobs: [{ x: "50%", y: "25%", w: 162, h: 148, c: "rgba(212,56,120,.85)", b: 22 }, { x: "12%", y: "62%", w: 130, h: 106, c: "rgba(160,212,228,.5)", b: 18 }, { x: "72%", y: "66%", w: 110, h: 88, c: "rgba(200,120,64,.5)", b: 16 }] },
-    { sub: "Реализация", title: "Получать", sec: "receiving", bg: "#100a06", blobs: [{ x: "48%", y: "22%", w: 158, h: 128, c: "rgba(200,120,64,.9)", b: 22 }, { x: "12%", y: "60%", w: 134, h: 104, c: "rgba(138,36,85,.65)", b: 18 }, { x: "74%", y: "66%", w: 106, h: 84, c: "rgba(160,212,228,.4)", b: 16 }] },
-    { sub: "Новый уровень", title: "Расти", sec: "newlevel", bg: "#080a10", blobs: [{ x: "44%", y: "24%", w: 160, h: 132, c: "rgba(126,200,220,.8)", b: 22 }, { x: "10%", y: "58%", w: 136, h: 108, c: "rgba(138,36,85,.6)", b: 18 }, { x: "72%", y: "66%", w: 108, h: 84, c: "rgba(200,120,64,.5)", b: 16 }] },
+    { sub: "Ресурс", title: "Наполниться", sec: "resource", bg: "#110500", blobs: [{ x: "55%", y: "20%", w: 165, h: 135, c: "rgba(196,80,12,.92)", b: 22 }, { x: "10%", y: "60%", w: 135, h: 108, c: "rgba(128,144,192,.5)", b: 18 }, { x: "74%", y: "68%", w: 104, h: 82, c: "rgba(212,144,10,.7)", b: 16 }] },
+    { sub: "Женское", title: "Женственность", sec: "feminine", bg: "#0e0412", blobs: [{ x: "50%", y: "25%", w: 162, h: 148, c: "rgba(176,32,160,.9)", b: 22 }, { x: "12%", y: "62%", w: 130, h: 106, c: "rgba(128,144,192,.6)", b: 18 }, { x: "72%", y: "66%", w: 110, h: 88, c: "rgba(196,80,12,.55)", b: 16 }] },
+    { sub: "Реализация", title: "Получать", sec: "receiving", bg: "#100a00", blobs: [{ x: "48%", y: "22%", w: 158, h: 128, c: "rgba(212,144,10,.92)", b: 22 }, { x: "12%", y: "60%", w: 134, h: 104, c: "rgba(196,80,12,.72)", b: 18 }, { x: "74%", y: "66%", w: 106, h: 84, c: "rgba(128,144,192,.45)", b: 16 }] },
+    { sub: "Новый уровень", title: "Расти", sec: "newlevel", bg: "#080c14", blobs: [{ x: "44%", y: "24%", w: 160, h: 132, c: "rgba(96,112,180,.88)", b: 22 }, { x: "10%", y: "58%", w: 136, h: 108, c: "rgba(138,40,16,.7)", b: 18 }, { x: "72%", y: "66%", w: 108, h: 84, c: "rgba(212,144,10,.6)", b: 16 }] },
   ];
 
   return (
@@ -102,7 +102,7 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
         </div>
         {(RECOMMENDATIONS[theme] || RECOMMENDATIONS.full).map((r) => {
           const sec = SECTIONS.find((s) => s.id === r.sec);
-          const lc = r.free ? "rgba(200,120,64,.8)" : (sec?.color || T.accent);
+          const lc = r.free ? "rgba(160,130,50,.8)" : (sec?.color || T.accent);
           return (
             <div key={r.t} onClick={() => setScreen("library")} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, marginBottom: 7, cursor: "pointer", position: "relative", overflow: "hidden", transition: "background .6s" }}>
               <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 2.5, background: lc, borderRadius: "2px 0 0 2px" }} />
@@ -130,12 +130,12 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
         </div>
       </div>
 
-      <div className="fu5" onClick={() => setScreen("journal")} style={{ margin: "0 24px 24px", padding: "17px 20px", background: "linear-gradient(135deg,rgba(200,120,64,.1),rgba(138,36,85,.08))", border: "1px solid rgba(200,120,64,.18)", borderRadius: 18, display: "flex", alignItems: "center", gap: 13, cursor: "pointer", position: "relative", zIndex: 1 }}>
+      <div className="fu5" onClick={() => setScreen("journal")} style={{ margin: "0 24px 24px", padding: "17px 20px", background: "linear-gradient(135deg,rgba(160,130,50,.1),rgba(125,23,54,.08))", border: "1px solid rgba(160,138,65,.18)", borderRadius: 18, display: "flex", alignItems: "center", gap: 13, cursor: "pointer", position: "relative", zIndex: 1 }}>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: FONT_SERIF, fontSize: 16.5, color: T.text, marginBottom: 2 }}>Дневник</div>
           <div style={{ fontSize: 10.5, color: "rgba(242,232,226,.4)", fontFamily: FONT_SANS }}>Сегодня у вас нет записи</div>
         </div>
-        <div style={{ fontSize: 15, color: "rgba(200,160,80,.5)" }}>→</div>
+        <div style={{ fontSize: 15, color: "rgba(160,138,65,.5)" }}>→</div>
       </div>
     </div>
   );

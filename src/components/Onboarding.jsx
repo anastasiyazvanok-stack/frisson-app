@@ -27,9 +27,9 @@ export default function Onboarding({ onDone }) {
   return (
     <div style={{ width: "100%", height: "100dvh", background: "#080A06", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
       <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-        <div style={{ position: "absolute", width: "78%", height: "78%", top: "-18%", left: "-18%", borderRadius: "50%", background: "radial-gradient(circle,rgba(138,36,85,.9),rgba(200,60,120,.5) 55%,transparent 72%)", filter: "blur(55px)", animation: "breathe 18s ease-in-out infinite" }} />
-        <div style={{ position: "absolute", width: "65%", height: "65%", bottom: "-12%", right: "-10%", borderRadius: "50%", background: "radial-gradient(circle,rgba(100,180,210,.6),rgba(160,212,228,.35) 55%,transparent 72%)", filter: "blur(50px)", animation: "breathe 22s 4s ease-in-out infinite" }} />
-        <div style={{ position: "absolute", width: "40%", height: "40%", top: "28%", left: "32%", borderRadius: "50%", background: "radial-gradient(circle,rgba(200,120,64,.55),rgba(212,56,120,.3) 55%,transparent 72%)", filter: "blur(44px)", animation: "breathe 14s 7s ease-in-out infinite" }} />
+        <div style={{ position: "absolute", width: "78%", height: "78%", top: "-18%", left: "-18%", borderRadius: "50%", background: "radial-gradient(circle,rgba(140,20,100,.85),rgba(80,20,120,.6) 55%,transparent 72%)", filter: "blur(55px)", animation: "breathe 18s ease-in-out infinite" }} />
+        <div style={{ position: "absolute", width: "65%", height: "65%", bottom: "-12%", right: "-10%", borderRadius: "50%", background: "radial-gradient(circle,rgba(30,20,120,.75),rgba(100,20,80,.5) 55%,transparent 72%)", filter: "blur(50px)", animation: "breathe 22s 4s ease-in-out infinite" }} />
+        <div style={{ position: "absolute", width: "40%", height: "40%", top: "28%", left: "32%", borderRadius: "50%", background: "radial-gradient(circle,rgba(160,20,130,.5),rgba(60,20,160,.3) 55%,transparent 72%)", filter: "blur(44px)", animation: "breathe 14s 7s ease-in-out infinite" }} />
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 45%,transparent 18%,rgba(3,2,8,.82) 100%)" }} />
         {Array.from({ length: 50 }, (_, i) => (
           <div key={i} style={{
@@ -57,7 +57,7 @@ export default function Onboarding({ onDone }) {
         {cur.type === "splash" && (
           <div style={{ textAlign: "center", width: "100%", animation: "fadeUp 1s ease both" }}>
             <div style={{ fontFamily: FONT_SANS, fontSize: 9, letterSpacing: ".35em", textTransform: "uppercase", color: "rgba(180,150,165,.5)", marginBottom: 28 }}>✦ пространство состояния ✦</div>
-            <div style={{ fontFamily: FONT_SERIF, fontSize: 80, fontWeight: 300, lineHeight: 0.9, color: "#fff", textShadow: "0 0 60px rgba(200,60,120,.7)", marginBottom: 18 }}>Frisson</div>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 80, fontWeight: 300, lineHeight: 0.9, color: "#fff", textShadow: "0 0 60px rgba(160,20,180,.7)", marginBottom: 18 }}>Frisson</div>
             <div style={{ fontFamily: FONT_SERIF, fontSize: 17, color: "rgba(220,205,215,.62)", letterSpacing: ".04em", marginBottom: 12 }}>пространство, где вы раскрываете<br/>свой женский внутренний капитал</div>
             <div style={{ fontFamily: FONT_SANS, fontSize: 9, color: "rgba(180,150,165,.35)", marginBottom: 28 }}>v{VERSION}</div>
           </div>
@@ -71,7 +71,7 @@ export default function Onboarding({ onDone }) {
             {cur.tags && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 7, justifyContent: "center", maxWidth: 280, margin: "0 auto" }}>
                 {cur.tags.map((w) => (
-                  <div key={w} style={{ padding: "5px 13px", borderRadius: 20, background: "rgba(138,36,85,.25)", border: "1px solid rgba(150,80,100,.25)", fontFamily: FONT_SANS, fontSize: 11, fontWeight: 300, color: "rgba(220,200,210,.7)" }}>{w}</div>
+                  <div key={w} style={{ padding: "5px 13px", borderRadius: 20, background: "rgba(92,14,28,.25)", border: "1px solid rgba(150,80,100,.25)", fontFamily: FONT_SANS, fontSize: 11, fontWeight: 300, color: "rgba(220,200,210,.7)" }}>{w}</div>
                 ))}
               </div>
             )}
@@ -85,7 +85,7 @@ export default function Onboarding({ onDone }) {
               {cur.opts.map((opt, oi) => (
                 <div key={opt} onClick={() => setAns((a) => ({ ...a, [cur.key]: opt }))} style={{
                   padding: "15px 20px", borderRadius: 16, textAlign: "center", cursor: "pointer",
-                  background: ans[cur.key] === opt ? "rgba(138,36,85,.3)" : "rgba(0,0,0,.25)",
+                  background: ans[cur.key] === opt ? "rgba(92,14,28,.3)" : "rgba(0,0,0,.25)",
                   border: `1px solid ${ans[cur.key] === opt ? "rgba(200,160,180,.45)" : "rgba(255,255,255,.1)"}`,
                   fontFamily: FONT_SANS, fontSize: 14, fontWeight: 300,
                   color: ans[cur.key] === opt ? "#fff" : "rgba(255,235,225,.72)",
@@ -135,8 +135,8 @@ export default function Onboarding({ onDone }) {
                 <div style={{ fontFamily: FONT_SANS, fontSize: 13, fontWeight: 300, color: "rgba(220,205,215,.72)", lineHeight: 1.65 }}>{txt}</div>
               </div>
             ))}
-            <div onClick={() => setAgreed((a) => !a)} style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "16px 18px", background: agreed ? "rgba(138,36,85,.25)" : "rgba(0,0,0,.2)", border: `1px solid ${agreed ? "rgba(200,160,180,.4)" : "rgba(255,255,255,.1)"}`, borderRadius: 16, cursor: "pointer", transition: "all .3s", marginTop: 8 }}>
-              <div style={{ width: 22, height: 22, borderRadius: 6, border: `1.5px solid ${agreed ? "rgba(200,160,180,.7)" : "rgba(255,255,255,.25)"}`, background: agreed ? "rgba(138,36,85,.4)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1, transition: "all .3s" }}>{agreed && <div style={{ fontSize: 12, color: "rgba(230,210,220,.9)" }}>✓</div>}</div>
+            <div onClick={() => setAgreed((a) => !a)} style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "16px 18px", background: agreed ? "rgba(92,14,28,.25)" : "rgba(0,0,0,.2)", border: `1px solid ${agreed ? "rgba(200,160,180,.4)" : "rgba(255,255,255,.1)"}`, borderRadius: 16, cursor: "pointer", transition: "all .3s", marginTop: 8 }}>
+              <div style={{ width: 22, height: 22, borderRadius: 6, border: `1.5px solid ${agreed ? "rgba(200,160,180,.7)" : "rgba(255,255,255,.25)"}`, background: agreed ? "rgba(92,14,28,.4)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1, transition: "all .3s" }}>{agreed && <div style={{ fontSize: 12, color: "rgba(230,210,220,.9)" }}>✓</div>}</div>
               <div style={{ fontFamily: FONT_SANS, fontSize: 13, fontWeight: 300, lineHeight: 1.65, color: "rgba(220,205,215,.8)" }}>Я ознакомилась и принимаю <span style={{ color: "rgba(200,160,180,.85)", textDecoration: "underline" }}>Пользовательское соглашение</span> и <span style={{ color: "rgba(200,160,180,.85)", textDecoration: "underline" }}>Политику конфиденциальности</span>. Мне исполнилось 18 лет.</div>
             </div>
           </div>
@@ -147,10 +147,10 @@ export default function Onboarding({ onDone }) {
         <div onClick={() => canNext && (isLast ? onDone() : setStep((s) => s + 1))} style={{
           width: "100%", padding: 16, borderRadius: 28, textAlign: "center",
           cursor: canNext ? "pointer" : "default",
-          background: canNext ? "rgba(200,60,120,.5)" : "rgba(255,255,255,.03)",
-          border: `1.5px solid ${canNext ? "rgba(212,56,120,.7)" : "rgba(255,255,255,.07)"}`,
+          background: canNext ? "rgba(140,20,120,.55)" : "rgba(255,255,255,.03)",
+          border: `1.5px solid ${canNext ? "rgba(220,80,200,.7)" : "rgba(255,255,255,.07)"}`,
           backdropFilter: "blur(16px)",
-          boxShadow: canNext ? "0 0 32px rgba(212,56,120,.45)" : "none",
+          boxShadow: canNext ? "0 0 32px rgba(160,20,140,.5)" : "none",
           fontFamily: FONT_SANS, fontSize: 10, fontWeight: 400, letterSpacing: ".28em", textTransform: "uppercase",
           color: canNext ? "rgba(245,228,233,.96)" : "rgba(230,218,225,.18)",
           opacity: canNext ? 1 : 0.4, transition: "all .3s",

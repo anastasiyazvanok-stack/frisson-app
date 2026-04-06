@@ -130,13 +130,13 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
 
       <div style={{ margin: "0 24px 14px", padding: 20, background: T.dim, border: `1px solid ${T.border}`, borderRadius: 18, position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 13, marginBottom: 14 }}>
-          <div style={{ width: 46, height: 46, borderRadius: "50%", background: "rgba(138,36,85,.35)", border: "1px solid rgba(138,36,85,.5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🎓</div>
+          <div style={{ width: 46, height: 46, borderRadius: "50%", background: "rgba(125,23,54,.35)", border: "1px solid rgba(125,23,54,.5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🎓</div>
           <div><div style={{ fontFamily: FONT_SERIF, fontSize: 15, color: "rgba(242,232,226,.9)", marginBottom: 2 }}>Анастасия Званок</div><div style={{ fontFamily: FONT_SANS, fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase", color: T.accent }}>Автор · Психолог</div></div>
         </div>
         <div style={{ fontFamily: FONT_SERIF, fontSize: 14, lineHeight: 1.75, color: "rgba(230,218,210,.7)", marginBottom: 12 }}>Магистр Клинической Психологии с европейским образованием. Помогаю женщинам выйти из внутреннего дефицита в ресурс, самоценность и наполненность.</div>
         <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
           {["Магистратура", "Европейский диплом", "Женская психология"].map((t) => (
-            <div key={t} style={{ padding: "4px 10px", background: "rgba(138,36,85,.28)", border: "1px solid rgba(138,36,85,.35)", borderRadius: 20, fontSize: 9, letterSpacing: ".1em", textTransform: "uppercase", color: "rgba(242,232,226,.6)", fontFamily: FONT_SANS }}>{t}</div>
+            <div key={t} style={{ padding: "4px 10px", background: "rgba(125,23,54,.28)", border: "1px solid rgba(125,23,54,.35)", borderRadius: 20, fontSize: 9, letterSpacing: ".1em", textTransform: "uppercase", color: "rgba(242,232,226,.6)", fontFamily: FONT_SANS }}>{t}</div>
           ))}
         </div>
       </div>

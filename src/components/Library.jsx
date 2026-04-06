@@ -44,7 +44,7 @@ export default function Library({ setScreen, theme, initSec, initMed, clearMed, 
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
             <div style={{ padding: "5px 14px", borderRadius: 20, background: `${ac}33`, border: `1px solid ${ac}66`, fontFamily: FONT_SANS, fontSize: 10, textTransform: "uppercase", letterSpacing: ".12em", color: "rgba(242,232,226,.8)" }}>Медитация</div>
             <div style={{ padding: "5px 14px", borderRadius: 20, background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", fontFamily: FONT_SANS, fontSize: 10, color: "rgba(242,232,226,.6)" }}>{det.dur}</div>
-            {det.free && <div style={{ padding: "5px 14px", borderRadius: 20, background: "rgba(200,160,80,.15)", border: "1px solid rgba(200,160,80,.3)", fontFamily: FONT_SANS, fontSize: 10, color: "rgba(200,160,80,.85)" }}>Бесплатно</div>}
+            {det.free && <div style={{ padding: "5px 14px", borderRadius: 20, background: "rgba(160,138,65,.15)", border: "1px solid rgba(160,138,65,.3)", fontFamily: FONT_SANS, fontSize: 10, color: "rgba(160,138,65,.85)" }}>Бесплатно</div>}
           </div>
           <div style={{ fontFamily: FONT_SERIF, fontSize: 26, fontWeight: 300, lineHeight: 1.2, color: "rgba(242,232,226,.95)", marginBottom: 16 }}>{det.title}</div>
           <div style={{ padding: "18px 20px", background: `${ac}18`, border: `1px solid ${ac}30`, borderRadius: 18, marginBottom: 16 }}>
@@ -71,11 +71,11 @@ export default function Library({ setScreen, theme, initSec, initMed, clearMed, 
 
   const filters = [
     { id: "all", l: "Все", c: "rgba(242,232,226,.6)" },
-    { id: "resource", l: "Ресурс", c: "#D08040" },
-    { id: "feminine", l: "Женское", c: "#D43878" },
-    { id: "receiving", l: "Реализация", c: "#C88040" },
-    { id: "newlevel", l: "Рост", c: "#5CB8C8" },
-    { id: "self", l: "Самость", c: "#A84878" },
+    { id: "resource", l: "Ресурс", c: "#B84010" },
+    { id: "feminine", l: "Женское", c: "#8F4A91" },
+    { id: "receiving", l: "Реализация", c: "#C47808" },
+    { id: "newlevel", l: "Рост", c: "#0A5C5C" },
+    { id: "self", l: "Самость", c: "#7D1736" },
   ];
   const vis = active === "all" ? SECTIONS : SECTIONS.filter((s) => s.id === active);
 
@@ -100,13 +100,13 @@ export default function Library({ setScreen, theme, initSec, initMed, clearMed, 
             </div>
             {sec.meds.map((med) => (
               <div key={med.n} onClick={() => setDet(med)} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "13px 14px", background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, marginBottom: 8, cursor: "pointer", position: "relative", overflow: "hidden", transition: "background .6s" }}>
-                <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: med.free ? "linear-gradient(to bottom,rgba(200,160,80,.9),rgba(200,160,80,.2))" : `linear-gradient(to bottom,${sec.color},${sec.color}22)`, borderRadius: "3px 0 0 3px" }} />
+                <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: med.free ? "linear-gradient(to bottom,rgba(160,138,65,.9),rgba(160,138,65,.2))" : `linear-gradient(to bottom,${sec.color},${sec.color}22)`, borderRadius: "3px 0 0 3px" }} />
                 <div style={{ fontFamily: FONT_SERIF, fontSize: 20, color: sec.color, width: 26, textAlign: "center", flexShrink: 0, lineHeight: 1, paddingTop: 2 }}>{med.n}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: FONT_SERIF, fontSize: 14, color: "rgba(242,232,226,.92)", marginBottom: 3, lineHeight: 1.3 }}>{med.title}</div>
                   <div style={{ fontFamily: FONT_SERIF, fontSize: 12, color: "rgba(242,232,226,.45)", lineHeight: 1.5, marginBottom: 5 }}>{med.short}</div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontFamily: FONT_SANS, fontSize: 9, letterSpacing: ".1em", textTransform: "uppercase", color: med.free ? "rgba(200,160,80,.8)" : sec.color }}>{med.free ? "Бесплатно" : "Подписка"}</span>
+                    <span style={{ fontFamily: FONT_SANS, fontSize: 9, letterSpacing: ".1em", textTransform: "uppercase", color: med.free ? "rgba(160,138,65,.8)" : sec.color }}>{med.free ? "Бесплатно" : "Подписка"}</span>
                     <span style={{ fontSize: 9, color: "rgba(242,232,226,.3)" }}>·</span>
                     <span style={{ fontFamily: FONT_SANS, fontSize: 9, color: "rgba(242,232,226,.38)" }}>{med.dur}</span>
                   </div>
@@ -128,17 +128,17 @@ export default function Library({ setScreen, theme, initSec, initMed, clearMed, 
             ))}
           </div>
           <div style={{ marginBottom: 26 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 13 }}><div style={{ width: 11, height: 11, borderRadius: "50%", background: "rgba(200,160,80,.8)", flexShrink: 0 }} /><div style={{ fontFamily: FONT_SERIF, fontSize: 15, color: "rgba(242,232,226,.82)" }}>Книги</div></div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 13 }}><div style={{ width: 11, height: 11, borderRadius: "50%", background: "rgba(160,138,65,.8)", flexShrink: 0 }} /><div style={{ fontFamily: FONT_SERIF, fontSize: 15, color: "rgba(242,232,226,.82)" }}>Книги</div></div>
             {BOOKS.map((b) => (
               <div key={b.id} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "13px 14px", background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, marginBottom: 8, cursor: "pointer", position: "relative", overflow: "hidden" }}>
-                <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: b.free ? "linear-gradient(to bottom,rgba(200,160,80,.9),rgba(200,160,80,.2))" : "linear-gradient(to bottom,rgba(107,127,168,.9),rgba(107,127,168,.2))", borderRadius: "3px 0 0 3px" }} />
-                <div style={{ fontFamily: FONT_SERIF, fontSize: 20, color: "rgba(200,160,80,.65)", width: 26, textAlign: "center", flexShrink: 0, paddingTop: 2 }}>◈</div>
+                <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: b.free ? "linear-gradient(to bottom,rgba(160,138,65,.9),rgba(160,138,65,.2))" : "linear-gradient(to bottom,rgba(107,127,168,.9),rgba(107,127,168,.2))", borderRadius: "3px 0 0 3px" }} />
+                <div style={{ fontFamily: FONT_SERIF, fontSize: 20, color: "rgba(160,138,65,.65)", width: 26, textAlign: "center", flexShrink: 0, paddingTop: 2 }}>◈</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: FONT_SERIF, fontSize: 14, color: "rgba(242,232,226,.92)", marginBottom: 3, lineHeight: 1.3 }}>{b.title}</div>
                   <div style={{ fontFamily: FONT_SERIF, fontSize: 12, color: "rgba(242,232,226,.45)", lineHeight: 1.5, marginBottom: 5 }}>{b.desc}</div>
-                  <div style={{ fontFamily: FONT_SANS, fontSize: 9, letterSpacing: ".1em", textTransform: "uppercase", color: b.free ? "rgba(200,160,80,.8)" : "rgba(107,127,168,.7)" }}>{b.free ? "Книга · Бесплатно" : "Книга · Подписка"}</div>
+                  <div style={{ fontFamily: FONT_SANS, fontSize: 9, letterSpacing: ".1em", textTransform: "uppercase", color: b.free ? "rgba(160,138,65,.8)" : "rgba(107,127,168,.7)" }}>{b.free ? "Книга · Бесплатно" : "Книга · Подписка"}</div>
                 </div>
-                {b.free ? <div style={{ width: 26, height: 26, borderRadius: "50%", background: "rgba(200,160,80,.15)", border: "1px solid rgba(200,160,80,.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "rgba(200,160,80,.8)", flexShrink: 0 }}>→</div> : <Lock />}
+                {b.free ? <div style={{ width: 26, height: 26, borderRadius: "50%", background: "rgba(160,138,65,.15)", border: "1px solid rgba(160,138,65,.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "rgba(160,138,65,.8)", flexShrink: 0 }}>→</div> : <Lock />}
               </div>
             ))}
           </div>
