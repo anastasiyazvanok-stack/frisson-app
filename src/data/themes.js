@@ -1,4 +1,5 @@
-export const THEMES = {
+// Night themes (original dark)
+const NIGHT = {
   empty: {
     e: "🌑", l: "Пустота", bg: "#070818",
     card: "rgba(40,44,100,.1)", border: "rgba(50,55,130,.18)",
@@ -32,6 +33,45 @@ export const THEMES = {
     gF: "#2c1008", gT: "#100806"
   },
 };
+
+// Day themes — Cloud Dancer base with jewel accents
+const DAY = {
+  empty: {
+    e: "🌑", l: "Пустота", bg: "#F0EDE8",
+    card: "rgba(80,70,120,.06)", border: "rgba(80,70,120,.12)",
+    accent: "#6858A8", ar: "104,88,168",
+    dim: "rgba(80,70,120,.08)", o1: "rgba(100,80,160,.15)", o2: "rgba(60,30,150,.08)",
+    nav: "rgba(80,70,120,.1)", text: "#2a2440",
+    gF: "#E8E4DE", gT: "#F0EDE8"
+  },
+  quiet: {
+    e: "🌒", l: "Тихо", bg: "#EDE9E4",
+    card: "rgba(120,60,90,.05)", border: "rgba(120,60,90,.12)",
+    accent: "#8B3A6B", ar: "139,58,107",
+    dim: "rgba(120,60,90,.07)", o1: "rgba(140,50,100,.12)", o2: "rgba(200,120,60,.08)",
+    nav: "rgba(120,60,90,.1)", text: "#3a1830",
+    gF: "#E6E0DA", gT: "#EDE9E4"
+  },
+  full: {
+    e: "🌕", l: "Наполнена", bg: "#F0EAE8",
+    card: "rgba(160,30,100,.05)", border: "rgba(160,30,100,.12)",
+    accent: "#A82070", ar: "168,32,112",
+    dim: "rgba(160,30,100,.07)", o1: "rgba(180,40,120,.12)", o2: "rgba(100,40,160,.08)",
+    nav: "rgba(160,30,100,.1)", text: "#380828",
+    gF: "#E8E0DE", gT: "#F0EAE8"
+  },
+  power: {
+    e: "🔥", l: "В силе", bg: "#F0ECE4",
+    card: "rgba(200,100,30,.05)", border: "rgba(200,100,30,.12)",
+    accent: "#C06820", ar: "192,104,32",
+    dim: "rgba(200,100,30,.08)", o1: "rgba(200,100,30,.12)", o2: "rgba(120,50,100,.08)",
+    nav: "rgba(200,100,30,.1)", text: "#3a1808",
+    gF: "#E8E4DC", gT: "#F0ECE4"
+  },
+};
+
+export function getThemes(mode) { return mode === "day" ? DAY : NIGHT; }
+export const THEMES = NIGHT; // default export for backward compat
 
 export const ENERGY_LEVELS = [
   { min: 0, max: 25, l: "Критическое истощение" },

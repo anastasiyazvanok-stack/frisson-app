@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { THEMES } from "../data/themes";
+// THEMES passed via props
 import { SECTIONS, COMING_SOON, BOOKS } from "../data/content";
 import { FONT_SERIF, FONT_SANS } from "../utils/helpers";
 import Orb from "./Orb";
 import Lock from "./Lock";
 
-export default function Library({ setScreen, theme, initSec, initMed, clearMed, medFrom, clearMedFrom }) {
+export default function Library({ setScreen, theme, initSec, initMed, clearMed, medFrom, clearMedFrom, THEMES }) {
   const T = THEMES[theme] || THEMES.full;
   const ALL_MEDS = SECTIONS.flatMap((s) => s.meds);
   const [det, setDet] = useState(() => {

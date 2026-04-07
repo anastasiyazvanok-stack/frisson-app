@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { THEMES } from "../data/themes";
+// THEMES passed via props
 import { FONT_SERIF, FONT_SANS } from "../utils/helpers";
 import Orb from "./Orb";
 
-export default function AppTour({ onDone, theme }) {
+export default function AppTour({ onDone, theme, THEMES }) {
   const T = THEMES[theme] || THEMES.full;
   const [step, setStep] = useState(0);
 

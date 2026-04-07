@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { THEMES } from "./data/themes";
+import { getThemes } from "./data/themes";
 import GlobalStyles from "./components/GlobalStyles";
 import Onboarding from "./components/Onboarding";
 import AppTour from "./components/AppTour";
@@ -12,7 +12,7 @@ import SubPage from "./components/SubPage";
 import Orbit from "./components/Orbit";
 import Nav from "./components/Nav";
 
-export const VERSION = "2.3.1";
+export const VERSION = "3.0.0";
 
 export default function App() {
   const [onb, setOnb] = useState(() => localStorage.getItem("frisson_onb") === "1");
@@ -20,6 +20,10 @@ export default function App() {
   const [screen, setScreen] = useState("home");
   const [theme, setTheme] = useState(() => localStorage.getItem("frisson-theme") || "full");
   const setThemePersisted = (t) => { localStorage.setItem("frisson-theme", t); setTheme(t); };
+  const [dayMode, setDayModeRaw] = useState(() => localStorage.getItem("frisson-daymode") || "night");
+  const setDayMode = (m) => { localStorage.setItem("frisson-daymode", m); setDayModeRaw(m); };
+  const toggleDayMode = () => setDayMode(dayMode === "day" ? "night" : "day");
+  const THEMES = getThemes(dayMode);
   const [eScore, setEScoreRaw] = useState(() => {
     const v = localStorage.getItem("frisson_escore");
     return v !== null && v !== "null" ? parseInt(v) : null;
@@ -49,23 +53,23 @@ export default function App() {
   const showNav = screen !== "sub" && screen !== "situations";
 
   if (!onb) return (<><GlobalStyles /><Onboarding onDone={() => { localStorage.setItem("frisson_onb", "1"); setOnb(true); }} /></>);
-  if (!tour) return (<><GlobalStyles /><AppTour onDone={() => { localStorage.setItem("frisson_tour", "1"); setTour(true); }} theme={theme} /></>);
+  if (!tour) return (<><GlobalStyles /><AppTour onDone={() => { localStorage.setItem("frisson_tour", "1"); setTour(true); }} theme={theme} THEMES={THEMES} /></>);
 
   const screens = {
-    home: <Home setScreen={setScreen} theme={theme} setTheme={setThemePersisted} eScore={eScore} pLog={pLog} setLibSec={setLibSec} />,
-    library: <Library setScreen={setScreen} theme={theme} initSec={libSec} initMed={openMed} clearMed={() => setOpenMed(null)} medFrom={medFrom} clearMedFrom={() => setMedFrom(null)} />,
+    home: <Home setScreen={setScreen} theme={theme} setTheme={setThemePersisted} eScore={eScore} pLog={pLog} setLibSec={setLibSec} dayMode={dayMode} toggleDayMode={toggleDayMode} THEMES={THEMES} />,
+    library: <Library setScreen={setScreen} theme={theme} initSec={libSec} initMed={openMed} clearMed={() => setOpenMed(null)} medFrom={medFrom} clearMedFrom={() => setMedFrom(null)} THEMES={THEMES} />,
     orbit: <Orbit setScreen={setScreen} addGems={addGems} />,
-    journal: <Journal theme={theme} addGems={addGems} />,
-    situations: <Situations setScreen={setScreen} theme={theme} goToMed={goToMed} />,
-    profile: <Profile setScreen={setScreen} theme={theme} eScore={eScore} setEScore={setEScore} eHist={eHist} setEHist={setEHist} pLog={pLog} gems={gems} />,
-    sub: <SubPage setScreen={setScreen} theme={theme} />,
+    journal: <Journal theme={theme} addGems={addGems} THEMES={THEMES} />,
+    situations: <Situations setScreen={setScreen} theme={theme} goToMed={goToMed} THEMES={THEMES} />,
+    profile: <Profile setScreen={setScreen} theme={theme} eScore={eScore} setEScore={setEScore} eHist={eHist} setEHist={setEHist} pLog={pLog} gems={gems} dayMode={dayMode} toggleDayMode={toggleDayMode} THEMES={THEMES} />,
+    sub: <SubPage setScreen={setScreen} theme={theme} THEMES={THEMES} />,
   };
 
   return (
     <>
       <GlobalStyles />
-      <div style={{ width: "100%", height: "100dvh", background: "#04020a", display: "flex", alignItems: "flex-start", justifyContent: "center", overflow: "hidden" }}>
-        <div style={{ width: "100%", maxWidth: 430, height: "100dvh", display: "flex", flexDirection: "column", background: T.bg, transition: "background .6s", boxShadow: "0 0 80px rgba(92,14,28,.2)", position: "relative" }}>
+      <div style={{ width: "100%", height: "100dvh", background: dayMode === "day" ? "#E8E4DE" : "#04020a", display: "flex", alignItems: "flex-start", justifyContent: "center", overflow: "hidden", transition: "background .6s" }}>
+        <div style={{ width: "100%", maxWidth: 430, height: "100dvh", display: "flex", flexDirection: "column", background: T.bg, transition: "background .6s", boxShadow: dayMode === "day" ? "0 0 60px rgba(0,0,0,.08)" : "0 0 80px rgba(92,14,28,.2)", position: "relative" }}>
           {/* Ambient floating dots — app-wide background */}
           {screen !== "orbit" && (
             <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden", zIndex: 0 }}>
@@ -84,8 +88,8 @@ export default function App() {
             </div>
           )}
           <div ref={scrollRef} key={screen} className="screen-in" style={{ flex: 1, overflowY: screen === "orbit" ? "hidden" : "auto", overflowX: "hidden", position: "relative", zIndex: 1, display: "flex", flexDirection: "column" }}>{screens[screen]}</div>
-          {showNav && <Nav active={screen} setScreen={setScreen} theme={theme} />}
-          <div style={{ position: "absolute", bottom: showNav ? 22 : 4, right: 6, fontSize: 8, color: "rgba(255,255,255,.12)", fontFamily: "sans-serif", pointerEvents: "none", zIndex: 50 }}>v{VERSION}</div>
+          {showNav && <Nav active={screen} setScreen={setScreen} theme={theme} THEMES={THEMES} />}
+          <div style={{ position: "absolute", bottom: showNav ? 22 : 4, right: 6, fontSize: 8, color: dayMode === "day" ? "rgba(0,0,0,.1)" : "rgba(255,255,255,.12)", fontFamily: "sans-serif", pointerEvents: "none", zIndex: 50 }}>v{VERSION}</div>
         </div>
       </div>
     </>

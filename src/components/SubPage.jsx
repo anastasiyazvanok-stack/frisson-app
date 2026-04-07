@@ -1,8 +1,8 @@
-import { THEMES } from "../data/themes";
+// THEMES passed via props
 import { FONT_SERIF, FONT_SANS } from "../utils/helpers";
 import Orb from "./Orb";
 
-export default function SubPage({ setScreen, theme }) {
+export default function SubPage({ setScreen, theme, THEMES }) {
   const T = THEMES[theme] || THEMES.full;
 
   return (

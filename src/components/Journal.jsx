@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { THEMES } from "../data/themes";
+// THEMES passed via props
 import { FONT_SERIF, FONT_SANS } from "../utils/helpers";
 
 const STORAGE_KEY = "frisson_journal";
@@ -27,7 +27,7 @@ function todayStr() {
   return `${day} ${mon} ${d.getFullYear()}`;
 }
 
-export default function Journal({ theme, addGems }) {
+export default function Journal({ theme, addGems, THEMES }) {
   const T = THEMES[theme] || THEMES.full;
   const [tab, setTab] = useState("intent");
   const [data, setData] = useState(load);

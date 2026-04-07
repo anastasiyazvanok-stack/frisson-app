@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { THEMES } from "../data/themes";
+// THEMES passed via props
 import { STATES } from "../data/situations";
 import { FONT_SERIF, FONT_SANS } from "../utils/helpers";
 import Orb from "./Orb";
 
-export default function Situations({ setScreen, theme, goToMed }) {
+export default function Situations({ setScreen, theme, goToMed, THEMES }) {
   const T = THEMES[theme] || THEMES.full;
   const [openItem, setOpenItem] = useState(null);
 

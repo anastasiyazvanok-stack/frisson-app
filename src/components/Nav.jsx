@@ -1,7 +1,6 @@
-import { THEMES } from "../data/themes";
 import { FONT_SANS } from "../utils/helpers";
 
-export default function Nav({ active, setScreen, theme }) {
+export default function Nav({ active, setScreen, theme, THEMES }) {
   const T = THEMES[theme] || THEMES.full;
   const items = [
     {

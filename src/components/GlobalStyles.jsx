@@ -3,7 +3,7 @@ export default function GlobalStyles() {
     <style>{`
       @import url('https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Plus+Jakarta+Sans:wght@200;300;400;500&display=swap');
       *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-      body{background:#06030a}::-webkit-scrollbar{display:none}
+      body{background:#06030a;transition:background .6s}::-webkit-scrollbar{display:none}
       :root{--vh:1dvh}
       @keyframes breathe{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.08);opacity:1}}
       @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
