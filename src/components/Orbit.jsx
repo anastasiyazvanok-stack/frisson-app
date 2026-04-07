@@ -108,7 +108,7 @@ const LAYERS = [
   { id:6, name:"Поведение", sub:"внешний слой", hex:"#C8960A", col:0xC8960A, lc:0xA07808, radius:30, speed:0.15, bright:0.60, sz:0.46, lineAmt:0.3, desc:"То, что видит мир. Когда бессознательное исцелено, а сознательное выбрало новое, поведение меняется органично, без насилия над собой." },
 ];
 
-export default function Orbit({ setScreen, addGems, dayMode }) {
+export default function Orbit({ setScreen, addGems, dayMode, doMarkPractice }) {
   const isDay = dayMode === "day";
   const canvasRef = useRef(null);
   const touchRef = useRef(null);
@@ -221,6 +221,7 @@ export default function Orbit({ setScreen, addGems, dayMode }) {
   function awardCrystals(seconds) {
     const earned = Math.max(1, Math.round(seconds / 60));
     if (addGems) addGems(earned);
+    if (doMarkPractice) doMarkPractice(Math.round(seconds / 60));
     setGemPop({ amount: earned, id: Date.now() });
     setTimeout(() => setGemPop(null), 4000);
   }

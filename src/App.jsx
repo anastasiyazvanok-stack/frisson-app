@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { getThemes } from "./data/themes";
+import { getActivity, markPractice, getName, setName as saveName } from "./data/activity";
 import GlobalStyles from "./components/GlobalStyles";
 import Onboarding from "./components/Onboarding";
 import AppTour from "./components/AppTour";
@@ -12,7 +13,7 @@ import SubPage from "./components/SubPage";
 import Orbit from "./components/Orbit";
 import Nav from "./components/Nav";
 
-export const VERSION = "3.0.2";
+export const VERSION = "3.1.0";
 
 export default function App() {
   const [onb, setOnb] = useState(() => localStorage.getItem("frisson_onb") === "1");
@@ -46,22 +47,45 @@ export default function App() {
   const [gems, setGems] = useState(() => parseInt(localStorage.getItem("frisson_gems")) || 0);
   const addGems = (n) => setGems((g) => { const v = g + n; localStorage.setItem("frisson_gems", v); return v; });
 
+  // Activity tracking
+  const [activity, setActivity] = useState(getActivity);
+  const [userName, setUserName] = useState(getName);
+  const [showNameInput, setShowNameInput] = useState(() => !getName());
+  const doMarkPractice = (minutes) => { const a = markPractice(minutes); setActivity({ ...a }); };
+  const doSetName = (n) => { saveName(n); setUserName(n); setShowNameInput(false); };
+
   const scrollRef = useRef(null);
   useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = 0; }, [screen]);
 
   const T = THEMES[theme] || THEMES.full;
   const showNav = screen !== "sub" && screen !== "situations";
 
+  // Name input screen
+  if (showNameInput) return (
+    <><GlobalStyles />
+    <div style={{ width: "100%", height: "100dvh", background: "#080A06", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 32px" }}>
+      <div style={{ fontFamily: "'Cormorant',Georgia,serif", fontSize: 42, fontWeight: 300, color: "#fff", textAlign: "center", marginBottom: 8 }}>Frisson</div>
+      <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, letterSpacing: ".3em", textTransform: "uppercase", color: "rgba(180,150,165,.5)", marginBottom: 40 }}>✦ как вас зовут? ✦</div>
+      <input
+        autoFocus
+        placeholder="Ваше имя"
+        onKeyDown={(e) => { if (e.key === "Enter" && e.target.value.trim()) doSetName(e.target.value.trim()); }}
+        style={{ width: "100%", maxWidth: 260, padding: "16px 20px", borderRadius: 16, background: "rgba(255,255,255,.06)", border: "1px solid rgba(200,160,180,.25)", outline: "none", fontFamily: "'Cormorant',Georgia,serif", fontSize: 20, color: "#fff", textAlign: "center", caretColor: "rgba(200,160,180,.8)" }}
+      />
+      <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, color: "rgba(200,160,180,.4)", marginTop: 16 }}>Нажмите Enter</div>
+    </div></>
+  );
+
   if (!onb) return (<><GlobalStyles /><Onboarding onDone={() => { localStorage.setItem("frisson_onb", "1"); setOnb(true); }} /></>);
   if (!tour) return (<><GlobalStyles /><AppTour onDone={() => { localStorage.setItem("frisson_tour", "1"); setTour(true); }} theme={theme} THEMES={THEMES} /></>);
 
   const screens = {
-    home: <Home setScreen={setScreen} theme={theme} setTheme={setThemePersisted} eScore={eScore} pLog={pLog} setLibSec={setLibSec} dayMode={dayMode} toggleDayMode={toggleDayMode} THEMES={THEMES} />,
+    home: <Home setScreen={setScreen} theme={theme} setTheme={setThemePersisted} eScore={eScore} pLog={pLog} setLibSec={setLibSec} dayMode={dayMode} toggleDayMode={toggleDayMode} THEMES={THEMES} activity={activity} userName={userName} doMarkPractice={doMarkPractice} />,
     library: <Library setScreen={setScreen} theme={theme} initSec={libSec} initMed={openMed} clearMed={() => setOpenMed(null)} medFrom={medFrom} clearMedFrom={() => setMedFrom(null)} THEMES={THEMES} />,
-    orbit: <Orbit setScreen={setScreen} addGems={addGems} dayMode={dayMode} />,
-    journal: <Journal theme={theme} addGems={addGems} THEMES={THEMES} />,
+    orbit: <Orbit setScreen={setScreen} addGems={addGems} dayMode={dayMode} doMarkPractice={doMarkPractice} />,
+    journal: <Journal theme={theme} addGems={addGems} THEMES={THEMES} doMarkPractice={doMarkPractice} />,
     situations: <Situations setScreen={setScreen} theme={theme} goToMed={goToMed} THEMES={THEMES} />,
-    profile: <Profile setScreen={setScreen} theme={theme} eScore={eScore} setEScore={setEScore} eHist={eHist} setEHist={setEHist} pLog={pLog} gems={gems} dayMode={dayMode} toggleDayMode={toggleDayMode} THEMES={THEMES} />,
+    profile: <Profile setScreen={setScreen} theme={theme} eScore={eScore} setEScore={setEScore} eHist={eHist} setEHist={setEHist} pLog={pLog} gems={gems} dayMode={dayMode} toggleDayMode={toggleDayMode} THEMES={THEMES} activity={activity} eScoreHistory={eHist} />,
     sub: <SubPage setScreen={setScreen} theme={theme} THEMES={THEMES} />,
   };
 

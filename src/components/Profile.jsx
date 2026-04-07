@@ -6,7 +6,9 @@ import Orb from "./Orb";
 
 import { VERSION } from "../App";
 
-export default function Profile({ setScreen, theme, eScore, setEScore, eHist, setEHist, pLog, gems = 0, dayMode, toggleDayMode, THEMES }) {
+import { ACHIEVEMENTS } from "../data/activity";
+
+export default function Profile({ setScreen, theme, eScore, setEScore, eHist, setEHist, pLog, gems = 0, dayMode, toggleDayMode, THEMES, activity, eScoreHistory }) {
   const T = THEMES[theme] || THEMES.full;
   const [showT, setShowT] = useState(false);
   const [tI, setTI] = useState(0);
@@ -52,8 +54,8 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
       <Orb style={{ top: -50, left: "50%", transform: "translateX(-50%)" }} color={T.o1} opacity={0.15} w={260} h={260} />
       <div style={{ padding: "50px 24px 22px", textAlign: "center", position: "relative", zIndex: 1 }}>
         <div style={{ fontFamily: FONT_SANS, fontSize: 9, letterSpacing: ".25em", textTransform: "uppercase", color: T.accent, marginBottom: 8 }}>Внутренний мир</div>
-        <div style={{ width: 80, height: 80, borderRadius: "50%", background: "linear-gradient(135deg,#280d18,#1a0812)", border: `1.5px solid ${T.border}`, margin: "0 auto 12px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FONT_SERIF, fontSize: 26, color: T.accent }}>AN</div>
-        <div style={{ fontFamily: FONT_SERIF, fontSize: 24, marginBottom: 4, color: "rgba(var(--txt),.95)" }}>Anastasiya</div>
+        <div style={{ width: 80, height: 80, borderRadius: "50%", background: "linear-gradient(135deg,#280d18,#1a0812)", border: `1.5px solid ${T.border}`, margin: "0 auto 12px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FONT_SERIF, fontSize: 26, color: T.accent }}>{(activity?.name || "F").slice(0,2).toUpperCase()}</div>
+        <div style={{ fontFamily: FONT_SERIF, fontSize: 24, marginBottom: 4, color: "rgba(var(--txt),.95)" }}>{activity?.name || "Frisson"}</div>
         <div style={{ fontFamily: FONT_SANS, fontSize: 9, letterSpacing: ".22em", textTransform: "uppercase", color: T.accent, marginBottom: 18 }}>✦ Начало пути</div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 18 }}>
           <div onClick={() => setScreen("sub")} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 20px", borderRadius: 22, background: T.dim, border: `1px solid ${T.border}`, cursor: "pointer", fontFamily: FONT_SANS, fontSize: 10, letterSpacing: ".14em", textTransform: "uppercase", color: T.text }}>♛ &nbsp;Подписка</div>
@@ -124,13 +126,53 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, margin: "0 24px 18px", position: "relative", zIndex: 1 }}>
-        {[["0", "Медитаций"], ["0", "Минут"], ["0", "Дней подряд"], [`${gems} ⟡`, "Кристаллов"]].map((pr, i) => (
+        {[[`${activity?.totalMeds || 0}`, "Медитаций"], [`${activity?.totalMinutes || 0}`, "Минут"], [`🔥 ${activity?.streak || 0}`, "Дней подряд"], [`${gems} ⟡`, "Кристаллов"]].map((pr, i) => (
           <div key={i} style={{ padding: "16px 14px", background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, textAlign: "center" }}>
             <div style={{ fontFamily: FONT_SERIF, fontSize: 32, fontWeight: 300, lineHeight: 1, marginBottom: 4, color: "rgba(var(--txt),.95)" }}>{pr[0]}</div>
             <div style={{ fontSize: 9, letterSpacing: ".14em", textTransform: "uppercase", color: "rgba(var(--txt),.4)", fontFamily: FONT_SANS }}>{pr[1]}</div>
           </div>
         ))}
       </div>
+
+      {/* Energy insights */}
+      {eScore !== null && eScoreHistory && eScoreHistory.length >= 2 && (() => {
+        const prev = eScoreHistory[eScoreHistory.length - 2]?.score;
+        const diff = eScore - prev;
+        const trend = diff > 0 ? "↑" : diff < 0 ? "↓" : "→";
+        const trendColor = diff > 0 ? "#4FAE92" : diff < 0 ? "#D4453C" : T.accent;
+        const msg = diff > 5 ? "Отличный рост! Продолжайте практики." : diff > 0 ? "Энергия растёт. Вы на верном пути." : diff < -5 ? "Ресурс снизился. Время для восполнения." : diff < 0 ? "Небольшое снижение. Позаботьтесь о себе." : "Стабильный уровень. Хорошая основа.";
+        return (
+          <div style={{ margin: "0 24px 14px", padding: "14px 18px", background: `${trendColor}12`, border: `1px solid ${trendColor}30`, borderRadius: 16, position: "relative", zIndex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <span style={{ fontSize: 20, color: trendColor }}>{trend}</span>
+              <span style={{ fontFamily: FONT_SERIF, fontSize: 15, color: trendColor }}>{diff > 0 ? "+" : ""}{diff} баллов</span>
+              <span style={{ fontFamily: FONT_SANS, fontSize: 9, color: `rgba(var(--txt),.4)` }}>с прошлого теста</span>
+            </div>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 13, color: `rgba(var(--txt),.7)`, lineHeight: 1.5 }}>{msg}</div>
+          </div>
+        );
+      })()}
+
+      {/* Achievements */}
+      {(() => {
+        const earned = activity?.achievements || [];
+        return (
+          <div style={{ margin: "0 24px 14px", padding: "16px 18px", background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, position: "relative", zIndex: 1 }}>
+            <div style={{ fontFamily: FONT_SANS, fontSize: 9, letterSpacing: ".22em", textTransform: "uppercase", color: `rgba(var(--txt),.4)`, marginBottom: 10 }}>Достижения · {earned.length} из {ACHIEVEMENTS.length}</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {ACHIEVEMENTS.map((a) => {
+                const done = earned.includes(a.id);
+                return (
+                  <div key={a.id} style={{ padding: "8px 12px", borderRadius: 12, background: done ? `${T.accent}18` : `rgba(var(--txt),.03)`, border: `1px solid ${done ? T.accent + "33" : "rgba(var(--txt),.08)"}` }}>
+                    <div style={{ fontFamily: FONT_SERIF, fontSize: 12, color: done ? T.accent : `rgba(var(--txt),.25)` }}>{a.label}</div>
+                    <div style={{ fontFamily: FONT_SANS, fontSize: 8, color: done ? `rgba(var(--txt),.5)` : `rgba(var(--txt),.15)` }}>{a.desc}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
 
       <div style={{ margin: "0 24px 14px", padding: 20, background: T.dim, border: `1px solid ${T.border}`, borderRadius: 18, position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 13, marginBottom: 14 }}>

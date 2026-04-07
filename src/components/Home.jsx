@@ -6,7 +6,7 @@ import Orb from "./Orb";
 import Lock from "./Lock";
 import { VERSION } from "../App";
 
-export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibSec, dayMode, toggleDayMode, THEMES }) {
+export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibSec, dayMode, toggleDayMode, THEMES, activity, userName, doMarkPractice }) {
   const T = THEMES[theme] || THEMES.full;
   const moon = getMoon();
   const gr = useGreeting();
@@ -33,11 +33,31 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
           <div className="moon-halo" style={{ position: "absolute", inset: -14, borderRadius: "50%", background: `radial-gradient(circle, rgba(${T.ar},.5), transparent 70%)`, filter: "blur(14px)", pointerEvents: "none" }} />
           <div style={{ fontSize: 42, lineHeight: 1, position: "relative" }}>{moon.e}</div>
         </div>
-        <div style={{ fontFamily: FONT_SERIF, fontSize: 26, fontWeight: 300, lineHeight: 1.25, color: T.text, marginBottom: 6 }}>{gr},<br/><span style={{ color: T.accent }}>Anastasiya</span></div>
+        <div style={{ fontFamily: FONT_SERIF, fontSize: 26, fontWeight: 300, lineHeight: 1.25, color: T.text, marginBottom: 6 }}>{gr},<br/><span style={{ color: T.accent }}>{userName || "Frisson"}</span></div>
         <div style={{ fontFamily: FONT_SERIF, fontSize: 15, color: `rgba(${T.ar},.7)`, lineHeight: 1.5, transition: "color .6s" }}>{msg}</div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginTop: 12 }}>
           <div style={{ fontFamily: FONT_SANS, fontSize: 9, color: `rgba(${T.ar},.2)` }}>Frisson v{VERSION}</div>
           <div onClick={toggleDayMode} style={{ cursor: "pointer", padding: "4px 10px", borderRadius: 12, background: dayMode === "day" ? "rgba(255,220,120,.15)" : "rgba(100,100,180,.12)", border: `1px solid ${dayMode === "day" ? "rgba(255,200,80,.25)" : "rgba(100,100,180,.2)"}`, fontSize: 13, transition: "all .3s" }}>{dayMode === "day" ? "☀️" : "🌙"}</div>
+        </div>
+      </div>
+
+      {/* Streak + daily practice */}
+      <div className="fu1" style={{ margin: "0 24px 14px", display: "flex", gap: 8, position: "relative", zIndex: 1 }}>
+        {/* Streak badge */}
+        <div style={{ flex: 1, padding: "12px 14px", background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ fontSize: 22 }}>🔥</div>
+          <div>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 20, fontWeight: 300, color: T.text, lineHeight: 1 }}>{activity?.streak || 0}</div>
+            <div style={{ fontFamily: FONT_SANS, fontSize: 8, letterSpacing: ".1em", textTransform: "uppercase", color: `rgba(var(--txt),.4)` }}>{(activity?.streak || 0) === 1 ? "день" : "дней подряд"}</div>
+          </div>
+        </div>
+        {/* Today's practice */}
+        <div onClick={() => { if (!activity?.todayDone) { doMarkPractice(0); } }} style={{ flex: 1, padding: "12px 14px", background: activity?.todayDone ? `${T.accent}18` : T.card, border: `1px solid ${activity?.todayDone ? T.accent + "33" : T.border}`, borderRadius: 14, display: "flex", alignItems: "center", gap: 10, cursor: activity?.todayDone ? "default" : "pointer", transition: "all .3s" }}>
+          <div style={{ fontSize: 22 }}>{activity?.todayDone ? "✦" : "○"}</div>
+          <div>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 13, color: activity?.todayDone ? T.accent : T.text, lineHeight: 1.2 }}>{activity?.todayDone ? "Практика сделана" : "Отметить практику"}</div>
+            <div style={{ fontFamily: FONT_SANS, fontSize: 8, letterSpacing: ".1em", textTransform: "uppercase", color: `rgba(var(--txt),.4)` }}>сегодня</div>
+          </div>
         </div>
       </div>
 
