@@ -299,7 +299,10 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
 
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    // Fallback dimensions if container hasn't laid out yet
+    const initW = canvas.clientWidth || canvas.parentElement?.clientWidth || window.innerWidth;
+    const initH = canvas.clientHeight || canvas.parentElement?.clientHeight || window.innerHeight;
+    renderer.setSize(initW, initH);
     renderer.setClearColor(isDay ? 0xEDE8E4 : 0x060208, 1);
 
     // Soft circular sprite for particles (prevents white square artifacts)
@@ -315,7 +318,7 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
     const sprite = new THREE.CanvasTexture(spriteCanvas);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 1, 1000);
+    const camera = new THREE.PerspectiveCamera(45, (initW || 1) / (initH || 1), 1, 1000);
     camera.position.z = 85;
 
     const PA = new Float32Array(N * 3), VA = new Float32Array(N * 3), PH = new Float32Array(N);
@@ -511,16 +514,27 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
     loop();
 
     const onResize = () => {
-      const w = canvas.clientWidth, h = canvas.clientHeight;
-      renderer.setSize(w, h);
+      const w = canvas.clientWidth || canvas.parentElement?.clientWidth || window.innerWidth;
+      const h = canvas.clientHeight || canvas.parentElement?.clientHeight || window.innerHeight;
+      if (w === 0 || h === 0) return;
+      renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
     };
     window.addEventListener("resize", onResize);
+    // ResizeObserver catches layout changes (e.g. when navigating from another screen)
+    let ro = null;
+    if (typeof ResizeObserver !== "undefined" && canvas.parentElement) {
+      ro = new ResizeObserver(onResize);
+      ro.observe(canvas.parentElement);
+    }
+    // Also force a resize on the next two frames in case mount-time dims were 0
+    requestAnimationFrame(() => { onResize(); requestAnimationFrame(onResize); });
 
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", onResize);
+      if (ro) ro.disconnect();
       renderer.dispose(); geo.dispose(); mat.dispose(); lineGeo.dispose(); lineMat.dispose(); elGeo.dispose(); elMat.dispose(); sprite.dispose();
       cleanupAudio();
     };
