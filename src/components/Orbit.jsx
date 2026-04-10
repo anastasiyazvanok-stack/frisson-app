@@ -540,6 +540,15 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
     };
   }, []);
 
+  // Cleanup meditation timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+      medStartRef.current = 0;
+      medDurationRef.current = 0;
+    };
+  }, []);
+
   // Touch/mouse/wheel interaction — separate effect so it doesn't re-bindO on state changes
   useEffect(() => {
     const el = touchRef.current;
