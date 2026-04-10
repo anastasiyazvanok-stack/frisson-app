@@ -2,7 +2,7 @@ import { useState } from "react";
 import { getPsycapStats } from "../data/psycap";
 import { FONT_SERIF, FONT_SANS } from "../utils/helpers";
 
-export default function PsycapAnalytics({ T, setScreen, eScore }) {
+export default function PsycapAnalytics({ T, setScreen, eScore, goToScenario }) {
   const stats = getPsycapStats();
   const [showHow, setShowHow] = useState(false);
   const { dims, avg, weeklyGrowth, strongest, weakest, recommendation, sessionsThisWeek, totalSessions, topPractices } = stats;
@@ -67,7 +67,7 @@ export default function PsycapAnalytics({ T, setScreen, eScore }) {
         <div style={{ fontFamily: FONT_SERIF, fontSize: 13, color: `rgba(var(--txt),.85)`, lineHeight: 1.5, marginBottom: 8 }}>
           <b>{weakest.label}</b> — {recommendation.text}
         </div>
-        <div onClick={() => setScreen && setScreen("orbit")} style={{ display: "inline-block", padding: "6px 12px", borderRadius: 10, background: `${weakest.hex}22`, border: `1px solid ${weakest.hex}44`, fontFamily: FONT_SANS, fontSize: 9, letterSpacing: ".1em", textTransform: "uppercase", color: weakest.hex, cursor: "pointer" }}>
+        <div onClick={() => goToScenario ? goToScenario(recommendation.scenario) : setScreen && setScreen("orbit")} style={{ display: "inline-block", padding: "6px 12px", borderRadius: 10, background: `${weakest.hex}22`, border: `1px solid ${weakest.hex}44`, fontFamily: FONT_SANS, fontSize: 9, letterSpacing: ".1em", textTransform: "uppercase", color: weakest.hex, cursor: "pointer" }}>
           Открыть «{recommendation.label}» →
         </div>
       </div>

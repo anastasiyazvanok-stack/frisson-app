@@ -109,7 +109,7 @@ const LAYERS = [
   { id:6, name:"Поведение", sub:"внешний слой", hex:"#C8960A", col:0xC8960A, lc:0xA07808, radius:30, speed:0.15, bright:0.60, sz:0.46, lineAmt:0.3, desc:"То, что видит мир. Когда бессознательное исцелено, а сознательное выбрало новое, поведение меняется органично, без насилия над собой." },
 ];
 
-export default function Orbit({ setScreen, addGems, doMarkPractice }) {
+export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario, clearInitScenario }) {
   const isDay = false;
   const canvasRef = useRef(null);
   const touchRef = useRef(null);
@@ -133,6 +133,21 @@ export default function Orbit({ setScreen, addGems, doMarkPractice }) {
   const audioRef = useRef({ ctx: null, gain: null, oscs: [], analyser: null, freq: new Uint8Array(64), bass: 0, mid: 0 });
 
   const layer = LAYERS[activeId - 1];
+
+  // Pre-select scenario from prop (e.g. from Profile recommendation)
+  useEffect(() => {
+    if (initScenario) {
+      const sc = SCENARIOS.find((s) => s.id === initScenario);
+      if (sc) {
+        scenarioRef.current = sc;
+        setActiveScenarioState(sc);
+        setPanelMode("scenario");
+        setPanelOpen(true);
+        setPanelExpanded(true);
+      }
+      if (clearInitScenario) clearInitScenario();
+    }
+  }, [initScenario]);
 
   function setScenario(sc) {
     scenarioRef.current = sc;
@@ -250,6 +265,8 @@ export default function Orbit({ setScreen, addGems, doMarkPractice }) {
         setSoundOn(false);
         setMeditating(false);
         awardCrystals(medDurationRef.current);
+        medStartRef.current = 0;
+        medDurationRef.current = 0;
       }
     }, 200);
   }
@@ -262,6 +279,9 @@ export default function Orbit({ setScreen, addGems, doMarkPractice }) {
     setMeditating(false);
     setMedTime(0);
     if (elapsed >= 30) awardCrystals(elapsed);
+    // Reset refs so healing physics stops
+    medStartRef.current = 0;
+    medDurationRef.current = 0;
   }
 
   function toggleSound() {

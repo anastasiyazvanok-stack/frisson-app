@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 // THEMES passed via props
 import { SECTIONS, COMING_SOON, BOOKS } from "../data/content";
 import { FONT_SERIF, FONT_SANS } from "../utils/helpers";
+import { addPsycap, MED_TO_PSYCAP } from "../data/psycap";
 import Orb from "./Orb";
 import Lock from "./Lock";
 
-export default function Library({ setScreen, theme, initSec, initMed, clearMed, medFrom, clearMedFrom, THEMES }) {
+export default function Library({ setScreen, theme, initSec, initMed, clearMed, medFrom, clearMedFrom, THEMES, doMarkPractice, addGems }) {
   const T = THEMES[theme] || THEMES.full;
   const ALL_MEDS = SECTIONS.flatMap((s) => s.meds);
   const [det, setDet] = useState(() => {
@@ -58,7 +59,18 @@ export default function Library({ setScreen, theme, initSec, initMed, clearMed, 
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around" }}>
               <div style={{ fontSize: 20, color: "rgba(var(--txt),.4)", cursor: "pointer" }}>↺</div>
               <div style={{ fontSize: 12, color: "rgba(var(--txt),.4)", cursor: "pointer", background: "rgba(255,255,255,.06)", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center" }}>15</div>
-              <div onClick={() => { if (!det.free) { setScreen("sub"); return; } setPlay((p) => !p); }} style={{ width: 60, height: 60, borderRadius: "50%", cursor: "pointer", background: `linear-gradient(135deg,${ac},${ac}88)`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 24px ${ac}55`, fontSize: 20, color: "#fff" }}>{play ? "⏸" : "▶"}</div>
+              <div onClick={() => {
+                if (!det.free) { setScreen("sub"); return; }
+                const newPlay = !play;
+                setPlay(newPlay);
+                // First time pressing play in this session = start practice
+                if (newPlay) {
+                  const psyKey = MED_TO_PSYCAP[det.title];
+                  if (psyKey) addPsycap(psyKey);
+                  if (doMarkPractice) doMarkPractice(parseInt(det.dur) || 20);
+                  if (addGems) addGems(Math.max(1, parseInt(det.dur) || 20));
+                }
+              }} style={{ width: 60, height: 60, borderRadius: "50%", cursor: "pointer", background: `linear-gradient(135deg,${ac},${ac}88)`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 24px ${ac}55`, fontSize: 20, color: "#fff" }}>{play ? "⏸" : "▶"}</div>
               <div style={{ fontSize: 12, color: "rgba(var(--txt),.4)", cursor: "pointer", background: "rgba(255,255,255,.06)", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center" }}>↻</div>
               <div style={{ fontSize: 15, color: "rgba(var(--txt),.4)", cursor: "pointer" }}>AA</div>
             </div>

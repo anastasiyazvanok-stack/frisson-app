@@ -13,7 +13,7 @@ import SubPage from "./components/SubPage";
 import Orbit from "./components/Orbit";
 import Nav from "./components/Nav";
 
-export const VERSION = "3.4.0";
+export const VERSION = "3.4.1";
 
 export default function App() {
   const [onb, setOnb] = useState(() => localStorage.getItem("frisson_onb") === "1");
@@ -41,6 +41,8 @@ export default function App() {
   const [openMed, setOpenMed] = useState(null);
   const [medFrom, setMedFrom] = useState(null);
   const goToMed = (medTitle, from) => { setOpenMed(medTitle); setMedFrom(from || null); setScreen("library"); };
+  const [openScenario, setOpenScenario] = useState(null);
+  const goToScenario = (scId) => { setOpenScenario(scId); setScreen("orbit"); };
   const [gems, setGems] = useState(() => parseInt(localStorage.getItem("frisson_gems")) || 0);
   const addGems = (n) => setGems((g) => { const v = g + n; localStorage.setItem("frisson_gems", v); return v; });
 
@@ -78,11 +80,11 @@ export default function App() {
 
   const screens = {
     home: <Home setScreen={setScreen} theme={theme} setTheme={setThemePersisted} eScore={eScore} pLog={pLog} setLibSec={setLibSec} THEMES={THEMES} activity={activity} userName={userName} doMarkPractice={doMarkPractice} />,
-    library: <Library setScreen={setScreen} theme={theme} initSec={libSec} initMed={openMed} clearMed={() => setOpenMed(null)} medFrom={medFrom} clearMedFrom={() => setMedFrom(null)} THEMES={THEMES} />,
-    orbit: <Orbit setScreen={setScreen} addGems={addGems} doMarkPractice={doMarkPractice} />,
+    library: <Library setScreen={setScreen} theme={theme} initSec={libSec} initMed={openMed} clearMed={() => setOpenMed(null)} medFrom={medFrom} clearMedFrom={() => setMedFrom(null)} THEMES={THEMES} doMarkPractice={doMarkPractice} addGems={addGems} />,
+    orbit: <Orbit setScreen={setScreen} addGems={addGems} doMarkPractice={doMarkPractice} initScenario={openScenario} clearInitScenario={() => setOpenScenario(null)} />,
     journal: <Journal theme={theme} addGems={addGems} THEMES={THEMES} doMarkPractice={doMarkPractice} />,
     situations: <Situations setScreen={setScreen} theme={theme} goToMed={goToMed} THEMES={THEMES} />,
-    profile: <Profile setScreen={setScreen} theme={theme} eScore={eScore} setEScore={setEScore} eHist={eHist} setEHist={setEHist} pLog={pLog} gems={gems} THEMES={THEMES} activity={activity} eScoreHistory={eHist} />,
+    profile: <Profile setScreen={setScreen} theme={theme} eScore={eScore} setEScore={setEScore} eHist={eHist} setEHist={setEHist} pLog={pLog} gems={gems} THEMES={THEMES} activity={activity} eScoreHistory={eHist} goToScenario={goToScenario} />,
     sub: <SubPage setScreen={setScreen} theme={theme} THEMES={THEMES} />,
   };
 

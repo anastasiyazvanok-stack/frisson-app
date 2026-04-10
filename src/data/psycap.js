@@ -44,6 +44,33 @@ export const PRACTICE_HEROF = {
   reflect:   { h: 0, e: 1, r: 3, o: 1, f: 1 },
 };
 
+// Map each Library meditation title to a HEROF practice key
+// Listening to a recorded meditation = full practice with weighted points
+export const MED_TO_PSYCAP = {
+  // Resource section
+  "Возвращение к наполненности": "love",       // filling self with love
+  "Восполниться энергией": "power",             // energy restoration
+  "Женское внутреннее расслабление": "feminine", // feminine relaxation
+  "Я автор своей жизни": "power",               // self-efficacy
+  // Feminine section — all directly feminine
+  "Женская энергия": "feminine",
+  "Возвращение к себе женственной": "feminine",
+  "Состояние женской притягательности": "feminine",
+  "Женское счастье — это норма": "feminine",
+  // Receiving section
+  "Где я перекрыла себе получение": "abundance",
+  "Получение благ от мира": "abundance",
+  "Доверие к миру": "abundance",                // optimism + hope (trust)
+  "Деньги и безопасность": "abundance",
+  // New level section
+  "Благодарность и новый уровень": "abundance", // gratitude → optimism
+  "Новый уровень": "capital",                   // builds all HERO
+  "Разговор с собой из будущего": "capital",    // hope + identity
+  "Вера — мост между реальностями": "fear",     // resilience for transitions
+  // Self section
+  "Право быть настоящей": "feminine",            // authenticity
+};
+
 // Human-readable practice names for the analytics breakdown
 export const PRACTICE_NAMES = {
   neutral: "Нейтральная медитация",
