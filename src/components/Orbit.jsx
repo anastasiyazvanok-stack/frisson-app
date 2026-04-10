@@ -635,7 +635,7 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
   return (
     <div style={{ position: "relative", width: "100%", flex: 1, minHeight: 0, background: isDay ? "#EDE8E4" : "#060208", overflow: "hidden" }}>
       <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }} />
-      <div ref={touchRef} style={{ position: "absolute", inset: 0, zIndex: 5, touchAction: "none" }} />
+      <div ref={touchRef} style={{ position: "absolute", inset: 0, zIndex: 5, touchAction: "none", pointerEvents: showTimerPicker || meditating ? "none" : "auto" }} />
 
       {/* Sidebar — hides during meditation */}
       <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 44, zIndex: 20, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, padding: "80px 0", background: "linear-gradient(90deg, rgba(var(--orb-bg),.7), transparent)", opacity: hideUI, transition: "opacity .8s", pointerEvents: meditating ? "none" : "auto" }}>
@@ -715,13 +715,13 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
 
       {/* Timer picker overlay */}
       {showTimerPicker && (
-        <div style={{ position: "absolute", inset: 0, zIndex: 35, background: "rgba(var(--orb-bg),.88)", backdropFilter: "blur(12px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12 }}>
+        <div style={{ position: "absolute", inset: 0, zIndex: 50, background: "rgba(var(--orb-bg),.92)", backdropFilter: "blur(12px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, pointerEvents: "auto" }}>
           <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase", color: `${acHex}88`, marginBottom: 8, ...ss }}>Время медитации</div>
           <div style={{ fontSize: 13, color: "rgba(200,175,158,.6)", marginBottom: 16, textAlign: "center", maxWidth: 260, lineHeight: 1.6, ...ss }}>Смотрите на орбиту и слушайте звук. Все отвлекающие элементы исчезнут.</div>
           {[{ label: "3 минуты", sec: 180 }, { label: "5 минут", sec: 300 }, { label: "10 минут", sec: 600 }, { label: "15 минут", sec: 900 }].map((opt) => (
-            <div key={opt.sec} onClick={() => startMeditation(opt.sec)} style={{ cursor: "pointer", width: 200, padding: "13px 0", borderRadius: 14, textAlign: "center", background: `${acHex}18`, border: `1px solid ${acHex}33`, fontSize: 13, color: acHex, transition: "all .2s", ...ss }}>{opt.label}</div>
+            <button key={opt.sec} type="button" onClick={(e) => { e.stopPropagation(); startMeditation(opt.sec); }} style={{ cursor: "pointer", width: 200, padding: "14px 0", borderRadius: 14, textAlign: "center", background: `${acHex}22`, border: `1px solid ${acHex}55`, fontSize: 14, color: acHex, transition: "all .2s", touchAction: "manipulation", WebkitAppearance: "none", ...ss }}>{opt.label}</button>
           ))}
-          <div onClick={() => setShowTimerPicker(false)} style={{ cursor: "pointer", marginTop: 10, fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: "rgba(200,175,158,.35)", ...ss }}>Отмена</div>
+          <button type="button" onClick={(e) => { e.stopPropagation(); setShowTimerPicker(false); }} style={{ cursor: "pointer", marginTop: 10, padding: "8px 16px", background: "transparent", border: "none", fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: "rgba(200,175,158,.45)", touchAction: "manipulation", WebkitAppearance: "none", ...ss }}>Отмена</button>
         </div>
       )}
 
