@@ -898,8 +898,9 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
 
       {/* First-visit intro overlay */}
       {showIntro && !showTimerPicker && !meditating && (
-        <div style={{ position: "absolute", inset: 0, zIndex: 55, background: "rgba(6,2,8,.92)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 28, pointerEvents: "auto", overflowY: "auto" }}>
-          <div style={{ maxWidth: 340, textAlign: "center" }}>
+        <div style={{ position: "absolute", inset: 0, zIndex: 55, background: "rgba(6,2,8,.95)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", pointerEvents: "auto", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+          <div style={{ minHeight: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", padding: "40px 24px 40px" }}>
+          <div style={{ maxWidth: 340, width: "100%", textAlign: "center" }}>
             <div style={{ fontFamily: FONT_SANS, fontSize: 9, letterSpacing: ".3em", textTransform: "uppercase", color: "rgba(230,180,200,.6)", marginBottom: 10 }}>✦ Орбита Психики ✦</div>
             <div style={{ fontFamily: FONT_SERIF, fontSize: 26, fontWeight: 300, color: "#fff", lineHeight: 1.2, marginBottom: 18 }}>Это ваш внутренний мир</div>
 
@@ -929,7 +930,9 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
               </div>
             </div>
 
-            <button type="button" onClick={dismissIntro} style={{ padding: "14px 32px", borderRadius: 24, background: "linear-gradient(135deg, rgba(230,77,168,.55), rgba(240,136,56,.45))", border: "1.5px solid rgba(240,136,56,.7)", fontFamily: FONT_SANS, fontSize: 11, letterSpacing: ".2em", textTransform: "uppercase", color: "#fff", cursor: "pointer", boxShadow: "0 0 24px rgba(230,77,168,.3)", touchAction: "manipulation", WebkitAppearance: "none" }}>Начать →</button>
+            <button type="button" onClick={dismissIntro} style={{ padding: "14px 32px", borderRadius: 24, background: "linear-gradient(135deg, rgba(230,77,168,.55), rgba(240,136,56,.45))", border: "1.5px solid rgba(240,136,56,.7)", fontFamily: FONT_SANS, fontSize: 11, letterSpacing: ".2em", textTransform: "uppercase", color: "#fff", cursor: "pointer", boxShadow: "0 0 24px rgba(230,77,168,.3)", touchAction: "manipulation", WebkitAppearance: "none", marginTop: 8 }}>Начать →</button>
+            <div onClick={dismissIntro} style={{ marginTop: 14, padding: "8px 16px", fontFamily: FONT_SANS, fontSize: 9, letterSpacing: 1.5, textTransform: "uppercase", color: "rgba(245,235,230,.35)", cursor: "pointer" }}>Пропустить</div>
+          </div>
           </div>
         </div>
       )}
