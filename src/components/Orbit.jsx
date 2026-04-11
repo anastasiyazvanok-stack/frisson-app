@@ -131,8 +131,10 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
   const [isPaused, setIsPaused] = useState(false);
   const pauseStartRef = useRef(0);
   const pausedTotalRef = useRef(0);
-  const [showIntro, setShowIntro] = useState(() => !localStorage.getItem("frisson_orbit_intro"));
-  const dismissIntro = () => { localStorage.setItem("frisson_orbit_intro", "1"); setShowIntro(false); };
+  const [showIntro, setShowIntro] = useState(false);
+  // Clear any stale intro flag from previous versions
+  useEffect(() => { localStorage.removeItem("frisson_orbit_intro"); }, []);
+  const dismissIntro = () => setShowIntro(false);
   const timerRef = useRef(null);
   const [gemPop, setGemPop] = useState(null);
   const medDurationRef = useRef(0);
