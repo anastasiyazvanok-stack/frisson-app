@@ -526,9 +526,13 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
       const isPositive = sc && (sc.id === "love" || sc.id === "feminine" || sc.id === "power" || sc.id === "abundance" || sc.id === "capital");
 
       // During meditation: negative scenarios fade out, radius expands, speed calms
-      const healFade = isNegative ? (1 - hp * 0.85) : 1; // negative effects reduce to 15%
-      const healExpand = isNegative ? (1 + hp * 0.4) : (isPositive ? (1 + hp * 0.15) : 1); // expand radius
-      const healSpeed = isNegative ? (1 - hp * 0.6) : (isPositive ? (1 + hp * 0.1) : 1); // slow down
+      // Fear needs MORE healing since its contraction is strongest
+      const isFear = sc && sc.id === "fear";
+      const fadeStrength = isFear ? 0.95 : 0.85;
+      const expandStrength = isFear ? 0.8 : 0.4;
+      const healFade = isNegative ? (1 - hp * fadeStrength) : 1;
+      const healExpand = isNegative ? (1 + hp * expandStrength) : (isPositive ? (1 + hp * 0.15) : 1);
+      const healSpeed = isNegative ? (1 - hp * 0.6) : (isPositive ? (1 + hp * 0.1) : 1);
       // Positive scenarios get a gentle breath expansion during meditation
       const healBreath = isPositive && hp > 0 ? Math.sin(t * 0.4) * 0.0008 * hp : 0;
 
@@ -566,7 +570,10 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
           // Healing breath for positive scenarios during meditation
           if (healBreath) { VA[i3] += (x/d) * healBreath; VA[i3+1] += (y/d) * healBreath; VA[i3+2] += (z/d) * healBreath; }
           // Gentle expansion push for all scenarios during meditation
-          if (hp > 0 && isNegative) { const expand = 0.0004 * hp; VA[i3] += (x/d) * expand; VA[i3+1] += (y/d) * expand; VA[i3+2] += (z/d) * expand; }
+          if (hp > 0 && isNegative) {
+            const expand = (isFear ? 0.0012 : 0.0004) * hp;
+            VA[i3] += (x/d) * expand; VA[i3+1] += (y/d) * expand; VA[i3+2] += (z/d) * expand;
+          }
         }
 
         VA[i3] *= 0.992; VA[i3 + 1] *= 0.992; VA[i3 + 2] *= 0.992;
@@ -785,8 +792,10 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
 
       {/* Meditation: guide text + timer */}
       {meditating && (() => {
-        const negIds = ["anxiety", "fear", "conflict"];
-        const textBottom = activeScenario && negIds.includes(activeScenario.id); // fear/anxiety/conflict → text at bottom; others → centered over orb
+        // Anxiety and conflict show text at bottom (heavy healing animation).
+        // Fear, positive scenarios, and neutral show text centered (fear healing is visible around it).
+        const bottomIds = ["anxiety", "conflict"];
+        const textBottom = activeScenario && bottomIds.includes(activeScenario.id);
         const breathEl = guideText?.breath && (
           <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: guideText.breath === "in" ? "rgba(190,230,245,.95)" : guideText.breath === "hold" ? "rgba(250,220,120,.9)" : "rgba(230,185,205,.95)", marginBottom: 8, textShadow: "0 1px 6px rgba(0,0,0,.9)", ...ss }}>
             {guideText.breath === "in" ? "вдох ↑" : guideText.breath === "hold" ? "задержка ◦" : "выдох ↓"}
