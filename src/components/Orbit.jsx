@@ -128,6 +128,9 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
   const [medTime, setMedTime] = useState(0); // seconds remaining
   const [medDuration, setMedDuration] = useState(0);
   const [showTimerPicker, setShowTimerPicker] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const pauseStartRef = useRef(0);
+  const pausedTotalRef = useRef(0);
   const [showIntro, setShowIntro] = useState(() => !localStorage.getItem("frisson_orbit_intro"));
   const dismissIntro = () => { localStorage.setItem("frisson_orbit_intro", "1"); setShowIntro(false); };
   const timerRef = useRef(null);
@@ -345,6 +348,9 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
       // Always start meditation UI first — audio is secondary
       setShowTimerPicker(false);
       setMeditating(true);
+      setIsPaused(false);
+      pausedTotalRef.current = 0;
+      pauseStartRef.current = 0;
       setMedDuration(seconds);
       setMedTime(seconds);
       medDurationRef.current = seconds;
@@ -361,7 +367,10 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
       if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = setInterval(() => {
         try {
-          const elapsed = Math.floor((Date.now() - medStartRef.current) / 1000);
+          // Skip if paused
+          if (pauseStartRef.current > 0) return;
+          const elapsedMs = Date.now() - medStartRef.current - pausedTotalRef.current;
+          const elapsed = Math.floor(elapsedMs / 1000);
           const remaining = Math.max(0, medDurationRef.current - elapsed);
           setMedTime(remaining);
           if (remaining <= 0) {
@@ -370,9 +379,12 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
             try { stopSound(); } catch (e) {}
             setSoundOn(false);
             setMeditating(false);
+            setIsPaused(false);
             try { awardCrystals(medDurationRef.current); } catch (e) { console.warn("Award failed:", e); }
             medStartRef.current = 0;
             medDurationRef.current = 0;
+            pausedTotalRef.current = 0;
+            pauseStartRef.current = 0;
           }
         } catch (tickErr) {
           console.error("Timer tick error:", tickErr);
@@ -385,17 +397,53 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
     }
   }
 
+  function pauseMeditation() {
+    if (isPaused) return;
+    pauseStartRef.current = Date.now();
+    setIsPaused(true);
+    // Fade sound out but keep ctx alive for resume
+    const a = audioRef.current;
+    if (a.ctx && a.gain) {
+      try {
+        a.gain.gain.cancelScheduledValues(a.ctx.currentTime);
+        a.gain.gain.setValueAtTime(a.gain.gain.value, a.ctx.currentTime);
+        a.gain.gain.linearRampToValueAtTime(0, a.ctx.currentTime + 0.4);
+      } catch (e) {}
+    }
+  }
+
+  function resumeMeditation() {
+    if (!isPaused) return;
+    // Add paused duration to total
+    pausedTotalRef.current += Date.now() - pauseStartRef.current;
+    pauseStartRef.current = 0;
+    setIsPaused(false);
+    // Fade sound back in
+    const a = audioRef.current;
+    if (a.ctx && a.gain) {
+      try {
+        a.gain.gain.cancelScheduledValues(a.ctx.currentTime);
+        a.gain.gain.setValueAtTime(0, a.ctx.currentTime);
+        a.gain.gain.linearRampToValueAtTime(0.35, a.ctx.currentTime + 1.5);
+      } catch (e) {}
+    }
+  }
+
   function stopMeditation() {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
-    const elapsed = Math.floor((Date.now() - medStartRef.current) / 1000);
+    const elapsedMs = Date.now() - medStartRef.current - pausedTotalRef.current;
+    const elapsed = Math.floor(elapsedMs / 1000);
     stopSound();
     setSoundOn(false);
     setMeditating(false);
+    setIsPaused(false);
     setMedTime(0);
     if (elapsed >= 30) awardCrystals(elapsed);
     // Reset refs so healing physics stops
     medStartRef.current = 0;
     medDurationRef.current = 0;
+    pausedTotalRef.current = 0;
+    pauseStartRef.current = 0;
   }
 
   function toggleSound() {
@@ -822,10 +870,11 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
                   {textEl}
                 </div>
               )}
-              <div style={{ background: "rgba(6,2,8,.7)", backdropFilter: "blur(12px)", borderRadius: 20, padding: "10px 20px", display: "flex", alignItems: "center", gap: 14, border: `1px solid ${acHex}22` }}>
-                <div style={{ fontSize: 22, fontWeight: 200, color: `${acHex}cc`, letterSpacing: 2, ...ss }}>{fmtTimer(medTime)}</div>
+              <div style={{ background: "rgba(6,2,8,.75)", backdropFilter: "blur(12px)", borderRadius: 20, padding: "10px 16px", display: "flex", alignItems: "center", gap: 12, border: `1px solid ${acHex}22` }}>
+                <div style={{ fontSize: 22, fontWeight: 200, color: `${acHex}cc`, letterSpacing: 2, minWidth: 56, textAlign: "center", ...ss }}>{fmtTimer(medTime)}</div>
                 <div style={{ width: 1, height: 24, background: `${acHex}22` }} />
-                <div onClick={stopMeditation} style={{ pointerEvents: "all", cursor: "pointer", padding: "6px 14px", borderRadius: 12, background: `${acHex}18`, border: `1px solid ${acHex}33`, fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: `${acHex}aa`, ...ss }}>Завершить</div>
+                <button type="button" onClick={isPaused ? resumeMeditation : pauseMeditation} style={{ pointerEvents: "all", cursor: "pointer", padding: "6px 12px", borderRadius: 12, background: `${acHex}28`, border: `1px solid ${acHex}55`, fontSize: 9, letterSpacing: 1.5, textTransform: "uppercase", color: "#fff", touchAction: "manipulation", WebkitAppearance: "none", ...ss }}>{isPaused ? "▶ Продолжить" : "❚❚ Пауза"}</button>
+                <button type="button" onClick={stopMeditation} style={{ pointerEvents: "all", cursor: "pointer", padding: "6px 12px", borderRadius: 12, background: `${acHex}18`, border: `1px solid ${acHex}33`, fontSize: 9, letterSpacing: 1.5, textTransform: "uppercase", color: `${acHex}cc`, touchAction: "manipulation", WebkitAppearance: "none", ...ss }}>Стоп</button>
               </div>
               <div style={{ width: 80, height: 2, borderRadius: 1, background: "rgba(255,255,255,.06)", marginTop: 6, overflow: "hidden" }}>
                 <div style={{ height: "100%", background: acHex, borderRadius: 1, width: medDuration ? `${(medTime / medDuration) * 100}%` : "0%", transition: "width 1s linear" }} />
