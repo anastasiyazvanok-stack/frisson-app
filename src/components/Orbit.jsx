@@ -189,38 +189,88 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
     try {
       a.ctx = new (window.AudioContext || window.webkitAudioContext)();
     } catch (e) { return; }
-    a.gain = a.ctx.createGain();
-    a.gain.gain.setValueAtTime(0, a.ctx.currentTime);
-    a.gain.gain.linearRampToValueAtTime(0.13, a.ctx.currentTime + 2.5);
-    a.analyser = a.ctx.createAnalyser(); a.analyser.fftSize = 128;
-    a.gain.connect(a.analyser); a.gain.connect(a.ctx.destination);
+    const ctx = a.ctx;
+    a.gain = ctx.createGain();
+    a.gain.gain.setValueAtTime(0, ctx.currentTime);
+    a.gain.gain.linearRampToValueAtTime(0.22, ctx.currentTime + 3.5);
+    a.analyser = ctx.createAnalyser(); a.analyser.fftSize = 128;
+    a.gain.connect(a.analyser); a.gain.connect(ctx.destination);
     a.freq = new Uint8Array(a.analyser.frequencyBinCount);
 
-    const sub = a.ctx.createOscillator(), sg = a.ctx.createGain();
-    sub.type = "sine"; sub.frequency.value = prof.sub; sg.gain.value = 0.5;
-    sub.connect(sg); sg.connect(a.gain); sub.start();
+    // ── LOWPASS FILTER: removes harsh highs, makes everything mellower
+    const lowpass = ctx.createBiquadFilter();
+    lowpass.type = "lowpass";
+    lowpass.frequency.value = 800;
+    lowpass.Q.value = 0.7;
+    lowpass.connect(a.gain);
 
-    const merger = a.ctx.createChannelMerger(2); merger.connect(a.gain);
-    const oL = a.ctx.createOscillator(), gL = a.ctx.createGain();
-    oL.type = "sine"; oL.frequency.value = prof.base; gL.gain.value = 0.42;
+    // ── Background ambience: filtered brown noise (water/wind)
+    const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const nd = noiseBuf.getChannelData(0);
+    let lastVal = 0;
+    for (let i = 0; i < nd.length; i++) {
+      const white = Math.random() * 2 - 1;
+      lastVal = (lastVal + 0.02 * white) / 1.02;
+      nd[i] = lastVal * 8;
+    }
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuf; noise.loop = true;
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = "lowpass"; noiseFilter.frequency.value = 600; noiseFilter.Q.value = 0.5;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.value = 0.18;
+    noise.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(a.gain);
+    noise.start();
+
+    // ── Sub bass through soft filter
+    const sub = ctx.createOscillator(), sg = ctx.createGain();
+    sub.type = "sine"; sub.frequency.value = prof.sub; sg.gain.value = 0.22;
+    sub.connect(sg); sg.connect(lowpass); sub.start();
+
+    // ── Binaural tones (much quieter, filtered)
+    const merger = ctx.createChannelMerger(2);
+    const stereoFilter = ctx.createBiquadFilter();
+    stereoFilter.type = "lowpass"; stereoFilter.frequency.value = 1200; stereoFilter.Q.value = 0.5;
+    merger.connect(stereoFilter); stereoFilter.connect(a.gain);
+
+    const oL = ctx.createOscillator(), gL = ctx.createGain();
+    oL.type = "sine"; oL.frequency.value = prof.base; gL.gain.value = 0.16;
     oL.connect(gL); gL.connect(merger, 0, 0); oL.start();
-    const oR = a.ctx.createOscillator(), gR = a.ctx.createGain();
-    oR.type = "sine"; oR.frequency.value = prof.base + prof.beat; gR.gain.value = 0.42;
+    const oR = ctx.createOscillator(), gR = ctx.createGain();
+    oR.type = "sine"; oR.frequency.value = prof.base + prof.beat; gR.gain.value = 0.16;
     oR.connect(gR); gR.connect(merger, 0, 1); oR.start();
 
-    const ov = a.ctx.createOscillator(), og = a.ctx.createGain();
-    ov.type = "sine"; ov.frequency.value = prof.overtone; og.gain.value = 0.05;
-    ov.connect(og); og.connect(a.gain); ov.start();
-
-    const lfo = a.ctx.createOscillator(), lg = a.ctx.createGain();
+    // ── Breath LFO — gentle volume breathing
+    const lfo = ctx.createOscillator(), lg = ctx.createGain();
     lfo.type = "sine"; lfo.frequency.value = prof.lfoRate; lg.gain.value = prof.lfoDepth;
     lfo.connect(lg); lg.connect(a.gain.gain); lfo.start();
 
-    const hb = a.ctx.createOscillator(), hg = a.ctx.createGain();
-    hb.type = "sine"; hb.frequency.value = 0.18; hg.gain.value = 0.03;
-    hb.connect(hg); hg.connect(og.gain); hb.start();
+    // ── Bell tones for positive scenarios (bird-like chimes every 6-10s)
+    const positiveIds = ["love", "feminine", "abundance", "capital", "neutral"];
+    const bellOscs = [];
+    if (positiveIds.includes(profileId)) {
+      const bellScheduler = () => {
+        if (!a.ctx) return;
+        const t = ctx.currentTime;
+        const bellNotes = profileId === "feminine" ? [880, 1174.66, 1318.51] : profileId === "love" ? [523.25, 659.25, 783.99] : [659.25, 783.99, 987.77];
+        const freq = bellNotes[Math.floor(Math.random() * bellNotes.length)];
+        const bOsc = ctx.createOscillator();
+        const bGain = ctx.createGain();
+        bOsc.type = "sine";
+        bOsc.frequency.value = freq;
+        bGain.gain.setValueAtTime(0, t);
+        bGain.gain.linearRampToValueAtTime(0.06, t + 0.05);
+        bGain.gain.exponentialRampToValueAtTime(0.001, t + 2.5);
+        bOsc.connect(bGain); bGain.connect(lowpass);
+        bOsc.start(t); bOsc.stop(t + 2.8);
+        bellOscs.push(bOsc);
+        // Schedule next bell in 6-14 seconds
+        setTimeout(bellScheduler, 6000 + Math.random() * 8000);
+      };
+      setTimeout(bellScheduler, 3000 + Math.random() * 4000);
+    }
 
-    a.oscs = [sub, oL, oR, ov, lfo, hb];
+    a.oscs = [sub, oL, oR, lfo, noise];
   }
 
   function stopSound() {
@@ -693,12 +743,12 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
         const negIds = ["anxiety", "fear", "conflict"];
         const textBottom = activeScenario && negIds.includes(activeScenario.id); // fear/anxiety/conflict → text at bottom; others → centered over orb
         const breathEl = guideText?.breath && (
-          <div style={{ fontSize: 10, letterSpacing: 3, textTransform: "uppercase", color: guideText.breath === "in" ? "rgba(160,212,228,.55)" : guideText.breath === "hold" ? "rgba(240,208,96,.45)" : "rgba(200,160,180,.5)", marginBottom: 6, ...ss }}>
+          <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: guideText.breath === "in" ? "rgba(190,230,245,.95)" : guideText.breath === "hold" ? "rgba(250,220,120,.9)" : "rgba(230,185,205,.95)", marginBottom: 8, textShadow: "0 1px 6px rgba(0,0,0,.9)", ...ss }}>
             {guideText.breath === "in" ? "вдох ↑" : guideText.breath === "hold" ? "задержка ◦" : "выдох ↓"}
           </div>
         );
         const textEl = guideText && (
-          <div style={{ fontSize: 14, fontStyle: "italic", lineHeight: 1.65, color: textBottom ? "rgba(242,232,226,.65)" : "rgba(242,232,226,.4)", ...ss }}>{guideText.text}</div>
+          <div style={{ fontSize: 15, fontStyle: "italic", lineHeight: 1.65, color: "rgba(255,245,235,.92)", textShadow: "0 1px 8px rgba(0,0,0,.9), 0 0 20px rgba(0,0,0,.7)", ...ss }}>{guideText.text}</div>
         );
         return (
           <>
