@@ -236,39 +236,59 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
 
   function awardCrystals(seconds) {
     const earned = Math.max(1, Math.round(seconds / 60));
-    if (addGems) addGems(earned);
-    if (doMarkPractice) doMarkPractice(Math.round(seconds / 60));
-    // Orbit session logs to the active layer's axis
-    logOrbitSession(activeId, layer.name);
+    try { if (addGems) addGems(earned); } catch (e) {}
+    try { if (doMarkPractice) doMarkPractice(Math.round(seconds / 60)); } catch (e) {}
+    try {
+      const curLayer = LAYERS[activeId - 1];
+      if (curLayer) logOrbitSession(activeId, curLayer.name);
+    } catch (e) {}
     setGemPop({ amount: earned, id: Date.now() });
     setTimeout(() => setGemPop(null), 4000);
   }
 
   function startMeditation(seconds) {
-    setShowTimerPicker(false);
-    buildSound(activeScenario?.id || "neutral");
-    setSoundOn(true);
-    setMeditating(true);
-    setMedDuration(seconds);
-    setMedTime(seconds);
-    medDurationRef.current = seconds;
-    medStartRef.current = Date.now();
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - medStartRef.current) / 1000);
-      const remaining = Math.max(0, medDurationRef.current - elapsed);
-      setMedTime(remaining);
-      if (remaining <= 0) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-        stopSound();
-        setSoundOn(false);
-        setMeditating(false);
-        awardCrystals(medDurationRef.current);
-        medStartRef.current = 0;
-        medDurationRef.current = 0;
+    try {
+      // Always start meditation UI first — audio is secondary
+      setShowTimerPicker(false);
+      setMeditating(true);
+      setMedDuration(seconds);
+      setMedTime(seconds);
+      medDurationRef.current = seconds;
+      medStartRef.current = Date.now();
+
+      // Try to start audio (may fail on iOS if AudioContext blocked)
+      try {
+        buildSound(activeScenario?.id || "neutral");
+        setSoundOn(true);
+      } catch (audioErr) {
+        console.warn("Audio failed to start:", audioErr);
       }
-    }, 200);
+
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = setInterval(() => {
+        try {
+          const elapsed = Math.floor((Date.now() - medStartRef.current) / 1000);
+          const remaining = Math.max(0, medDurationRef.current - elapsed);
+          setMedTime(remaining);
+          if (remaining <= 0) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+            try { stopSound(); } catch (e) {}
+            setSoundOn(false);
+            setMeditating(false);
+            try { awardCrystals(medDurationRef.current); } catch (e) { console.warn("Award failed:", e); }
+            medStartRef.current = 0;
+            medDurationRef.current = 0;
+          }
+        } catch (tickErr) {
+          console.error("Timer tick error:", tickErr);
+        }
+      }, 200);
+    } catch (err) {
+      console.error("startMeditation failed:", err);
+      setMeditating(false);
+      setShowTimerPicker(false);
+    }
   }
 
   function stopMeditation() {
