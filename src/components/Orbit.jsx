@@ -128,6 +128,8 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
   const [medTime, setMedTime] = useState(0); // seconds remaining
   const [medDuration, setMedDuration] = useState(0);
   const [showTimerPicker, setShowTimerPicker] = useState(false);
+  const [showIntro, setShowIntro] = useState(() => !localStorage.getItem("frisson_orbit_intro"));
+  const dismissIntro = () => { localStorage.setItem("frisson_orbit_intro", "1"); setShowIntro(false); };
   const timerRef = useRef(null);
   const [gemPop, setGemPop] = useState(null);
   const medDurationRef = useRef(0);
@@ -776,6 +778,7 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
             <div style={{ fontSize: 8, letterSpacing: 5, textTransform: "uppercase", color: "rgba(190,130,90,.42)", ...ss }}>Frisson</div>
             <div style={{ fontSize: 14, fontStyle: "italic", color: "rgba(228,202,182,.38)", marginTop: 2, ...ss }}>Орбита Психики</div>
           </div>
+          <div onClick={() => setShowIntro(true)} style={{ pointerEvents: meditating ? "none" : "all", cursor: "pointer", width: 22, height: 22, borderRadius: "50%", border: "1px solid rgba(210,175,145,.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "rgba(210,175,145,.5)", marginLeft: 6, ...ss }}>?</div>
         </div>
         <button onClick={toggleSound} style={{ pointerEvents: "all", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, background: soundOn ? "rgba(140,30,60,.36)" : "rgba(100,20,50,.2)", border: `1px solid ${soundOn ? "rgba(200,130,90,.5)" : "rgba(190,130,90,.25)"}`, borderRadius: 16, padding: "5px 11px", fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: soundOn ? "rgba(240,210,178,.92)" : "rgba(210,175,145,.6)", transition: "all .3s", whiteSpace: "nowrap", ...ss }}>{meditating ? "■ Стоп" : soundOn ? "■ Стоп" : `♫ ${getProfile().label}`}</button>
       </div>
@@ -831,6 +834,44 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
             <div style={{ fontSize: 56, color: "#F0D060", animation: "gemGlow 1.2s ease-in-out 3", lineHeight: 1 }}>+{gemPop.amount}</div>
             <div style={{ fontSize: 32, color: "#F0D060", marginTop: 4, animation: "gemGlow 1.2s ease-in-out 3" }}>⟡</div>
             <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: "rgba(240,208,96,.7)", marginTop: 10, ...ss }}>кристаллов получено</div>
+          </div>
+        </div>
+      )}
+
+      {/* First-visit intro overlay */}
+      {showIntro && !showTimerPicker && !meditating && (
+        <div style={{ position: "absolute", inset: 0, zIndex: 55, background: "rgba(6,2,8,.92)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 28, pointerEvents: "auto", overflowY: "auto" }}>
+          <div style={{ maxWidth: 340, textAlign: "center" }}>
+            <div style={{ fontFamily: FONT_SANS, fontSize: 9, letterSpacing: ".3em", textTransform: "uppercase", color: "rgba(230,180,200,.6)", marginBottom: 10 }}>✦ Орбита Психики ✦</div>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 26, fontWeight: 300, color: "#fff", lineHeight: 1.2, marginBottom: 18 }}>Это ваш внутренний мир</div>
+
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 14, lineHeight: 1.7, color: "rgba(245,235,230,.78)", marginBottom: 18 }}>
+              Каждая точка — это нейрон.<br/>
+              Каждая линия — это связь между мыслями, чувствами и паттернами, которые создают ваше внутреннее состояние.
+            </div>
+
+            <div style={{ padding: "12px 14px", background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 12, marginBottom: 12, textAlign: "left" }}>
+              <div style={{ fontFamily: FONT_SANS, fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: "rgba(230,180,200,.65)", marginBottom: 6 }}>6 слоёв психики</div>
+              <div style={{ fontFamily: FONT_SERIF, fontSize: 12, lineHeight: 1.75, color: "rgba(245,235,230,.7)" }}>
+                От <b>Бессознательного</b> в центре до <b>Поведения</b> снаружи. Нажмите точки слева, чтобы переключаться между уровнями.
+              </div>
+            </div>
+
+            <div style={{ padding: "12px 14px", background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 12, marginBottom: 12, textAlign: "left" }}>
+              <div style={{ fontFamily: FONT_SANS, fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: "rgba(230,180,200,.65)", marginBottom: 6 }}>9 сценариев</div>
+              <div style={{ fontFamily: FONT_SERIF, fontSize: 12, lineHeight: 1.75, color: "rgba(245,235,230,.7)" }}>
+                Выберите своё состояние: тревога, любовь, сила, страх... Нейроны начнут двигаться как в этом состоянии. Это визуализация того, что происходит внутри.
+              </div>
+            </div>
+
+            <div style={{ padding: "12px 14px", background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 12, marginBottom: 20, textAlign: "left" }}>
+              <div style={{ fontFamily: FONT_SANS, fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: "rgba(230,180,200,.65)", marginBottom: 6 }}>Медитация</div>
+              <div style={{ fontFamily: FONT_SERIF, fontSize: 12, lineHeight: 1.75, color: "rgba(245,235,230,.7)" }}>
+                Нажмите ♫ и выберите время. Начнёт играть музыка, а орбита начнёт плавно меняться — как меняется психика, когда вы дышите и отпускаете.
+              </div>
+            </div>
+
+            <button type="button" onClick={dismissIntro} style={{ padding: "14px 32px", borderRadius: 24, background: "linear-gradient(135deg, rgba(230,77,168,.55), rgba(240,136,56,.45))", border: "1.5px solid rgba(240,136,56,.7)", fontFamily: FONT_SANS, fontSize: 11, letterSpacing: ".2em", textTransform: "uppercase", color: "#fff", cursor: "pointer", boxShadow: "0 0 24px rgba(230,77,168,.3)", touchAction: "manipulation", WebkitAppearance: "none" }}>Начать →</button>
           </div>
         </div>
       )}
