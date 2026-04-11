@@ -19,23 +19,24 @@ const NIGHT = {
     nav: "rgba(180,100,160,.28)", text: "#ffe0f0",
     gF: "#2c1228", gT: "#1a0a14"
   },
-  // Наполнена — magenta-fuchsia + electric purple + amber pop
+  // Наполнена — burnt amber + deep wine + magenta sparkle + lavender kiss
+  // (fulfillment moodboard: passion fruit, orange, amber, purple shimmer)
   full: {
-    e: "🌕", l: "Наполнена", bg: "linear-gradient(165deg, #1a0418 0%, #320630 50%, #240828 100%)",
-    card: "rgba(220,60,160,.1)", border: "rgba(240,80,180,.25)",
-    accent: "#E64DA8", ar: "230,77,168",
-    dim: "rgba(220,60,160,.18)", o1: "rgba(220,40,160,.75)", o2: "rgba(140,60,220,.55)",
-    nav: "rgba(220,60,160,.3)", text: "#ffe0f4",
-    gF: "#3a0838", gT: "#1a0418"
+    e: "🌕", l: "Наполнена", bg: "linear-gradient(165deg, #1e0612 0%, #3a0c1c 45%, #2a0818 100%)",
+    card: "rgba(232,160,48,.09)", border: "rgba(232,160,48,.24)",
+    accent: "#E8A030", ar: "232,160,48",
+    dim: "rgba(232,160,48,.16)", o1: "rgba(216,80,32,.72)", o2: "rgba(184,72,168,.55)",
+    nav: "rgba(232,160,48,.28)", text: "#fbe6d2",
+    gF: "#3c0e22", gT: "#1e0612"
   },
-  // В силе — burnt orange + rust + warm purple shadow (the moodboard photo!)
+  // В силе — deep burgundy wine + chocolate + ice blue accent (Ice Blue × Burgundy)
   power: {
-    e: "🔥", l: "В силе", bg: "linear-gradient(165deg, #1a0a04 0%, #2a1408 50%, #200a14 100%)",
-    card: "rgba(240,120,40,.1)", border: "rgba(240,140,60,.25)",
-    accent: "#F08838", ar: "240,136,56",
-    dim: "rgba(240,120,40,.18)", o1: "rgba(230,100,30,.75)", o2: "rgba(140,80,180,.55)",
-    nav: "rgba(240,120,40,.3)", text: "#fff0e0",
-    gF: "#321608", gT: "#1a0a04"
+    e: "🔥", l: "В силе", bg: "linear-gradient(165deg, #120408 0%, #2a0a14 50%, #180810 100%)",
+    card: "rgba(142,26,50,.12)", border: "rgba(160,180,210,.22)",
+    accent: "#9C1E36", ar: "156,30,54",
+    dim: "rgba(142,26,50,.18)", o1: "rgba(142,26,50,.75)", o2: "rgba(160,195,220,.45)",
+    nav: "rgba(142,26,50,.3)", text: "#f3dde0",
+    gF: "#2e0c16", gT: "#120408"
   },
 };
 
