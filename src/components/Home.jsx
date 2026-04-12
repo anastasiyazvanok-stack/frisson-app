@@ -101,7 +101,7 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
         </div>
         <div style={{ display: "flex", gap: SP.md, overflowX: "auto", margin: `0 -${SP.page}px`, padding: `${SP.xs}px ${SP.page}px ${SP.sm}px` }}>
           {cards.map((c) => (
-            <div key={c.title} onClick={() => { setLibSec(c.sec); setScreen("library"); }} className="pc" style={{ minWidth: 148, height: 190, borderRadius: RAD.lg, position: "relative", overflow: "hidden", flexShrink: 0, cursor: "pointer", background: c.bg, border: "1px solid rgba(255,255,255,.06)" }}>
+            <div key={c.title} onClick={() => { setLibSec(c.sec); setScreen("library"); }} className="pc" style={{ minWidth: 158, height: 190, borderRadius: RAD.lg, position: "relative", overflow: "hidden", flexShrink: 0, cursor: "pointer", background: c.bg, border: "1px solid rgba(255,255,255,.06)" }}>
               {c.blobs.map((b, i) => (
                 <div key={i} style={{ position: "absolute", left: b.x, top: b.y, width: b.w, height: b.h, transform: "translate(-50%,-50%)", borderRadius: `${48 + i * 7}% ${52 - i * 5}% ${55 - i * 3}% ${45 + i * 4}% / ${44 + i * 6}% ${56 - i * 4}% ${48 + i * 5}% ${52 - i * 3}%`, background: b.c, filter: `blur(${b.b}px)` }} />
               ))}

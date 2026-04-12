@@ -50,7 +50,7 @@ export default function SubPage({ setScreen, theme, THEMES }) {
         {/* Features list */}
         <div style={{ ...label(9), letterSpacing: ".22em", color: tx("var(--txt)", OP.tertiary + 0.08), marginBottom: SP.md + 2 }}>✦ Что входит</div>
         <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: RAD.lg - 2, overflow: "hidden", marginBottom: SP.xl - 2 }}>
-          {[["Медитации", "17 практик + ежемесячно новая"], ["Проекты", "Тревога · Ревность в отношениях"], ["Книги", "4 книги по женской психологии"], ["Тесты", "Женственность · Самоценность · Тревога"], ["Дневник", "Дневник + Внутренний сад"]].map((row, i, arr) => (
+          {[["Медитации", "Вся библиотека практик + новые каждый месяц"], ["Проекты", "Тревога · Ревность в отношениях"], ["Книги", "4 книги по женской психологии"], ["Дневник", "Безлимитные записи"]].map((row, i, arr) => (
             <div key={i} style={{ padding: `15px ${SP.lg + 2}px`, borderBottom: i < arr.length - 1 ? `1px solid ${T.border}` : "none", display: "flex", alignItems: "center", gap: SP.md }}>
               <div style={{ width: 80, ...label(9), letterSpacing: ".1em", color: tx("var(--txt)", OP.tertiary + 0.03), flexShrink: 0 }}>{row[0]}</div>
               <div style={{ ...body(13), color: tx("var(--txt)", 0.85) }}>{row[1]}</div>

@@ -75,25 +75,24 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
           </div>
         ) : (
           <div>
-            <div style={{ padding: `18px ${SP.page}px ${SP.base}px`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div>
-                <div style={{ ...label(TYPE.xs), letterSpacing: ".2em", color: tx("var(--txt)", OP.tertiary), marginBottom: 5 }}>Психологическая энергия</div>
-                <div style={{ fontFamily: FONT_SERIF, fontSize: 20, color: tx("var(--txt)", OP.primary) }}>{eScore} / 100</div>
-                <div style={{ fontFamily: FONT_SERIF, fontSize: 15, color: T.accent, marginTop: 3 }}>{lv.l}</div>
-              </div>
+            <div style={{ padding: `${SP.lg}px ${SP.page}px`, display: "flex", alignItems: "center", gap: SP.lg }}>
               <div style={{ position: "relative", width: 72, height: 72, flexShrink: 0 }}>
                 <svg width="72" height="72" style={{ transform: "rotate(-90deg)" }}>
-                  <circle cx="36" cy="36" r="32" fill="none" stroke={`rgba(255,255,255,${OP.bgSubtle + 0.01})`} strokeWidth="6" />
-                  <circle cx="36" cy="36" r="32" fill="none" stroke={T.accent} strokeWidth="6" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={circ - (circ * eScore / 100)} style={{ transition: "stroke-dashoffset 1.4s ease" }} />
+                  <circle cx="36" cy="36" r="32" fill="none" stroke={`rgba(255,255,255,${OP.bgSubtle})`} strokeWidth="5" />
+                  <circle cx="36" cy="36" r="32" fill="none" stroke={T.accent} strokeWidth="5" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={circ - (circ * eScore / 100)} style={{ transition: "stroke-dashoffset 1.4s ease" }} />
                 </svg>
                 <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                  <div style={{ ...heading(20), lineHeight: 1, color: tx("var(--txt)", OP.primary) }}>{eScore}</div>
-                  <div style={{ fontSize: SP.sm, color: tx("var(--txt)", 0.35), fontFamily: FONT_SANS }}>/100</div>
+                  <div style={{ ...heading(TYPE.xl), lineHeight: 1, color: tx("var(--txt)", OP.primary) }}>{eScore}</div>
                 </div>
               </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ ...label(TYPE.xs), color: tx("var(--txt)", OP.tertiary), marginBottom: SP.xs }}>Психологическая энергия</div>
+                <div style={{ ...heading(TYPE.lg), color: tx("var(--txt)", OP.primary) }}>{eScore} из 100</div>
+                <div style={{ ...body(TYPE.base), color: T.accent, marginTop: SP.xs }}>{lv.l}</div>
+              </div>
             </div>
-            <div style={{ padding: `0 ${SP.page}px 18px` }}>
-              <div onClick={() => { setShowT(true); setTI(0); setTA([]); }} style={{ textAlign: "center", ...label(TYPE.xs), letterSpacing: ".12em", color: T.accent, cursor: "pointer" }}>↻ Повторить тест</div>
+            <div style={{ padding: `0 ${SP.page}px ${SP.md}px` }}>
+              <div onClick={() => { setShowT(true); setTI(0); setTA([]); }} style={{ textAlign: "center", ...label(TYPE.xs), color: T.accent, cursor: "pointer" }}>↻ Повторить тест</div>
             </div>
           </div>
         )}
