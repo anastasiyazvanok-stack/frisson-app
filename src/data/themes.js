@@ -30,15 +30,15 @@ const NIGHT = {
     nav: "rgba(232,160,48,.28)", text: "#D8EAF5", tr: "216,234,245",
     gF: "#3c0e22", gT: "#1e0612"
   },
-  // В силе — deep onyx + molten copper-gold + warm ember glow
+  // В силе — fire in the heart: deep coal-black + living ember red-orange + warm pulse
   power: {
-    e: "🔥", l: "В силе", bg: "linear-gradient(165deg, #0c0806 0%, #1a1008 50%, #100a04 100%)",
-    card: "rgba(200,140,60,.08)", border: "rgba(200,155,80,.2)",
-    accent: "#C8963C", ar: "200,150,60",
-    accent2: "#E8C088", ar2: "232,192,136",
-    dim: "rgba(200,140,60,.14)", o1: "rgba(200,130,40,.65)", o2: "rgba(232,192,136,.45)",
-    nav: "rgba(200,150,60,.28)", text: "#F0E4D0", tr: "240,228,208",
-    gF: "#1e1408", gT: "#0c0806"
+    e: "🔥", l: "В силе", bg: "linear-gradient(165deg, #0a0404 0%, #1c0808 50%, #120406 100%)",
+    card: "rgba(220,60,30,.08)", border: "rgba(240,100,50,.2)",
+    accent: "#E05028", ar: "224,80,40",
+    accent2: "#F0A060", ar2: "240,160,96",
+    dim: "rgba(220,60,30,.14)", o1: "rgba(220,50,20,.7)", o2: "rgba(240,160,96,.45)",
+    nav: "rgba(224,80,40,.3)", text: "#F8E8E0", tr: "248,232,224",
+    gF: "#220a06", gT: "#0a0404"
   },
 };
 
