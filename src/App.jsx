@@ -14,12 +14,26 @@ import SubPage from "./components/SubPage";
 import Orbit from "./components/Orbit";
 import Nav from "./components/Nav";
 
-export const VERSION = "5.3.2";
+export const VERSION = "5.4.0";
 
 export default function App() {
   const [onb, setOnb] = useState(() => localStorage.getItem("frisson_onb") === "1");
   const [tour, setTour] = useState(() => localStorage.getItem("frisson_tour") === "1");
-  const [screen, setScreen] = useState("home");
+  const [screen, setScreenRaw] = useState("home");
+  const historyRef = useRef(["home"]);
+  const setScreen = (s) => {
+    if (s !== screen) historyRef.current.push(s);
+    setScreenRaw(s);
+  };
+  const goBack = () => {
+    const h = historyRef.current;
+    if (h.length > 1) {
+      h.pop();
+      setScreenRaw(h[h.length - 1]);
+    } else {
+      setScreenRaw("home");
+    }
+  };
   const [theme, setTheme] = useState(() => localStorage.getItem("frisson-theme") || "full");
   const setThemePersisted = (t) => { localStorage.setItem("frisson-theme", t); setTheme(t); };
   const THEMES = getThemes();
@@ -135,6 +149,19 @@ export default function App() {
             </div>
           )}
           <div ref={scrollRef} key={screen} className="screen-in" style={{ flex: 1, overflowY: screen === "orbit" ? "hidden" : "auto", overflowX: "hidden", position: "relative", zIndex: 1, display: "flex", flexDirection: "column" }}>{screens[screen]}</div>
+          {/* Edge-swipe back gesture (left edge swipe-right) */}
+          {screen !== "orbit" && screen !== "home" && (
+            <div
+              style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 22, zIndex: 40, touchAction: "pan-y" }}
+              onTouchStart={(e) => { const t = e.touches[0]; e.currentTarget._x = t.clientX; e.currentTarget._y = t.clientY; }}
+              onTouchEnd={(e) => {
+                const t = e.changedTouches[0];
+                const dx = t.clientX - (e.currentTarget._x || 0);
+                const dy = Math.abs(t.clientY - (e.currentTarget._y || 0));
+                if (dx > 50 && dy < 80) goBack();
+              }}
+            />
+          )}
           {showNav && <Nav active={screen} setScreen={setScreen} theme={theme} THEMES={THEMES} />}
           <div style={{ position: "absolute", bottom: showNav ? SP.xl : SP.xs, right: SP.sm, ...label(TYPE.xs), fontSize: 8, color: `rgba(255,255,255,.1)`, pointerEvents: "none", zIndex: 50 }}>v{VERSION}</div>
         </div>

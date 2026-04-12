@@ -1,4 +1,4 @@
-const CACHE_NAME = 'frisson-v5.3.2';
+const CACHE_NAME = 'frisson-v5.4.0';
 const BASE = '/frisson/';
 
 // Aggressive: on install, wipe ALL caches and take over immediately
