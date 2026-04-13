@@ -15,7 +15,7 @@ import SubPage from "./components/SubPage";
 import Orbit from "./components/Orbit";
 import Nav from "./components/Nav";
 
-export const VERSION = "5.5.0";
+export const VERSION = "5.5.1";
 
 export default function App() {
   const [onb, setOnb] = useState(() => localStorage.getItem("frisson_onb") === "1");
@@ -74,6 +74,7 @@ export default function App() {
   const [activity, setActivity] = useState(getActivity);
   const [userName, setUserName] = useState(getName);
   const [showNameInput, setShowNameInput] = useState(() => !getName());
+  const [nameVal, setNameVal] = useState("");
   const doMarkPractice = (minutes) => { const a = markPractice(minutes); setActivity({ ...a }); };
   const doSetName = (n) => { saveName(n); setUserName(n); setShowNameInput(false); };
 
@@ -86,7 +87,6 @@ export default function App() {
   if (!onb) return (<><GlobalStyles /><Onboarding onDone={() => { localStorage.setItem("frisson_onb", "1"); setOnb(true); }} /></>);
   if (!tour) return (<><GlobalStyles /><AppTour onDone={() => { localStorage.setItem("frisson_tour", "1"); setTour(true); }} theme={theme} THEMES={THEMES} /></>);
 
-  const [nameVal, setNameVal] = useState("");
   if (showNameInput) return (
     <><GlobalStyles />
     <div style={{ width: "100%", height: "100dvh", background: "linear-gradient(165deg, #1a0418 0%, #2a1408 50%, #0c0820 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: `0 ${SP.xxl}px`, position: "relative", overflow: "hidden" }}>

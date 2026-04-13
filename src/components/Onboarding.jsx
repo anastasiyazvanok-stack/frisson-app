@@ -27,23 +27,57 @@ export default function Onboarding({ onDone }) {
   return (
     <div style={{ width: "100%", height: "100dvh", background: "linear-gradient(165deg, #1a0418 0%, #2a1408 50%, #0c0820 100%)", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
       <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-        <div style={{ position: "absolute", width: "78%", height: "78%", top: "-18%", left: "-18%", borderRadius: "50%", background: "radial-gradient(circle,rgba(230,77,168,.8),rgba(159,123,216,.5) 55%,transparent 72%)", filter: "blur(55px)", animation: "breathe 18s ease-in-out infinite" }} />
-        <div style={{ position: "absolute", width: "65%", height: "65%", bottom: "-12%", right: "-10%", borderRadius: "50%", background: "radial-gradient(circle,rgba(240,136,56,.7),rgba(208,128,176,.5) 55%,transparent 72%)", filter: "blur(50px)", animation: "breathe 22s 4s ease-in-out infinite" }} />
-        <div style={{ position: "absolute", width: "40%", height: "40%", top: "28%", left: "32%", borderRadius: "50%", background: "radial-gradient(circle,rgba(255,175,50,.55),rgba(159,123,216,.3) 55%,transparent 72%)", filter: "blur(44px)", animation: "breathe 14s 7s ease-in-out infinite" }} />
+        {/* Drifting glowing orbs (slow, hypnotic) */}
+        <div style={{ position: "absolute", width: "78%", height: "78%", top: "-18%", left: "-18%", borderRadius: "50%", background: "radial-gradient(circle,rgba(230,77,168,.8),rgba(159,123,216,.5) 55%,transparent 72%)", filter: "blur(55px)", animation: "onbDrift1 24s ease-in-out infinite" }} />
+        <div style={{ position: "absolute", width: "65%", height: "65%", bottom: "-12%", right: "-10%", borderRadius: "50%", background: "radial-gradient(circle,rgba(240,136,56,.7),rgba(208,128,176,.5) 55%,transparent 72%)", filter: "blur(50px)", animation: "onbDrift2 28s 4s ease-in-out infinite" }} />
+        <div style={{ position: "absolute", width: "40%", height: "40%", top: "28%", left: "32%", borderRadius: "50%", background: "radial-gradient(circle,rgba(255,175,50,.55),rgba(159,123,216,.3) 55%,transparent 72%)", filter: "blur(44px)", animation: "onbDrift3 18s 7s ease-in-out infinite" }} />
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 45%,transparent 18%,rgba(8,4,16,.78) 100%)" }} />
-        {Array.from({ length: 50 }, (_, i) => (
-          <div key={i} style={{
-            position: "absolute",
-            left: `${(i * 37 + 11) % 100}%`,
-            top: `${(i * 53 + 7) % 100}%`,
-            width: 0.8,
-            height: 0.8,
-            borderRadius: "50%",
-            background: `rgba(255,255,255,${0.1 + 0.18 * (i % 5) / 5})`,
-            animation: `shimmer ${3 + i % 5}s ${i % 7}s ease-in-out infinite`,
-          }} />
-        ))}
+
+        {/* Floating particles — bigger, more visible, drifting */}
+        {Array.from({ length: 60 }, (_, i) => {
+          const size = 1 + (i % 4) * 0.7;
+          const dur = 8 + (i % 7) * 2;
+          return (
+            <div key={i} style={{
+              position: "absolute",
+              left: `${(i * 37 + 11) % 100}%`,
+              top: `${(i * 53 + 7) % 100}%`,
+              width: size,
+              height: size,
+              borderRadius: "50%",
+              background: i % 5 === 0 ? "rgba(255,200,220,.7)" : i % 3 === 0 ? "rgba(255,180,120,.6)" : "rgba(255,255,255,.5)",
+              boxShadow: `0 0 ${size * 3}px currentColor`,
+              color: i % 5 === 0 ? "rgba(230,77,168,.5)" : i % 3 === 0 ? "rgba(240,136,56,.4)" : "rgba(255,255,255,.3)",
+              animation: `onbFloat${i % 4} ${dur}s ${(i % 9) * 0.4}s ease-in-out infinite`,
+            }} />
+          );
+        })}
+
+        {/* Subtle ornament watermark drifting in background */}
+        <img src="./brand/ornament-white.png" alt="" style={{
+          position: "absolute", top: "10%", right: "8%",
+          width: 64, height: "auto", opacity: 0.06,
+          animation: "onbDrift1 32s ease-in-out infinite",
+          pointerEvents: "none",
+        }} />
+        <img src="./brand/ornament-white.png" alt="" style={{
+          position: "absolute", bottom: "12%", left: "6%",
+          width: 48, height: "auto", opacity: 0.05,
+          animation: "onbDrift2 36s 5s ease-in-out infinite",
+          pointerEvents: "none",
+        }} />
       </div>
+
+      {/* Onboarding-only animations */}
+      <style>{`
+        @keyframes onbDrift1 { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(20px, -30px) scale(1.05); } 66% { transform: translate(-15px, 20px) scale(.98); } }
+        @keyframes onbDrift2 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-25px, -20px) scale(1.08); } }
+        @keyframes onbDrift3 { 0%, 100% { transform: translate(0, 0) scale(1); opacity: .85; } 50% { transform: translate(30px, 25px) scale(1.12); opacity: 1; } }
+        @keyframes onbFloat0 { 0%, 100% { transform: translate(0, 0); opacity: .3; } 50% { transform: translate(15px, -25px); opacity: 1; } }
+        @keyframes onbFloat1 { 0%, 100% { transform: translate(0, 0); opacity: .4; } 50% { transform: translate(-20px, -15px); opacity: 1; } }
+        @keyframes onbFloat2 { 0%, 100% { transform: translate(0, 0); opacity: .5; } 50% { transform: translate(10px, 30px); opacity: 1; } }
+        @keyframes onbFloat3 { 0%, 100% { transform: translate(0, 0); opacity: .35; } 50% { transform: translate(-12px, 18px); opacity: 1; } }
+      `}</style>
 
       <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: `40px ${SP.xxl - 4}px 0`, position: "relative", zIndex: 2 }}>
         {step > 0 && (
@@ -56,22 +90,22 @@ export default function Onboarding({ onDone }) {
 
         {cur.type === "splash" && (
           <div style={{ textAlign: "center", width: "100%", animation: "fadeUp 1s ease both" }}>
-            <div style={{ ...label(TYPE.xs), color: "rgba(180,150,165,.5)", letterSpacing: ".35em", marginBottom: SP.xl }}>✦ пространство состояния ✦</div>
-            <img src="./brand/logo-full-white.png" alt="Frisson" style={{ width: "70%", maxWidth: 280, height: "auto", filter: "drop-shadow(0 0 40px rgba(230,77,168,.5)) drop-shadow(0 0 80px rgba(240,136,56,.3))", marginBottom: SP.xl }} />
-            <div style={{ ...body(TYPE.lg), color: `rgba(220,205,215,${OP.secondary})`, letterSpacing: ".04em", marginBottom: SP.md }}>пространство, где вы раскрываете<br/>свой женский внутренний капитал</div>
+            <div style={{ ...label(TYPE.sm), color: "rgba(180,150,165,.55)", letterSpacing: ".35em", marginBottom: SP.xl }}>✦ пространство состояния ✦</div>
+            <img src="./brand/logo-full-white.png" alt="Frisson" style={{ width: "78%", maxWidth: 320, height: "auto", filter: "drop-shadow(0 0 40px rgba(230,77,168,.5)) drop-shadow(0 0 80px rgba(240,136,56,.3))", marginBottom: SP.xl }} />
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 20, fontWeight: 300, lineHeight: 1.5, color: `rgba(220,205,215,${OP.primary - 0.05})`, letterSpacing: ".02em", marginBottom: SP.md, padding: `0 ${SP.md}px` }}>пространство, где вы раскрываете<br/>свой женский внутренний капитал</div>
             <div style={{ ...label(TYPE.xs), color: `rgba(180,150,165,${OP.tertiary})`, letterSpacing: ".14em" }}>v{VERSION}</div>
           </div>
         )}
 
         {cur.type === "info" && (
           <div style={{ textAlign: "center", width: "100%", animation: "fadeUp .45s ease both" }}>
-            <div style={{ ...label(TYPE.xs), color: "rgba(180,150,165,.45)", letterSpacing: ".32em", marginBottom: SP.xxl - 4 }}>{cur.ey}</div>
-            <div style={{ fontFamily: FONT_SERIF, fontSize: 46, fontWeight: 300, lineHeight: 1.08, color: `rgba(245,235,230,${OP.primary})`, letterSpacing: ".01em", marginBottom: 26, whiteSpace: "pre-line" }}>{cur.hl}</div>
-            <div style={{ fontFamily: FONT_SANS, fontSize: TYPE.sm + 1, fontWeight: 300, lineHeight: 1.85, color: `rgba(215,200,210,${OP.secondary})`, maxWidth: 270, margin: "0 auto", whiteSpace: "pre-line", marginBottom: cur.tags ? SP.xl : 0 }}>{cur.body}</div>
+            <div style={{ ...label(TYPE.sm), color: "rgba(180,150,165,.55)", letterSpacing: ".32em", marginBottom: SP.xxl - 4 }}>{cur.ey}</div>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 52, fontWeight: 300, lineHeight: 1.08, color: `rgba(248,238,232,${OP.primary})`, letterSpacing: ".01em", marginBottom: SP.xl, whiteSpace: "pre-line" }}>{cur.hl}</div>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 18, fontWeight: 300, lineHeight: 1.65, color: `rgba(225,210,220,${OP.secondary + 0.1})`, maxWidth: 320, margin: "0 auto", whiteSpace: "pre-line", marginBottom: cur.tags ? SP.xl : 0 }}>{cur.body}</div>
             {cur.tags && (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 7, justifyContent: "center", maxWidth: 280, margin: "0 auto" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: SP.sm, justifyContent: "center", maxWidth: 320, margin: "0 auto" }}>
                 {cur.tags.map((w) => (
-                  <div key={w} style={{ padding: `5px ${SP.md + 1}px`, borderRadius: RAD.lg, background: "rgba(92,14,28,.25)", border: "1px solid rgba(150,80,100,.25)", fontFamily: FONT_SANS, fontSize: TYPE.sm - 1, fontWeight: 300, color: "rgba(220,200,210,.7)" }}>{w}</div>
+                  <div key={w} style={{ padding: `${SP.sm}px ${SP.md + 2}px`, borderRadius: RAD.lg, background: "rgba(92,14,28,.28)", border: "1px solid rgba(180,100,130,.3)", fontFamily: FONT_SANS, fontSize: TYPE.sm + 1, fontWeight: 300, color: "rgba(230,210,220,.85)" }}>{w}</div>
                 ))}
               </div>
             )}
@@ -80,15 +114,16 @@ export default function Onboarding({ onDone }) {
 
         {cur.type === "q" && (
           <div style={{ width: "100%", animation: "fadeUp .5s ease both" }}>
-            <div style={{ ...heading(TYPE.xl + 2), color: `rgba(240,232,235,${OP.primary})`, textAlign: "center", lineHeight: 1.5, marginBottom: SP.xxl }}>{cur.q}</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 28, fontWeight: 300, color: `rgba(248,238,232,${OP.primary})`, textAlign: "center", lineHeight: 1.35, marginBottom: SP.xxl }}>{cur.q}</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: SP.md }}>
               {cur.opts.map((opt, oi) => (
                 <div key={opt} onClick={() => setAns((a) => ({ ...a, [cur.key]: opt }))} style={{
-                  padding: `${SP.lg - 1}px ${SP.page}px`, borderRadius: RAD.md + 2, textAlign: "center", cursor: "pointer",
-                  background: ans[cur.key] === opt ? "rgba(92,14,28,.3)" : "rgba(0,0,0,.25)",
-                  border: `1px solid ${ans[cur.key] === opt ? "rgba(200,160,180,.45)" : "rgba(255,255,255,.1)"}`,
-                  fontFamily: FONT_SANS, fontSize: TYPE.base, fontWeight: 300,
-                  color: ans[cur.key] === opt ? "#fff" : "rgba(255,235,225,.72)",
+                  padding: `${SP.lg + 2}px ${SP.page}px`, borderRadius: RAD.lg, textAlign: "center", cursor: "pointer",
+                  background: ans[cur.key] === opt ? "rgba(92,14,28,.35)" : "rgba(0,0,0,.28)",
+                  border: `1px solid ${ans[cur.key] === opt ? "rgba(220,180,200,.55)" : "rgba(255,255,255,.12)"}`,
+                  fontFamily: FONT_SANS, fontSize: TYPE.base + 1, fontWeight: 400, lineHeight: 1.4,
+                  color: ans[cur.key] === opt ? "#fff" : "rgba(255,240,232,.82)",
+                  boxShadow: ans[cur.key] === opt ? "0 0 24px rgba(230,77,168,.2)" : "none",
                   transition: EASE.normal, animation: `fadeUp .4s ${oi * 0.08}s ease both`,
                 }}>{opt}</div>
               ))}
