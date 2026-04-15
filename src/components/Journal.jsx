@@ -7,9 +7,14 @@ import {
   card as cardStyle, section,
 } from "../utils/design";
 import { logDiary } from "../data/psycap";
+import { t as tr, MONTHS_SHORT } from "../utils/i18n";
 
 const STORAGE_KEY = "frisson_journal";
-const MOODS = [["🌑", "Пусто"], ["🌒", "Тихо"], ["🌕", "Полна"], ["🔥", "В силе"]];
+
+const MONTHS_LONG = {
+  ru: ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"],
+  en: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+};
 
 function load() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { intent: [], grat: [], goals: [], reflect: [] }; }
@@ -17,24 +22,27 @@ function load() {
 }
 function save(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
 
-function fmtDate(ts) {
+function fmtDate(ts, lang) {
   const d = new Date(ts);
   const day = d.getDate();
-  const mon = ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"][d.getMonth()];
+  const mon = (MONTHS_SHORT[lang] || MONTHS_SHORT.ru)[d.getMonth()];
   const h = String(d.getHours()).padStart(2, "0");
   const m = String(d.getMinutes()).padStart(2, "0");
   return `${day} ${mon} · ${h}:${m}`;
 }
 
-function todayStr() {
+function todayStr(lang) {
   const d = new Date();
   const day = d.getDate();
-  const mon = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"][d.getMonth()];
+  const mon = (MONTHS_LONG[lang] || MONTHS_LONG.ru)[d.getMonth()];
+  if (lang === "en") return `${mon} ${day}, ${d.getFullYear()}`;
   return `${day} ${mon} ${d.getFullYear()}`;
 }
 
-export default function Journal({ theme, addGems, THEMES }) {
+export default function Journal({ theme, addGems, THEMES, lang = "ru" }) {
   const T = THEMES[theme] || THEMES.full;
+  const L = (k) => tr(lang, k);
+  const MOODS = [["🌑", L("jr_mood_empty")], ["🌒", L("jr_mood_quiet")], ["🌕", L("jr_mood_full")], ["🔥", L("jr_mood_power")]];
   const [tab, setTab] = useState("intent");
   const [data, setData] = useState(load);
   const [text, setText] = useState("");
@@ -151,10 +159,10 @@ export default function Journal({ theme, addGems, THEMES }) {
       ))}
 
       <div style={{ padding: `50px ${SP.xl}px ${SP.lg + 2}px`, position: "relative", zIndex: 1 }}>
-        <div style={{ ...label(TYPE.xs - 1), letterSpacing: ".25em", color: T.accent, marginBottom: SP.xs + 2 }}>{todayStr()}</div>
-        <div style={{ ...heading(TYPE.xxl + 4), color: tx("var(--txt)", OP.primary + 0.03), marginBottom: SP.page }}>Дневник</div>
+        <div style={{ ...label(TYPE.xs - 1), letterSpacing: ".25em", color: T.accent, marginBottom: SP.xs + 2 }}>{todayStr(lang)}</div>
+        <div style={{ ...heading(TYPE.xxl + 4), color: tx("var(--txt)", OP.primary + 0.03), marginBottom: SP.page }}>{L("jr_journal")}</div>
         <div style={{ display: "flex", background: T.card, border: `1px solid ${T.border}`, borderRadius: RAD.md - 1, padding: 3 }}>
-          {[{ id: "intent", l: "Намерения" }, { id: "grat", l: "Благодарность" }, { id: "goals", l: "Цели ✦" }, { id: "reflect", l: "Рефлексия" }].map((t) => (
+          {[{ id: "intent", l: L("jr_tab_intent") }, { id: "grat", l: L("jr_tab_grat") }, { id: "goals", l: L("jr_tab_goals") }, { id: "reflect", l: L("jr_tab_reflect") }].map((t) => (
             <div key={t.id} onClick={() => { setTab(t.id); setText(""); }} style={{
               flex: 1, padding: `${TYPE.xs}px ${SP.xs}px`, textAlign: "center",
               ...label(TYPE.xs), letterSpacing: ".04em",
@@ -169,33 +177,32 @@ export default function Journal({ theme, addGems, THEMES }) {
       </div>
 
       <div style={{ margin: `0 ${SP.xl}px ${SP.lg + 2}px`, padding: `${SP.lg + 1}px ${SP.page}px`, background: T.dim, border: `1px solid ${T.border}`, borderRadius: RAD.lg - 2, position: "relative", zIndex: 1 }}>
-        <div style={sectionLabel(SP.sm)}>✦ Вопрос дня</div>
+        <div style={sectionLabel(SP.sm)}>{L("jr_question")}</div>
         <div style={{ ...body(TYPE.lg), lineHeight: LH.loose - 0.05, color: tx("var(--txt)", OP.primary - 0.1) }}>
-          {tab === "intent" && "«Каким я хочу быть сегодня? Пишу в настоящем времени.»"}
-          {tab === "grat" && "«За что ты благодарна сегодня — себе и миру?»"}
-          {tab === "goals" && "«Что я создаю в своей жизни прямо сейчас?»"}
-          {tab === "reflect" && "«Что происходило внутри меня после практики?»"}
+          {tab === "intent" && L("jr_q_intent")}
+          {tab === "grat" && L("jr_q_grat")}
+          {tab === "goals" && L("jr_q_goals")}
+          {tab === "reflect" && L("jr_q_reflect")}
         </div>
       </div>
 
       <div style={{ padding: `0 ${SP.xl}px`, position: "relative", zIndex: 1 }}>
 
-        {/* ── НАМЕРЕНИЯ ── */}
         {tab === "intent" && <>
           <div style={{ padding: `${SP.md + 2}px ${SP.lg + 2}px`, marginBottom: SP.md + 2, background: `linear-gradient(135deg,${T.dim},rgba(255,255,255,.02))`, border: `1px solid ${T.border}`, borderRadius: RAD.lg - 2 }}>
-            <div style={sectionLabel(SP.sm)}>✦ Формат намерения</div>
-            <div style={{ ...body(TYPE.base), lineHeight: LH.loose + 0.05, color: tx("var(--txt)", OP.secondary + 0.2) }}>Пишите в настоящем времени: <span style={{ color: T.accent }}>"Я есть", "У меня уже есть"</span>. Это фиксирует образ желаемого состояния.</div>
+            <div style={sectionLabel(SP.sm)}>{L("jr_intent_format")}</div>
+            <div style={{ ...body(TYPE.base), lineHeight: LH.loose + 0.05, color: tx("var(--txt)", OP.secondary + 0.2) }}>{L("jr_intent_hint_pre")}<span style={{ color: T.accent }}>{L("jr_intent_hint_accent")}</span>{L("jr_intent_hint_post")}</div>
           </div>
           <div style={inputCard}>
-            <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="Я есть... / У меня уже есть... / Я наполненная..." rows={3} style={taStyle} />
+            <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder={L("jr_intent_ph")} rows={3} style={taStyle} />
             <div style={inputFooter}>
-              <div onClick={() => addEntry("intent")} style={saveBtnStyle(text.trim())}>Сохранить →</div>
+              <div onClick={() => addEntry("intent")} style={saveBtnStyle(text.trim())}>{L("jr_save")}</div>
             </div>
           </div>
           {data.intent.map((e) => (
             <div key={e.id} style={entryCard}>
               <div style={{ flex: 1 }}>
-                <div style={entryTimestamp}>{fmtDate(e.ts)}</div>
+                <div style={entryTimestamp}>{fmtDate(e.ts, lang)}</div>
                 <div style={entryText}>{e.text}</div>
               </div>
               <div onClick={() => delEntry("intent", e.id)} style={deleteBtn}>×</div>
@@ -203,18 +210,17 @@ export default function Journal({ theme, addGems, THEMES }) {
           ))}
         </>}
 
-        {/* ── БЛАГОДАРНОСТЬ ── */}
         {tab === "grat" && <>
           <div style={inputCard}>
-            <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="Я благодарна себе за... / Я благодарна жизни за..." rows={3} style={taStyle} />
+            <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder={L("jr_grat_ph")} rows={3} style={taStyle} />
             <div style={inputFooter}>
-              <div onClick={() => addEntry("grat")} style={saveBtnStyle(text.trim())}>Сохранить →</div>
+              <div onClick={() => addEntry("grat")} style={saveBtnStyle(text.trim())}>{L("jr_save")}</div>
             </div>
           </div>
           {data.grat.map((e) => (
             <div key={e.id} style={entryCard}>
               <div style={{ flex: 1 }}>
-                <div style={entryTimestamp}>{fmtDate(e.ts)}</div>
+                <div style={entryTimestamp}>{fmtDate(e.ts, lang)}</div>
                 <div style={entryText}>{e.text}</div>
               </div>
               <div onClick={() => delEntry("grat", e.id)} style={deleteBtn}>×</div>
@@ -222,21 +228,20 @@ export default function Journal({ theme, addGems, THEMES }) {
           ))}
         </>}
 
-        {/* ── ЦЕЛИ ── */}
         {tab === "goals" && <>
           <div style={{ padding: `${SP.lg}px ${SP.lg + 2}px`, marginBottom: SP.md + 2, background: `linear-gradient(135deg,${T.dim},rgba(255,255,255,.02))`, border: `1px solid ${T.border}`, borderRadius: RAD.lg - 2 }}>
-            <div style={{ ...label(TYPE.xs - 1), letterSpacing: ".22em", color: T.accent, marginBottom: TYPE.xs }}>✦ Перед тем как писать цели</div>
-            <div style={{ ...body(TYPE.lg), color: tx("var(--txt)", OP.primary), marginBottom: SP.xs }}>Мои истинные цели</div>
-            <div style={{ ...label(TYPE.sm - 1), letterSpacing: LS.normal, textTransform: "none", color: tx("var(--txt)", OP.secondary - 0.1), lineHeight: LH.normal }}>Послушайте эту практику перед тем, как ставить цели.</div>
+            <div style={{ ...label(TYPE.xs - 1), letterSpacing: ".22em", color: T.accent, marginBottom: TYPE.xs }}>{L("jr_before_goals")}</div>
+            <div style={{ ...body(TYPE.lg), color: tx("var(--txt)", OP.primary), marginBottom: SP.xs }}>{L("jr_true_goals")}</div>
+            <div style={{ ...label(TYPE.sm - 1), letterSpacing: LS.normal, textTransform: "none", color: tx("var(--txt)", OP.secondary - 0.1), lineHeight: LH.normal }}>{L("jr_goals_hint")}</div>
           </div>
           <div style={inputCard}>
-            <input value={goalText} onChange={(e) => setGoalText(e.target.value)} placeholder="Новая цель..." onKeyDown={(e) => e.key === "Enter" && addGoal()} style={{
+            <input value={goalText} onChange={(e) => setGoalText(e.target.value)} placeholder={L("jr_goal_ph")} onKeyDown={(e) => e.key === "Enter" && addGoal()} style={{
               width: "100%", background: "transparent", border: "none", outline: "none",
               padding: `${SP.md + 2}px ${SP.lg}px`, ...body(TYPE.lg),
               color: tx("var(--txt)", OP.primary), WebkitAppearance: "none",
             }} />
             <div style={inputFooter}>
-              <div onClick={addGoal} style={saveBtnStyle(goalText.trim())}>Добавить →</div>
+              <div onClick={addGoal} style={saveBtnStyle(goalText.trim())}>{L("jr_add")}</div>
             </div>
           </div>
           {data.goals.map((g) => (
@@ -254,7 +259,7 @@ export default function Journal({ theme, addGems, THEMES }) {
                 fontSize: TYPE.sm + 1, color: tx("var(--txt)", OP.primary), cursor: "pointer",
               }}>{g.done ? "✦" : "○"}</div>
               <div style={{ flex: 1 }}>
-                <div style={entryTimestamp}>{fmtDate(g.ts)}</div>
+                <div style={entryTimestamp}>{fmtDate(g.ts, lang)}</div>
                 <div style={{
                   ...body(TYPE.sm + 1), color: tx("var(--txt)", OP.primary),
                   lineHeight: LH.tight + 0.15,
@@ -267,10 +272,9 @@ export default function Journal({ theme, addGems, THEMES }) {
           ))}
         </>}
 
-        {/* ── РЕФЛЕКСИЯ ── */}
         {tab === "reflect" && <>
           <div style={{ padding: SP.lg + 2, background: T.card, border: `1px solid ${T.border}`, borderRadius: RAD.lg - 2, marginBottom: SP.md + 2 }}>
-            <div style={{ ...label(TYPE.xs - 1), letterSpacing: ".18em", color: tx("var(--txt)", OP.tertiary + 0.06), marginBottom: SP.md }}>Состояние после практики</div>
+            <div style={{ ...label(TYPE.xs - 1), letterSpacing: ".18em", color: tx("var(--txt)", OP.tertiary + 0.06), marginBottom: SP.md }}>{L("jr_state_after")}</div>
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               {MOODS.map((pr, i) => (
                 <div key={i} onClick={() => setMood(mood === i ? null : i)} style={{
@@ -289,17 +293,17 @@ export default function Journal({ theme, addGems, THEMES }) {
               ))}
             </div>
           </div>
-          <div style={{ ...label(TYPE.xs - 1), letterSpacing: ".18em", color: tx("var(--txt)", OP.tertiary + 0.08), marginBottom: SP.sm }}>✦ Инсайты, мысли, идеи</div>
+          <div style={{ ...label(TYPE.xs - 1), letterSpacing: ".18em", color: tx("var(--txt)", OP.tertiary + 0.08), marginBottom: SP.sm }}>{L("jr_insights")}</div>
           <div style={inputCard}>
-            <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="Что я почувствовала во время практики? Какие образы, мысли, идеи пришли?" rows={3} style={taStyle} />
+            <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder={L("jr_reflect_ph")} rows={3} style={taStyle} />
             <div style={inputFooter}>
-              <div onClick={addReflect} style={saveBtnStyle(text.trim() || mood !== null)}>Сохранить →</div>
+              <div onClick={addReflect} style={saveBtnStyle(text.trim() || mood !== null)}>{L("jr_save")}</div>
             </div>
           </div>
           {data.reflect.map((e) => (
             <div key={e.id} style={entryCard}>
               <div style={{ flex: 1 }}>
-                <div style={entryTimestamp}>{fmtDate(e.ts)}</div>
+                <div style={entryTimestamp}>{fmtDate(e.ts, lang)}</div>
                 {e.mood !== undefined && e.mood !== null && (
                   <div style={{ fontSize: SP.lg + 2, marginBottom: SP.xs + 2 }}>{MOODS[e.mood]?.[0]} <span style={{ ...label(TYPE.xs - 2), color: tx("var(--txt)", OP.tertiary + 0.03), verticalAlign: "middle" }}>{MOODS[e.mood]?.[1]}</span></div>
                 )}

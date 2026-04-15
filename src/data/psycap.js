@@ -7,7 +7,7 @@ const MIN = 0;
 const BASELINE = 20;
 
 // ── 6 AXES ──────────────────────────────────────────────────────────────
-export const AXES = [
+const AXES_RU = [
   { id: "safety",     label: "Внутренняя безопасность", short: "Безопасность", hex: "#7EC8DC", desc: "Ощущение, что с вами всё в порядке и мир не опасен. База для всего остального." },
   { id: "worth",      label: "Самоценность",             short: "Самоценность", hex: "#E64DA8", desc: "Знание, что вы достойны хорошего просто потому, что вы есть." },
   { id: "receive",    label: "Способность получать",     short: "Получение",    hex: "#FFAF32", desc: "Умение принимать любовь, деньги, заботу и внимание без вины." },
@@ -15,6 +15,16 @@ export const AXES = [
   { id: "trust",      label: "Доверие к миру",           short: "Доверие",      hex: "#9F7BD8", desc: "Способность отпускать контроль и доверять жизни." },
   { id: "authentic",  label: "Аутентичность",            short: "Подлинность",  hex: "#F08838", desc: "Жить из себя настоящей, без масок и чужих ожиданий." },
 ];
+const AXES_EN = [
+  { id: "safety",     label: "Inner safety",       short: "Safety",       hex: "#7EC8DC", desc: "The feeling that you are okay and the world isn't dangerous. The foundation for everything else." },
+  { id: "worth",      label: "Self-worth",         short: "Self-worth",   hex: "#E64DA8", desc: "Knowing you deserve good things simply because you exist." },
+  { id: "receive",    label: "Ability to receive", short: "Receiving",    hex: "#FFAF32", desc: "The skill of accepting love, money, care and attention without guilt." },
+  { id: "feminine",   label: "Feminine energy",    short: "Femininity",   hex: "#D080B0", desc: "Contact with the softness, sensuality and magnetism of your nature." },
+  { id: "trust",      label: "Trust in the world", short: "Trust",        hex: "#9F7BD8", desc: "The ability to release control and trust life." },
+  { id: "authentic",  label: "Authenticity",       short: "Authenticity", hex: "#F08838", desc: "Living from your true self, without masks or others' expectations." },
+];
+export const AXES = AXES_RU;
+export function getAxes(lang = "ru") { return lang === "en" ? AXES_EN : AXES_RU; }
 
 // ── CONTENT TAGGING ─────────────────────────────────────────────────────
 // Each content item maps to 1-2 axes
@@ -305,9 +315,11 @@ export function getEventsByDay() {
 }
 
 // Smart recommendation based on lowest axis
-export function getRecommendation() {
+export function getRecommendation(lang = "ru") {
   const lowest = getLowestAxis();
-  const RECS = {
+  const axes = getAxes(lang);
+  const lowestLocalized = axes.find((a) => a.id === lowest.id) || lowest;
+  const RECS_RU = {
     safety:    { med: "Женское внутреннее расслабление", scenario: "fear",     text: "Начните с практики расслабления или сценария работы со страхом в орбите." },
     worth:     { med: "Разговор с собой из будущего",    scenario: "power",    text: "Укрепите самоценность через контакт с собой в будущем или внутренний огонь." },
     receive:   { med: "Где я перекрыла себе получение",  scenario: "abundance", text: "Откройте способность получать — послушайте медитацию или попробуйте сценарий изобилия." },
@@ -315,7 +327,16 @@ export function getRecommendation() {
     trust:     { med: "Доверие к миру",                   scenario: "love",     text: "Развивайте доверие через практику или сценарий любви и наполненности." },
     authentic: { med: "Право быть настоящей",             scenario: "capital",  text: "Вернитесь к себе настоящей через медитацию или сценарий психологического капитала." },
   };
-  return { axis: lowest, ...RECS[lowest.id] };
+  const RECS_EN = {
+    safety:    { med: "Feminine inner relaxation", scenario: "fear",      text: "Start with a relaxation practice or the fear scenario in the orbit." },
+    worth:     { med: "Conversation with future self", scenario: "power", text: "Strengthen self-worth through contact with your future self or the inner fire." },
+    receive:   { med: "Where I blocked my receiving", scenario: "abundance", text: "Open your ability to receive — listen to the meditation or try the abundance scenario." },
+    feminine:  { med: "Feminine energy",            scenario: "feminine",  text: "Return to your feminine nature through meditation or a flowing orbit scenario." },
+    trust:     { med: "Trust in the world",         scenario: "love",      text: "Build trust through practice or the love and fullness scenario." },
+    authentic: { med: "The right to be real",       scenario: "capital",   text: "Return to your true self through meditation or the psychological capital scenario." },
+  };
+  const RECS = lang === "en" ? RECS_EN : RECS_RU;
+  return { axis: lowestLocalized, ...RECS[lowest.id] };
 }
 
 export function resetPsycap() { localStorage.removeItem(KEY); }

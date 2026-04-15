@@ -82,12 +82,23 @@ export function getThemes() { return NIGHT; }
 export const THEMES = NIGHT;
 
 export const ENERGY_LEVELS = [
-  { min: 0, max: 25, l: "Критическое истощение" },
-  { min: 26, max: 45, l: "Низкий ресурс" },
-  { min: 46, max: 65, l: "Средний ресурс" },
-  { min: 66, max: 82, l: "Хороший ресурс" },
-  { min: 83, max: 100, l: "Высокий ресурс" },
+  { min: 0, max: 25, l: { ru: "Критическое истощение", en: "Critical exhaustion" } },
+  { min: 26, max: 45, l: { ru: "Низкий ресурс", en: "Low resource" } },
+  { min: 46, max: 65, l: { ru: "Средний ресурс", en: "Moderate resource" } },
+  { min: 66, max: 82, l: { ru: "Хороший ресурс", en: "Good resource" } },
+  { min: 83, max: 100, l: { ru: "Высокий ресурс", en: "High resource" } },
 ];
 
-export const getEnergyLevel = (s) =>
-  ENERGY_LEVELS.find((l) => s >= l.min && s <= l.max) || ENERGY_LEVELS[0];
+export const getEnergyLevel = (s, lang = "ru") => {
+  const lv = ENERGY_LEVELS.find((l) => s >= l.min && s <= l.max) || ENERGY_LEVELS[0];
+  return { ...lv, l: typeof lv.l === "object" ? (lv.l[lang] || lv.l.ru) : lv.l };
+};
+
+// Theme labels (mood names)
+export const THEME_LABELS = {
+  empty: { ru: "Пустота", en: "Emptiness" },
+  quiet: { ru: "Тихо", en: "Quiet" },
+  full: { ru: "Наполнена", en: "Full" },
+  power: { ru: "В силе", en: "In power" },
+};
+export const themeLabel = (key, lang = "ru") => (THEME_LABELS[key] && THEME_LABELS[key][lang]) || key;

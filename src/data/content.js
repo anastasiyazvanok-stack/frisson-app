@@ -8,6 +8,194 @@ export const TEST_QUESTIONS = [
   { q: "Как себя чувствуете в женственности?", o: ["Отчуждена", "Редко", "Иногда", "Чаще в контакте", "Глубоко в контакте"] },
 ];
 
+const TEST_QUESTIONS_EN = [
+  { q: "How often do you feel a surge of energy?", o: ["Almost never", "Sometimes", "Depends on the day", "Usually yes", "Almost always"] },
+  { q: "When you wake up, what do you feel?", o: ["Heaviness", "Indifference", "It varies", "Readiness", "Anticipation"] },
+  { q: "How do you treat your own needs?", o: ["I push them aside", "I don't understand them", "I try to consider them", "I usually hear them", "They are a priority"] },
+  { q: "Do you often feel valuable?", o: ["Almost never", "Rarely", "Sometimes", "Usually yes", "Unconditionally"] },
+  { q: "How do you recover from stress?", o: ["Takes weeks", "With difficulty", "It varies", "Fairly quickly", "Easily"] },
+  { q: "Do you have a sense of inner support?", o: ["No", "Sometimes", "It's unstable", "Usually yes", "Yes, steadily"] },
+  { q: "How do you feel in your femininity?", o: ["Disconnected", "Rarely in touch", "Sometimes", "Often in touch", "Deeply in touch"] },
+];
+
+export function getTestQuestions(lang = "ru") { return lang === "en" ? TEST_QUESTIONS_EN : TEST_QUESTIONS; }
+
+// Section titles (EN translations)
+const SECTION_TITLES_EN = {
+  resource: "Resource & recovery",
+  feminine: "Feminine state",
+  receiving: "Realization & receiving",
+  newlevel: "New level",
+  self: "Authenticity & self-worth",
+};
+
+// Subtitle tokens seen in RECOMMENDATIONS.s (format: "N мин · Group")
+const REC_GROUP_EN = {
+  "Ресурс": "Resource",
+  "Реализация": "Realization",
+  "Женское": "Feminine",
+  "Новый уровень": "New level",
+  "Бесплатно": "Free",
+};
+function translateRecS(s) {
+  let out = s.replace(" мин", " min");
+  for (const [ru, en] of Object.entries(REC_GROUP_EN)) out = out.replace(ru, en);
+  return out;
+}
+
+// EN meditation content keyed by meditation number
+const MEDS_EN = {
+  1: { title: "Return to fullness", dur: "26 min", short: "Replenishing the inner void and love deficit.", long: "This practice helps restore what you've been missing for a long time: warmth, support, love, a sense of fullness and safety. Good if you often live from inner hunger, cling painfully to people, or feel empty inside." },
+  2: { title: "Replenish your energy", dur: "22 min", short: "Restoring strength after overload and fatigue.", long: "This practice is for when you're simply exhausted. When strength is low, everything feels hard, the body is sluggish, the head overloaded. It helps restore mental and bodily energy and bring back inner engagement." },
+  3: { title: "Feminine inner relaxation", dur: "19 min", short: "Releasing bodily and mental tension.", long: "For those used to living in tension: being composed, in control, always inwardly ready. Even rest in such a state doesn't bring real relaxation. The practice helps lower the inner armor and return to softness." },
+  4: { title: "I am the author of my life", dur: "20 min", short: "Returning to an adult position of running your life.", long: "The practice returns you to the center of your own life. Suitable if everything depends too much on the external: on others' moods, circumstances, anxiety, chaos. It helps you feel again: I can choose, decide, direct and create." },
+  5: { title: "Feminine energy", dur: "24 min", short: "Returning to softness, sensuality, and a living state.", long: "Returns a woman to her natural state: softness, fluidity, beauty, feeling life, enjoying yourself and the world. Not about image or role — about an inner state in which a woman stops being just a function." },
+  6: { title: "Return to feminine self", dur: "28 min", short: "Returning to your feminine individuality.", long: "About returning to yourself as a woman. To your uniqueness, inner taste, your desires, your beauty. Suitable if you feel you've adapted too much, become convenient, gone into function — and lost your own feminine individuality." },
+  7: { title: "A state of feminine attraction", dur: "26 min", short: "An inner state of attractiveness.", long: "Forms not an external picture but inner attractiveness. The state when a woman has a taste for herself, for life, for the moment. When she doesn't ask for glances but starts to naturally draw them." },
+  8: { title: "Feminine happiness is the norm", dur: "22 min", short: "Rewiring the norm: living well is safe.", long: "Needed if inside there's a habit of living as if happiness is rare. Changes the inner baseline itself: from expecting hardship to permission to live well. A meditation not for inspiration, but for a new norm of life." },
+  9: { title: "Where I blocked my receiving", dur: "24 min", short: "Awareness of blocks to love and money.", long: "Helps see exactly where inside the closure from receiving happened. Where you stopped accepting, started feeling shy about good things, felt unworthy. An honest practice on realizing inner prohibitions." },
+  10: { title: "Receiving goods from the world", dur: "26 min", short: "Opening the ability to accept good things.", long: "If the previous practice helps you see where you closed — this helps you begin to open. Brings the woman into a state where the good stops being foreign or awkward." },
+  11: { title: "Trust in the world", dur: "22 min", short: "Lowering basic wariness toward life.", long: "Works with the deep sense that the world is unsafe. When life is experienced as a place where you must always be on guard, control everything and wait for a catch. The meditation helps restore basic trust in life." },
+  12: { title: "Money and safety", dur: "28 min", short: "Untying the \u00ABmoney = anxiety\u00BB knot.", long: "Helps rebuild the experience of money: from threat, shame and fear to a neutral, calm, manageable area of life. If the topic of money causes anxiety or the urge to avoid numbers — this meditation helps restore a sense of safety." },
+  13: { title: "Gratitude and a new level", dur: "24 min", short: "Completing the old stage and opening a new life.", long: "Helps not just thank the past, but truly release the old stage as the primary reality. Creates inner space for a new level of life." },
+  14: { title: "New level", dur: "26 min", short: "Adjusting the psyche to more love and money.", long: "Helps get used to more. Not just wanting more, but truly being able to hold it. Because often a woman wants a new level but inwardly gets scared and rolls back." },
+  15: { title: "Conversation with future self", dur: "30 min", short: "Contact with a future version of yourself.", long: "Helps feel the inner connection with the self who has already become more mature, calmer, clearer, and who has entered a new reality. Gives direction and helps make decisions from the future identity." },
+  16: { title: "Faith as a bridge", dur: "22 min", short: "Support in the transition period.", long: "Needed for the in-between moment. When you've already left the past but don't yet see results. When you want to quit everything. The meditation helps hold that point and not betray yourself on the way." },
+  17: { title: "The right to be real", dur: "24 min", short: "Returning to yourself without playing or adapting.", long: "Helps stop living in someone else's image and return to your living self. Realness changes who you begin to attract. When you stop being not-yourself, more of your people and your response appear in life." },
+};
+
+export function getSections(lang = "ru") {
+  if (lang !== "en") return SECTIONS;
+  return SECTIONS.map((s) => ({
+    ...s,
+    title: SECTION_TITLES_EN[s.id] || s.title,
+    meds: s.meds.map((m) => ({ ...m, ...(MEDS_EN[m.n] || {}) })),
+  }));
+}
+
+const COMING_SOON_EN = [
+  { n: 18, title: "The Girl archetype", short: "Lightness, spontaneity, authentic desires" },
+  { n: 19, title: "Muse and Lover archetype", short: "Sensuality, attraction, feminine magic" },
+  { n: 20, title: "Mistress of her life archetype", short: "Full authorship — from strength, not control" },
+  { n: 21, title: "Self-value", short: "Inner value without others' approval" },
+  { n: 22, title: "Inner support", short: "Inner foundation in moments of anxiety" },
+  { n: 23, title: "Magnetism — I am the source", short: "Stop chasing — start attracting" },
+];
+export function getComingSoon(lang = "ru") { return lang === "en" ? COMING_SOON_EN : COMING_SOON; }
+
+const BOOKS_EN = [
+  { id: "b1", title: "Psychological capital — what is it?", free: true, desc: "What a woman's capital consists of and why it defines quality of life." },
+  { id: "b2", title: "How state affects our whole life", free: true, desc: "Why one event destroys one woman and inspires another." },
+  { id: "b3", title: "Women's sexuality", free: false, desc: "Feminine sexuality as part of psychological health." },
+  { id: "b4", title: "True femininity", free: false, desc: "Being real — not in a role, not in an image, but from within." },
+];
+export function getBooks(lang = "ru") { return lang === "en" ? BOOKS_EN : BOOKS; }
+
+export function getRecommendations(lang = "ru") {
+  if (lang !== "en") return RECOMMENDATIONS;
+  const out = {};
+  for (const [k, arr] of Object.entries(RECOMMENDATIONS)) {
+    out[k] = arr.map((r) => ({ ...r, s: translateRecS(r.s) }));
+  }
+  return out;
+}
+
+const MOOD_MESSAGES_EN = {
+  empty: [
+    "I allow myself to be empty so I can truly be filled.",
+    "Something new is born in emptiness.",
+    "I'm not broken. I'm on pause.",
+    "Emptiness is not the end. It's the space before a beginning.",
+    "Right now I don't need to hold anything.",
+    "I let go. I simply let go.",
+    "Today I'm in no rush.",
+    "I allow myself not to know what's next.",
+    "A pause is movement too. Inward.",
+    "I'm allowed to be quiet and transparent.",
+  ],
+  quiet: [
+    "I hear myself. That's enough.",
+    "In silence I find what noise hid for years.",
+    "I choose silence because I know my worth.",
+    "I return to myself.",
+    "In silence I am real.",
+    "I don't need to be rushed.",
+    "I give myself time to hear my heart.",
+    "Silence is also strength.",
+    "I'm not running from myself. I sit beside her.",
+    "My softness isn't weakness. It's presence.",
+  ],
+  full: [
+    "The world is open to me.",
+    "When I'm full, everything comes on its own.",
+    "I don't seek. I attract.",
+    "Today I am the source.",
+    "I am a vessel allowed to be full.",
+    "I want to live. Greedily and beautifully.",
+    "Today I choose myself. Again.",
+    "There is much of me. And that's beautiful.",
+    "I'm so much my own that I attract my people.",
+    "There is a fire inside me that doesn't go out.",
+    "My beauty isn't in the mirror. It's in how I enter a room.",
+    "I don't try to be beautiful. I am.",
+    "I'm seen. And I like it.",
+    "I'm the one they think about after the meeting.",
+    "My body is a work of art.",
+    "I don't attract with looks. I attract with who I am.",
+    "There is something in me that can't be explained. And doesn't need to be.",
+    "I am beautiful in motion, in silence, in laughter, in desire.",
+  ],
+  power: [
+    "I don't prove. I simply am.",
+    "I choose. I create. I go.",
+    "Today I am the author of my life.",
+    "I don't ask. I choose.",
+    "I know my worth. And it's growing.",
+    "I don't compete. I simply am myself, and everything works out.",
+    "I go where everything is allowed to me.",
+    "I am enough. I am worthy. Everything is allowed to me.",
+    "I'm not for everyone. I'm for those who know how to value.",
+    "My attractiveness is born from within.",
+    "I'm the woman they remember.",
+    "The more I'm on my own side, the more beautiful I am.",
+    "I don't adorn myself for the world. I adorn myself for me.",
+    "There is a fire in me that makes me irresistible.",
+    "I'm magnetic. Simply because I'm alive.",
+    "Everything I want wants me even more.",
+  ],
+};
+
+export function getMoodMessages(lang = "ru") { return lang === "en" ? MOOD_MESSAGES_EN : MOOD_MESSAGES; }
+
+const PERSONAL_CONTENT_EN = {
+  "I want to understand myself and my desires better": {
+    v: "This is one of the deepest needs — to know what you truly want. Not what you should. Not what's expected. But what is yours, alive, real. And you're already on the way — because you asked this question.",
+    s: "Through practice you'll start to hear yourself through the noise of others' expectations. Desires will stop being scary — and become your inner compass.",
+    a: "I see tremendous courage in this request. Most women live a whole life without once stopping to ask themselves — what do I want?",
+    p: ["I am the author of my life", "Conversation with future self", "The right to be real"],
+  },
+  "I want to restore energy and resource": {
+    v: "When your resource is at zero — it's not weakness or laziness. It's an honest signal from body and psyche: I need care. You came to the right place — and that's already a choice in your own direction.",
+    s: "Through practice you'll learn to fill yourself from within, not only through external sources. Energy will become your foundation — steady and renewable.",
+    a: "Resource does recover. Not instantly — but each practice does its work on the nervous system. I've seen it hundreds of times.",
+    p: ["Feminine inner relaxation", "Replenish your energy", "Return to fullness"],
+  },
+  "I want to feel my value": {
+    v: "The feeling of having to earn your place is one of the most painful. You're not alone in it. And it is not the truth about you — it's a learned pattern that can be changed.",
+    s: "Through practice your value will stop depending on someone else's gaze, approval or behavior. You'll start to receive good things without guilt or fear of losing them.",
+    a: "Behind this request there is always a woman who gave very much and received little in return. I created these practices for her — for you.",
+    p: ["I am the author of my life", "Return to fullness", "The right to be real"],
+  },
+  "I want to reveal my femininity and attraction": {
+    v: "Connection with the feminine isn't about looks or a role. It's about how you feel from within. Softness, sensuality, enjoying yourself — this is your nature, and this connection can be restored.",
+    s: "Through practice you'll feel your attraction — not because you're trying, but because you're returning to your true self. It's a completely different feeling.",
+    a: "Femininity is not a mask or a technique. It's an inner state. I've guided hundreds of women through this return — and each time it was like an exhale after a long-held breath.",
+    p: ["Feminine energy", "Return to feminine self", "A state of feminine attraction"],
+  },
+};
+
+export function getPersonalContent(lang = "ru") { return lang === "en" ? PERSONAL_CONTENT_EN : PERSONAL_CONTENT; }
+
 export const SECTIONS = [
   {
     id: "resource", title: "Ресурс и восстановление", color: "#F08838", meds: [

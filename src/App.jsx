@@ -3,6 +3,7 @@ import { getThemes } from "./data/themes";
 import { getActivity, markPractice, getName, setName as saveName } from "./data/activity";
 import { fetchMeditations, fetchSections, fetchBooks } from "./lib/supabase";
 import { TYPE, SP, RAD, OP, EASE, FONT_SERIF, FONT_SANS, tx, label, heading } from "./utils/design";
+import { useLangState, t as tr } from "./utils/i18n";
 import GlobalStyles from "./components/GlobalStyles";
 import Onboarding from "./components/Onboarding";
 import AppTour from "./components/AppTour";
@@ -15,9 +16,11 @@ import SubPage from "./components/SubPage";
 import Orbit from "./components/Orbit";
 import Nav from "./components/Nav";
 
-export const VERSION = "5.5.1";
+export const VERSION = "5.6.0";
 
 export default function App() {
+  const [lang, setLang] = useLangState();
+  const L = (k, ...a) => tr(lang, k, ...a);
   const [onb, setOnb] = useState(() => localStorage.getItem("frisson_onb") === "1");
   const [tour, setTour] = useState(() => localStorage.getItem("frisson_tour") === "1");
   const [screen, setScreenRaw] = useState("home");
@@ -84,8 +87,8 @@ export default function App() {
   const T = THEMES[theme] || THEMES.full;
   const showNav = screen !== "sub" && screen !== "situations";
 
-  if (!onb) return (<><GlobalStyles /><Onboarding onDone={() => { localStorage.setItem("frisson_onb", "1"); setOnb(true); }} /></>);
-  if (!tour) return (<><GlobalStyles /><AppTour onDone={() => { localStorage.setItem("frisson_tour", "1"); setTour(true); }} theme={theme} THEMES={THEMES} /></>);
+  if (!onb) return (<><GlobalStyles /><Onboarding onDone={() => { localStorage.setItem("frisson_onb", "1"); setOnb(true); }} lang={lang} setLang={setLang} /></>);
+  if (!tour) return (<><GlobalStyles /><AppTour onDone={() => { localStorage.setItem("frisson_tour", "1"); setTour(true); }} theme={theme} THEMES={THEMES} lang={lang} /></>);
 
   if (showNameInput) return (
     <><GlobalStyles />
@@ -95,10 +98,10 @@ export default function App() {
       <div style={{ position: "relative", zIndex: 1, width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
         <img src="./brand/ornament-white.png" alt="" style={{ width: 56, height: "auto", opacity: 0.7, filter: "drop-shadow(0 0 20px rgba(230,77,168,.4))", marginBottom: SP.lg }} />
         <div style={{ ...heading(40), color: "#fff", textAlign: "center", textShadow: "0 0 40px rgba(230,77,168,.5)", marginBottom: SP.sm }}>Frisson</div>
-        <div style={{ ...label(TYPE.xs), color: "rgba(180,150,165,.5)", letterSpacing: ".3em", marginBottom: 40 }}>✦ как вас зовут? ✦</div>
+        <div style={{ ...label(TYPE.xs), color: "rgba(180,150,165,.5)", letterSpacing: ".3em", marginBottom: 40 }}>{L("ask_name")}</div>
         <input
           autoFocus
-          placeholder="Ваше имя"
+          placeholder={L("your_name")}
           value={nameVal}
           onChange={(e) => setNameVal(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && nameVal.trim()) doSetName(nameVal.trim()); }}
@@ -118,19 +121,19 @@ export default function App() {
             opacity: nameVal.trim() ? 1 : 0.4, transition: EASE.normal,
             touchAction: "manipulation", WebkitAppearance: "none",
           }}
-        >Войти →</button>
+        >{L("enter")}</button>
       </div>
     </div></>
   );
 
   const screens = {
-    home: <Home setScreen={setScreen} theme={theme} setTheme={setThemePersisted} eScore={eScore} pLog={pLog} setLibSec={setLibSec} THEMES={THEMES} activity={activity} userName={userName} doMarkPractice={doMarkPractice} />,
-    library: <Library setScreen={setScreen} theme={theme} initSec={libSec} initMed={openMed} clearMed={() => setOpenMed(null)} medFrom={medFrom} clearMedFrom={() => setMedFrom(null)} THEMES={THEMES} doMarkPractice={doMarkPractice} addGems={addGems} remoteMeds={remoteMeds} remoteSections={remoteSections} remoteBooks={remoteBooks} />,
-    orbit: <Orbit setScreen={setScreen} addGems={addGems} doMarkPractice={doMarkPractice} initScenario={openScenario} clearInitScenario={() => setOpenScenario(null)} />,
-    journal: <Journal theme={theme} addGems={addGems} THEMES={THEMES} doMarkPractice={doMarkPractice} />,
-    situations: <Situations setScreen={setScreen} theme={theme} goToMed={goToMed} THEMES={THEMES} />,
-    profile: <Profile setScreen={setScreen} theme={theme} eScore={eScore} setEScore={setEScore} eHist={eHist} setEHist={setEHist} pLog={pLog} gems={gems} THEMES={THEMES} activity={activity} eScoreHistory={eHist} goToScenario={goToScenario} />,
-    sub: <SubPage setScreen={setScreen} theme={theme} THEMES={THEMES} />,
+    home: <Home setScreen={setScreen} theme={theme} setTheme={setThemePersisted} eScore={eScore} pLog={pLog} setLibSec={setLibSec} THEMES={THEMES} activity={activity} userName={userName} doMarkPractice={doMarkPractice} lang={lang} />,
+    library: <Library setScreen={setScreen} theme={theme} initSec={libSec} initMed={openMed} clearMed={() => setOpenMed(null)} medFrom={medFrom} clearMedFrom={() => setMedFrom(null)} THEMES={THEMES} doMarkPractice={doMarkPractice} addGems={addGems} remoteMeds={remoteMeds} remoteSections={remoteSections} remoteBooks={remoteBooks} lang={lang} />,
+    orbit: <Orbit setScreen={setScreen} addGems={addGems} doMarkPractice={doMarkPractice} initScenario={openScenario} clearInitScenario={() => setOpenScenario(null)} lang={lang} />,
+    journal: <Journal theme={theme} addGems={addGems} THEMES={THEMES} doMarkPractice={doMarkPractice} lang={lang} />,
+    situations: <Situations setScreen={setScreen} theme={theme} goToMed={goToMed} THEMES={THEMES} lang={lang} />,
+    profile: <Profile setScreen={setScreen} theme={theme} eScore={eScore} setEScore={setEScore} eHist={eHist} setEHist={setEHist} pLog={pLog} gems={gems} THEMES={THEMES} activity={activity} eScoreHistory={eHist} goToScenario={goToScenario} lang={lang} setLang={setLang} />,
+    sub: <SubPage setScreen={setScreen} theme={theme} THEMES={THEMES} lang={lang} />,
   };
 
   return (
@@ -172,7 +175,7 @@ export default function App() {
               }}
             />
           )}
-          {showNav && <Nav active={screen} setScreen={setScreen} theme={theme} THEMES={THEMES} />}
+          {showNav && <Nav active={screen} setScreen={setScreen} theme={theme} THEMES={THEMES} lang={lang} />}
           <div style={{ position: "absolute", bottom: showNav ? SP.xl : SP.xs, right: SP.sm, ...label(TYPE.xs), fontSize: 8, color: `rgba(255,255,255,.1)`, pointerEvents: "none", zIndex: 50 }}>v{VERSION}</div>
         </div>
       </div>

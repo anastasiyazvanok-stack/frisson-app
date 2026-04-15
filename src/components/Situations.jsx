@@ -1,11 +1,14 @@
 import { useState } from "react";
 // THEMES passed via props
-import { STATES } from "../data/situations";
+import { getStates } from "../data/situations";
 import { TYPE, SP, RAD, OP, EASE, FONT_SERIF, FONT_SANS, tx, label, body, heading, card as cardStyle, section } from "../utils/design";
 import Orb from "./Orb";
+import { t as tr } from "../utils/i18n";
 
-export default function Situations({ setScreen, theme, goToMed, THEMES }) {
+export default function Situations({ setScreen, theme, goToMed, THEMES, lang = "ru" }) {
   const T = THEMES[theme] || THEMES.full;
+  const L = (k) => tr(lang, k);
+  const STATES = getStates(lang);
   const [openItem, setOpenItem] = useState(null);
 
   // Extract meditation title from rec string like 'Медитация «Доверие к миру»'
@@ -20,11 +23,11 @@ export default function Situations({ setScreen, theme, goToMed, THEMES }) {
       <div style={{ padding: `50px ${SP.xl}px ${SP.lg + 2}px`, position: "relative", zIndex: 1 }}>
         <div onClick={() => setScreen("home")} style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer", marginBottom: SP.xl - 2 }}>
           <span style={{ fontSize: TYPE.base, color: tx("var(--txt)", OP.tertiary + 0.08) }}>←</span>
-          <span style={{ ...label(TYPE.sm), color: tx("var(--txt)", OP.tertiary + 0.08) }}>Назад</span>
+          <span style={{ ...label(TYPE.sm), color: tx("var(--txt)", OP.tertiary + 0.08) }}>{L("back")}</span>
         </div>
-        <div style={{ ...label(9), letterSpacing: ".25em", color: T.accent, marginBottom: SP.sm }}>Навигатор практик</div>
-        <div style={{ ...heading(TYPE.xxl), color: tx("var(--txt)", OP.primary + 0.03), marginBottom: SP.sm }}>Что вас беспокоит<br/>прямо сейчас?</div>
-        <div style={{ fontSize: TYPE.sm, color: tx("var(--txt)", OP.tertiary + 0.08), lineHeight: 1.6, fontFamily: FONT_SANS }}>Нажмите на проблему — откроется практика</div>
+        <div style={{ ...label(9), letterSpacing: ".25em", color: T.accent, marginBottom: SP.sm }}>{L("sit_navigator")}</div>
+        <div style={{ ...heading(TYPE.xxl), color: tx("var(--txt)", OP.primary + 0.03), marginBottom: SP.sm, whiteSpace: "pre-line" }}>{L("sit_title")}</div>
+        <div style={{ fontSize: TYPE.sm, color: tx("var(--txt)", OP.tertiary + 0.08), lineHeight: 1.6, fontFamily: FONT_SANS }}>{L("sit_hint")}</div>
       </div>
 
       <div style={{ padding: `0 ${SP.xl}px`, position: "relative", zIndex: 1 }}>
@@ -72,7 +75,7 @@ export default function Situations({ setScreen, theme, goToMed, THEMES }) {
                             <div style={{ width: 30, height: 30, borderRadius: RAD.full, background: `${st.hex}22`, border: `1px solid ${st.hex}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: TYPE.xs, color: st.hex, flexShrink: 0 }}>▶</div>
                             <div style={{ flex: 1 }}>
                               <div style={{ ...body(13.5), color: tx("var(--txt)", OP.primary - 0.02), lineHeight: 1.45 }}>{r}</div>
-                              {canGo && <div style={{ ...label(8), letterSpacing: ".1em", color: st.hex, marginTop: 3 }}>Перейти к практике →</div>}
+                              {canGo && <div style={{ ...label(8), letterSpacing: ".1em", color: st.hex, marginTop: 3 }}>{L("sit_go_practice")}</div>}
                             </div>
                           </div>
                         );
@@ -86,7 +89,7 @@ export default function Situations({ setScreen, theme, goToMed, THEMES }) {
         ))}
 
         <div onClick={() => setScreen("sub")} style={{ marginTop: SP.sm, padding: `${SP.md + 2}px ${SP.lg + 2}px`, background: T.dim, border: `1px solid ${T.border}`, borderRadius: RAD.md, textAlign: "center", cursor: "pointer" }}>
-          <div style={{ ...body(TYPE.base), color: tx("var(--txt)", 0.65) }}>Открыть полную библиотеку</div>
+          <div style={{ ...body(TYPE.base), color: tx("var(--txt)", 0.65) }}>{L("sit_open_lib")}</div>
           <div style={{ ...label(9), letterSpacing: ".14em", color: T.accent, marginTop: 5 }}>Frisson Premium →</div>
         </div>
       </div>
