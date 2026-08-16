@@ -7,7 +7,7 @@ import Orb from "./Orb";
 import Lock from "./Lock";
 import { t as tr } from "../utils/i18n";
 
-export default function Library({ setScreen, theme, initSec, initMed, clearMed, medFrom, clearMedFrom, THEMES, doMarkPractice, addGems, lang = "ru" }) {
+export default function Library({ setScreen, goBack, theme, initSec, initMed, clearMed, medFrom, clearMedFrom, THEMES, doMarkPractice, addGems, lang = "ru" }) {
   const T = THEMES[theme] || THEMES.full;
   const L = (k) => tr(lang, k);
   const SECTIONS = getSections(lang);
@@ -102,6 +102,12 @@ export default function Library({ setScreen, theme, initSec, initMed, clearMed, 
     <div style={{ minHeight: "100%", background: T.bg, paddingBottom: SP.page, position: "relative", transition: EASE.slow }}>
       <Orb style={{ top: -50, left: -60 }} color={T.o1} opacity={0.14} w={240} h={240} />
       <div style={{ padding: `50px ${SP.xl}px ${SP.lg + 2}px`, position: "relative", zIndex: 1 }}>
+        {goBack && (
+          <div onClick={goBack} style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer", marginBottom: SP.lg }}>
+            <span style={{ fontSize: TYPE.base, color: tx("var(--txt)", OP.tertiary + 0.08) }}>←</span>
+            <span style={{ ...label(TYPE.sm), color: tx("var(--txt)", OP.tertiary + 0.08) }}>{lang === "ru" ? "Назад" : "Back"}</span>
+          </div>
+        )}
         <div style={{ ...label(9), letterSpacing: ".25em", color: T.accent, marginBottom: 6 }}>{L("lib_support_moment")}</div>
         <div style={{ fontFamily: FONT_SERIF, fontSize: 36, fontWeight: 300, lineHeight: LH.tight - 0.1, color: tx("var(--txt)", OP.primary + 0.03), marginBottom: SP.lg + 2 }}>{L("lib_library")}</div>
         <div style={{ display: "flex", gap: 7, overflowX: "auto", margin: `0 -${SP.xl}px`, padding: `0 ${SP.xl}px ${SP.xs}px` }}>

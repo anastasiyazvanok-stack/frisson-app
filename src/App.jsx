@@ -136,7 +136,7 @@ export default function App() {
 
   const screens = {
     home: <Home setScreen={setScreen} theme={theme} setTheme={setThemePersisted} eScore={eScore} pLog={pLog} setLibSec={setLibSec} THEMES={THEMES} activity={activity} userName={userName} doMarkPractice={doMarkPractice} lang={lang} />,
-    library: <Library setScreen={setScreen} theme={theme} initSec={libSec} initMed={openMed} clearMed={() => setOpenMed(null)} medFrom={medFrom} clearMedFrom={() => setMedFrom(null)} THEMES={THEMES} doMarkPractice={doMarkPractice} addGems={addGems} remoteMeds={remoteMeds} remoteSections={remoteSections} remoteBooks={remoteBooks} lang={lang} />,
+    library: <Library setScreen={setScreen} goBack={goBack} theme={theme} initSec={libSec} initMed={openMed} clearMed={() => setOpenMed(null)} medFrom={medFrom} clearMedFrom={() => setMedFrom(null)} THEMES={THEMES} doMarkPractice={doMarkPractice} addGems={addGems} remoteMeds={remoteMeds} remoteSections={remoteSections} remoteBooks={remoteBooks} lang={lang} />,
     orbit: <Orbit setScreen={setScreen} goBack={goBack} addGems={addGems} doMarkPractice={doMarkPractice} initScenario={openScenario} clearInitScenario={() => setOpenScenario(null)} lang={lang} />,
     journal: <Journal theme={theme} addGems={addGems} THEMES={THEMES} doMarkPractice={doMarkPractice} lang={lang} />,
     situations: <Situations setScreen={setScreen} goBack={goBack} theme={theme} goToMed={goToMed} THEMES={THEMES} lang={lang} />,
