@@ -155,30 +155,50 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
       {/* Psychological Capital Tracker */}
       <PsycapTracker T={T} setScreen={setScreen} goToScenario={goToScenario} lang={lang} />
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, ...section(18) }}>
-        {[[`${activity?.totalMeds || 0}`, L("stat_meds")], [`${activity?.totalMinutes || 0}`, L("stat_minutes")], [`🔥 ${activity?.streak || 0}`, L("stat_streak")], [`${gems} ⟡`, L("stat_gems")]].map((pr, i) => (
-          <div key={i} className="glass-card" style={{ padding: `${SP.lg}px ${SP.base}px`, background: `rgba(${T.ar},.05)`, border: `1px solid rgba(${T.ar},.12)`, borderRadius: RAD.lg, textAlign: "center", boxShadow: `inset 0 1px 0 rgba(255,255,255,.06)`, position: "relative", overflow: "hidden" }}>
-            <div style={{ ...heading(SP.xxl), lineHeight: 1, marginBottom: SP.xs, color: tx("var(--txt)", OP.primary) }}>{pr[0]}</div>
-            <div style={{ ...label(TYPE.xs), letterSpacing: ".14em", color: tx("var(--txt)", OP.tertiary) }}>{pr[1]}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Energy insights */}
-      {eScore !== null && eScoreHistory && eScoreHistory.length >= 2 && (() => {
-        const prev = eScoreHistory[eScoreHistory.length - 2]?.score;
-        const diff = eScore - prev;
-        const trend = diff > 0 ? "↑" : diff < 0 ? "↓" : "→";
-        const trendColor = diff > 0 ? "#4FAE92" : diff < 0 ? "#D4453C" : T.accent;
-        const msg = diff > 5 ? L("great_growth") : diff > 0 ? L("growing") : diff < -5 ? L("resource_dropped") : diff < 0 ? L("slight_drop") : L("stable_level");
+      {(() => {
+        const totalMeds = activity?.totalMeds || 0;
+        const totalMinutes = activity?.totalMinutes || 0;
+        const avgMin = totalMeds > 0 ? Math.round(totalMinutes / totalMeds) : 0;
+        const stats = [
+          [`${totalMeds}`, L("stat_meds")],
+          [`${totalMinutes}`, L("stat_minutes")],
+          [`🔥 ${activity?.streak || 0}`, L("stat_streak")],
+          [avgMin > 0 ? `${avgMin}` : "—", lang === "ru" ? "ср. минут" : "avg min"],
+        ];
         return (
-          <div style={{ ...section(SP.base), padding: `${SP.base}px 18px`, background: `${trendColor}12`, border: `1px solid ${trendColor}30`, borderRadius: SP.lg }}>
-            <div style={{ display: "flex", alignItems: "center", gap: SP.sm, marginBottom: 6 }}>
-              <span style={{ fontSize: 20, color: trendColor }}>{trend}</span>
-              <span style={{ fontFamily: FONT_SERIF, fontSize: 15, color: trendColor }}>{diff > 0 ? "+" : ""}{diff} {L("points")}</span>
-              <span style={{ ...label(TYPE.xs), color: tx("var(--txt)", OP.tertiary) }}>{L("points_since_last")}</span>
-            </div>
-            <div style={{ ...body(13), color: tx("var(--txt)", 0.7) }}>{msg}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, ...section(18) }}>
+            {stats.map((pr, i) => (
+              <div key={i} className="glass-card" style={{ padding: `${SP.lg}px ${SP.base}px`, background: `rgba(${T.ar},.05)`, border: `1px solid rgba(${T.ar},.12)`, borderRadius: RAD.lg, textAlign: "center", boxShadow: `inset 0 1px 0 rgba(255,255,255,.06)`, position: "relative", overflow: "hidden" }}>
+                <div style={{ ...heading(SP.xxl), lineHeight: 1, marginBottom: SP.xs, color: tx("var(--txt)", OP.primary) }}>{pr[0]}</div>
+                <div style={{ ...label(TYPE.xs), letterSpacing: ".14em", color: tx("var(--txt)", OP.tertiary) }}>{pr[1]}</div>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
+      {/* Smart insights */}
+      {(() => {
+        const totalMeds = activity?.totalMeds || 0;
+        const streak = activity?.streak || 0;
+        const insights = [];
+        if (eScore !== null) {
+          if (eScore >= 75) insights.push({ icon: "✨", text: lang === "ru" ? "Ресурс высокий — отличное время для новых решений и практик на рост." : "Resource is high — great time for new decisions and growth practices." });
+          else if (eScore >= 50) insights.push({ icon: "🌿", text: lang === "ru" ? "Ресурс в среднем диапазоне — позаботься о себе сегодня, выбери медитацию на наполнение." : "Resource is mid-range — take care of yourself today, choose a filling meditation." });
+          else insights.push({ icon: "🌙", text: lang === "ru" ? "Ресурс снижен — это сигнал для отдыха и мягкой практики. Ты справишься." : "Resource is low — this is a signal to rest and gentle practice. You've got this." });
+        }
+        if (streak >= 7) insights.push({ icon: "🔥", text: lang === "ru" ? `${streak} дней подряд — это уже привычка. Продолжай в том же духе!` : `${streak} days in a row — that's already a habit. Keep it up!` });
+        else if (streak >= 3) insights.push({ icon: "⚡", text: lang === "ru" ? `${streak} дня практики подряд — ты набираешь темп!` : `${streak} days of practice in a row — you're picking up momentum!` });
+        if (totalMeds >= 10) insights.push({ icon: "🎯", text: lang === "ru" ? `${totalMeds} медитаций завершено — глубокая работа с собой.` : `${totalMeds} meditations completed — deep inner work.` });
+        if (insights.length === 0) return null;
+        return (
+          <div style={{ ...section(SP.base) }}>
+            {insights.map((ins, i) => (
+              <div key={i} style={{ display: "flex", gap: SP.md, padding: `${SP.md}px ${SP.page}px`, background: `rgba(${T.ar},.04)`, border: `1px solid rgba(${T.ar},.09)`, borderRadius: RAD.lg, marginBottom: SP.sm }}>
+                <span style={{ fontSize: 20, flexShrink: 0 }}>{ins.icon}</span>
+                <div style={{ ...body(TYPE.base), color: tx("var(--txt)", 0.72), lineHeight: 1.6 }}>{ins.text}</div>
+              </div>
+            ))}
           </div>
         );
       })()}
@@ -204,23 +224,6 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
           </div>
         );
       })()}
-
-      <div className="glass-card" style={{ ...section(SP.base), padding: SP.page, background: `rgba(${T.ar},.05)`, border: `1px solid rgba(${T.ar},.12)`, borderRadius: RAD.lg, position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: `radial-gradient(circle, ${T.accent}15 0%, transparent 70%)`, pointerEvents: "none" }} />
-        <div style={{ display: "flex", alignItems: "center", gap: 13, marginBottom: SP.base }}>
-          <div style={{ width: 46, height: 46, borderRadius: "50%", background: "rgba(125,23,54,.35)", border: `1.5px solid ${T.accent}44`, boxShadow: `0 0 14px ${T.accent}18`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🎓</div>
-          <div>
-            <div style={{ fontFamily: FONT_SERIF, fontSize: 15, color: tx("var(--txt)", 0.9), marginBottom: 2 }}>{L("author_name")}</div>
-            <div style={{ ...label(TYPE.xs), letterSpacing: ".12em", color: T.accent }}>{L("author_role")}</div>
-          </div>
-        </div>
-        <div style={{ ...body(TYPE.base), lineHeight: LH.loose, color: tx("var(--txt)", 0.7), marginBottom: SP.md }}>{L("author_bio")}</div>
-        <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
-          {[L("author_tag1"), L("author_tag2"), L("author_tag3")].map((t) => (
-            <div key={t} style={{ padding: `${SP.xs}px ${TYPE.xs}px`, background: "rgba(125,23,54,.28)", border: "1px solid rgba(125,23,54,.35)", borderRadius: RAD.lg, ...label(TYPE.xs), letterSpacing: ".1em", color: tx("var(--txt)", 0.6) }}>{t}</div>
-          ))}
-        </div>
-      </div>
 
       <div style={{ margin: `${SP.sm}px ${SP.xxl}px 0`, padding: `18px 0`, borderTop: `1px solid ${tx("var(--txt)", OP.bgSubtle)}`, textAlign: "center", position: "relative", zIndex: 1 }}>
         <div style={{ ...body(TYPE.base), fontStyle: "italic", lineHeight: LH.loose, color: tx("var(--txt)", 0.45) }}>{L("oliver_quote")}</div>

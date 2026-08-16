@@ -43,9 +43,17 @@ export default function App() {
   const THEMES = getThemes();
   const [eScore, setEScoreRaw] = useState(() => {
     const v = localStorage.getItem("frisson_escore");
+    const savedDate = localStorage.getItem("frisson_escore_date");
+    const todayStr = new Date().toISOString().slice(0, 10);
+    if (savedDate && savedDate !== todayStr) return null;
     return v !== null && v !== "null" ? parseInt(v) : null;
   });
-  const setEScore = (v) => { localStorage.setItem("frisson_escore", v === null ? "null" : String(v)); setEScoreRaw(v); };
+  const setEScore = (v) => {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    localStorage.setItem("frisson_escore", v === null ? "null" : String(v));
+    localStorage.setItem("frisson_escore_date", todayStr);
+    setEScoreRaw(v);
+  };
   const [eHist, setEHistRaw] = useState(() => {
     try { const v = JSON.parse(localStorage.getItem("frisson_ehist")); return Array.isArray(v) ? v : []; }
     catch { return []; }
@@ -129,11 +137,11 @@ export default function App() {
   const screens = {
     home: <Home setScreen={setScreen} theme={theme} setTheme={setThemePersisted} eScore={eScore} pLog={pLog} setLibSec={setLibSec} THEMES={THEMES} activity={activity} userName={userName} doMarkPractice={doMarkPractice} lang={lang} />,
     library: <Library setScreen={setScreen} theme={theme} initSec={libSec} initMed={openMed} clearMed={() => setOpenMed(null)} medFrom={medFrom} clearMedFrom={() => setMedFrom(null)} THEMES={THEMES} doMarkPractice={doMarkPractice} addGems={addGems} remoteMeds={remoteMeds} remoteSections={remoteSections} remoteBooks={remoteBooks} lang={lang} />,
-    orbit: <Orbit setScreen={setScreen} addGems={addGems} doMarkPractice={doMarkPractice} initScenario={openScenario} clearInitScenario={() => setOpenScenario(null)} lang={lang} />,
+    orbit: <Orbit setScreen={setScreen} goBack={goBack} addGems={addGems} doMarkPractice={doMarkPractice} initScenario={openScenario} clearInitScenario={() => setOpenScenario(null)} lang={lang} />,
     journal: <Journal theme={theme} addGems={addGems} THEMES={THEMES} doMarkPractice={doMarkPractice} lang={lang} />,
-    situations: <Situations setScreen={setScreen} theme={theme} goToMed={goToMed} THEMES={THEMES} lang={lang} />,
+    situations: <Situations setScreen={setScreen} goBack={goBack} theme={theme} goToMed={goToMed} THEMES={THEMES} lang={lang} />,
     profile: <Profile setScreen={setScreen} theme={theme} eScore={eScore} setEScore={setEScore} eHist={eHist} setEHist={setEHist} pLog={pLog} gems={gems} THEMES={THEMES} activity={activity} eScoreHistory={eHist} goToScenario={goToScenario} lang={lang} setLang={setLang} />,
-    sub: <SubPage setScreen={setScreen} theme={theme} THEMES={THEMES} lang={lang} />,
+    sub: <SubPage setScreen={setScreen} goBack={goBack} theme={theme} THEMES={THEMES} lang={lang} />,
   };
 
   return (

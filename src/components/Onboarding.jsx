@@ -9,7 +9,7 @@ const STEPS = {
     { type: "splash" },
     { type: "info", ey: "женский капитал", hl: "Это то,\nиз чего\nвы живёте", body: "То, как вы любите, выбираете,\nчувствуете и создаёте реальность" },
     { type: "info", ey: "когда он растёт", hl: "Меняется\nне состояние.\nМеняется жизнь", body: "Отношения. Опора. Способность\nпринимать и создавать свою норму" },
-    { type: "info", ey: "для чего Frisson", hl: "Укреплять\nкапитал\nкаждый день", body: "Медитации, практики, дневник\nи трекинг состояния", tags: ["Опору", "Спокойствие", "Наполненность", "Женственность", "Силу", "Выход из тревоги"] },
+    { type: "info", ey: "для чего Frisson", hl: "Укреплять\nкапитал\nкаждый день", body: "Медитации · Орбита с 8 сценариями\n40+ ситуаций-рекомендаций\nДневник и трекинг состояния", tags: ["Опору", "Спокойствие", "Наполненность", "Женственность", "Силу", "Выход из тревоги"] },
     { type: "info", ey: "добро пожаловать", hl: "Ваше внутреннее\nстановится\nосновой\nновой жизни", body: "Создано Магистром Клинической Психологии\nАнастасией Званок" },
     { type: "q", q: "Как ты себя чувствуешь прямо сейчас?", opts: ["Я устала — нужна тишина и восполнение", "Я ищу себя и хочу вспомнить свою силу", "Я в тревоге — хочу обрести покой", "Я готова расцветать и идти дальше"], key: "f" },
     { type: "q", q: "Что привело тебя сюда?", opts: ["Хочу лучше понять себя и свои желания", "Хочу восстановить энергию и ресурс", "Хочу почувствовать свою ценность", "Хочу раскрыть свою женственность и притяжение"], key: "r" },
@@ -20,7 +20,7 @@ const STEPS = {
     { type: "splash" },
     { type: "info", ey: "feminine capital", hl: "It's what\nyou live\nfrom", body: "How you love, choose,\nfeel and create reality" },
     { type: "info", ey: "when it grows", hl: "Not the state\nchanges.\nLife changes", body: "Relationships. Support. The ability\nto receive and create your norm" },
-    { type: "info", ey: "what Frisson is for", hl: "Grow your\ncapital\nevery day", body: "Meditations, practices, journal\nand state tracking", tags: ["Support", "Calm", "Fullness", "Femininity", "Strength", "Leaving anxiety"] },
+    { type: "info", ey: "what Frisson is for", hl: "Grow your\ncapital\nevery day", body: "Meditations · Orbit with 8 scenarios\n40+ situation recommendations\nJournal and state tracking", tags: ["Support", "Calm", "Fullness", "Femininity", "Strength", "Leaving anxiety"] },
     { type: "info", ey: "welcome", hl: "Your inner world\nbecomes\nthe foundation\nof a new life", body: "Created by Master of Clinical Psychology\nAnastasia Zvanok" },
     { type: "q", q: "How are you feeling right now?", opts: ["I'm tired — I need silence and replenishment", "I'm searching for myself, I want to remember my strength", "I'm anxious — I want to find peace", "I'm ready to bloom and move forward"], key: "f" },
     { type: "q", q: "What brought you here?", opts: ["I want to understand myself and my desires better", "I want to restore energy and resource", "I want to feel my value", "I want to reveal my femininity and attraction"], key: "r" },
@@ -97,23 +97,6 @@ export default function Onboarding({ onDone, lang = "ru", setLang }) {
         <div style={{ position: "absolute", width: "40%", height: "40%", top: "28%", left: "32%", borderRadius: "50%", background: "radial-gradient(circle,rgba(255,175,50,.55),rgba(159,123,216,.3) 55%,transparent 72%)", filter: "blur(44px)", animation: "onbDrift3 18s 7s ease-in-out infinite" }} />
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 45%,transparent 18%,rgba(8,4,16,.78) 100%)" }} />
 
-        {Array.from({ length: 60 }, (_, i) => {
-          const size = 1 + (i % 4) * 0.7;
-          const dur = 8 + (i % 7) * 2;
-          return (
-            <div key={i} style={{
-              position: "absolute",
-              left: `${(i * 37 + 11) % 100}%`,
-              top: `${(i * 53 + 7) % 100}%`,
-              width: size, height: size, borderRadius: "50%",
-              background: i % 5 === 0 ? "rgba(255,200,220,.7)" : i % 3 === 0 ? "rgba(255,180,120,.6)" : "rgba(255,255,255,.5)",
-              boxShadow: `0 0 ${size * 3}px currentColor`,
-              color: i % 5 === 0 ? "rgba(230,77,168,.5)" : i % 3 === 0 ? "rgba(240,136,56,.4)" : "rgba(255,255,255,.3)",
-              animation: `onbFloat${i % 4} ${dur}s ${(i % 9) * 0.4}s ease-in-out infinite`,
-            }} />
-          );
-        })}
-
         <img src="./brand/ornament-white.png" alt="" style={{ position: "absolute", top: "10%", right: "8%", width: 64, height: "auto", opacity: 0.06, animation: "onbDrift1 32s ease-in-out infinite", pointerEvents: "none" }} />
         <img src="./brand/ornament-white.png" alt="" style={{ position: "absolute", bottom: "12%", left: "6%", width: 48, height: "auto", opacity: 0.05, animation: "onbDrift2 36s 5s ease-in-out infinite", pointerEvents: "none" }} />
       </div>
@@ -122,10 +105,6 @@ export default function Onboarding({ onDone, lang = "ru", setLang }) {
         @keyframes onbDrift1 { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(20px, -30px) scale(1.05); } 66% { transform: translate(-15px, 20px) scale(.98); } }
         @keyframes onbDrift2 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-25px, -20px) scale(1.08); } }
         @keyframes onbDrift3 { 0%, 100% { transform: translate(0, 0) scale(1); opacity: .85; } 50% { transform: translate(30px, 25px) scale(1.12); opacity: 1; } }
-        @keyframes onbFloat0 { 0%, 100% { transform: translate(0, 0); opacity: .3; } 50% { transform: translate(15px, -25px); opacity: 1; } }
-        @keyframes onbFloat1 { 0%, 100% { transform: translate(0, 0); opacity: .4; } 50% { transform: translate(-20px, -15px); opacity: 1; } }
-        @keyframes onbFloat2 { 0%, 100% { transform: translate(0, 0); opacity: .5; } 50% { transform: translate(10px, 30px); opacity: 1; } }
-        @keyframes onbFloat3 { 0%, 100% { transform: translate(0, 0); opacity: .35; } 50% { transform: translate(-12px, 18px); opacity: 1; } }
       `}</style>
 
       {/* Language toggle (on splash step only) */}
@@ -232,6 +211,12 @@ export default function Onboarding({ onDone, lang = "ru", setLang }) {
       </div>
 
       <div style={{ padding: `${SP.lg}px ${SP.xxl - 4}px`, paddingBottom: `max(${SP.xl}px, env(safe-area-inset-bottom, ${SP.xl}px))`, position: "relative", zIndex: 2, flexShrink: 0 }}>
+        {step > 0 && (
+          <div onClick={() => setStep((s) => s - 1)} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", marginBottom: SP.sm, justifyContent: "center" }}>
+            <span style={{ fontSize: TYPE.sm, color: "rgba(180,150,165,.45)" }}>←</span>
+            <span style={{ ...label(TYPE.xs), color: "rgba(180,150,165,.45)", letterSpacing: ".2em" }}>{lang === "ru" ? "Назад" : "Back"}</span>
+          </div>
+        )}
         <div onClick={() => canNext && (isLast ? onDone() : setStep((s) => s + 1))} style={{
           width: "100%", padding: SP.lg, borderRadius: RAD.xxl || 28, textAlign: "center",
           cursor: canNext ? "pointer" : "default",

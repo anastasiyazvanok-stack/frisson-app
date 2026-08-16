@@ -3,14 +3,14 @@ import { TYPE, SP, RAD, OP, EASE, FONT_SERIF, FONT_SANS, tx, label, body, headin
 import Orb from "./Orb";
 import { t as tr } from "../utils/i18n";
 
-export default function SubPage({ setScreen, theme, THEMES, lang = "ru" }) {
+export default function SubPage({ setScreen, goBack, theme, THEMES, lang = "ru" }) {
   const T = THEMES[theme] || THEMES.full;
   const L = (k) => tr(lang, k);
 
   return (
     <div style={{ minHeight: "100%", background: T.bg, paddingBottom: SP.page, position: "relative", transition: EASE.slow }}>
       <Orb style={{ top: -60, left: "50%", transform: "translateX(-50%)" }} color={T.o1} opacity={OP.disabled} w={280} h={280} />
-      <div onClick={() => setScreen("home")} style={{ padding: `${SP.page}px ${SP.xl}px 0`, display: "flex", alignItems: "center", gap: 9, cursor: "pointer", position: "relative", zIndex: 1 }}>
+      <div onClick={() => goBack ? goBack() : setScreen("home")} style={{ padding: `${SP.page}px ${SP.xl}px 0`, display: "flex", alignItems: "center", gap: 9, cursor: "pointer", position: "relative", zIndex: 1 }}>
         <span style={{ fontSize: 15, color: tx("var(--txt)", OP.tertiary + 0.08) }}>←</span>
         <span style={{ ...label(TYPE.sm), color: tx("var(--txt)", OP.tertiary + 0.08) }}>{L("back")}</span>
       </div>

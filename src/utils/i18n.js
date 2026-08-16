@@ -130,7 +130,7 @@ export const STR = {
   card_sub_receiving: { ru: "Реализация", en: "Realization" },
   card_sub_newlevel: { ru: "Новый уровень", en: "New level" },
   card_title_fill: { ru: "Наполниться", en: "Replenish" },
-  card_title_fem: { ru: "Женственность", en: "Femininity" },
+  card_title_fem: { ru: "Раскрыться", en: "Blossom" },
   card_title_receive: { ru: "Получать", en: "Receive" },
   card_title_grow: { ru: "Расти", en: "Grow" },
 

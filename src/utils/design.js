@@ -8,10 +8,10 @@ export const FONT_SANS  = "'Plus Jakarta Sans',system-ui,sans-serif";
 // ─── TYPE SCALE (px) ───
 // 6 steps: xs, sm, base, lg, xl, xxl — nothing else.
 export const TYPE = {
-  xs:   10,    // meta, timestamps, tiny labels
-  sm:   12,    // secondary labels, descriptions
-  base: 14,    // body text, card content
-  lg:   17,    // section titles, card headings
+  xs:   11,    // meta, timestamps, tiny labels
+  sm:   13,    // secondary labels, descriptions
+  base: 15,    // body text, card content
+  lg:   18,    // section titles, card headings
   xl:   22,    // screen titles
   xxl:  28,    // hero / greeting
 };
@@ -39,10 +39,10 @@ export const RAD = {
 // ─── OPACITY LEVELS ───
 // Text: 4 tiers only. Backgrounds: 3 tiers.
 export const OP = {
-  primary:   0.92,
-  secondary: 0.55,
-  tertiary:  0.32,
-  disabled:  0.18,
+  primary:   0.94,
+  secondary: 0.65,
+  tertiary:  0.44,
+  disabled:  0.22,
   // Background fills
   bgSubtle:  0.06,
   bgMedium:  0.12,

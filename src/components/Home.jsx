@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getEnergyLevel, themeLabel } from "../data/themes";
 import { getSections, getRecommendations, getMoodMessages } from "../data/content";
 import { getMoon, useGreeting } from "../utils/helpers";
@@ -19,6 +19,8 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
   const RECOMMENDATIONS = getRecommendations(lang);
   const msgList = MOOD_MESSAGES[theme] || MOOD_MESSAGES.full;
   const [msg, setMsg] = useState(() => msgList[Math.floor(Math.random() * msgList.length)]);
+  const [showInfo, setShowInfo] = useState(false);
+  const recsRef = useRef(null);
   useEffect(() => {
     const list = getMoodMessages(lang)[theme] || getMoodMessages(lang).full;
     setMsg(list[Math.floor(Math.random() * list.length)]);
@@ -40,8 +42,38 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
       <Orb style={{ bottom: 280, left: -80 }} color={T.o2} opacity={0.2} w={260} h={260} delay={3} />
       <Orb style={{ top: "40%", left: "50%", transform: "translateX(-50%)" }} color={T.o1} opacity={0.06} w={400} h={400} delay={6} />
 
+      {/* ─── Info overlay ─── */}
+      {showInfo && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(4,2,8,.96)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+          <div style={{ minHeight: "100%", display: "flex", flexDirection: "column", alignItems: "center", padding: `50px ${SP.xl}px 60px` }}>
+            <div style={{ width: "100%", maxWidth: 340 }}>
+              <button type="button" onClick={() => setShowInfo(false)} style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", padding: `0 0 ${SP.xl}px`, touchAction: "manipulation", WebkitAppearance: "none" }}>
+                <span style={{ fontSize: TYPE.base, color: `rgba(${T.ar},.5)` }}>←</span>
+                <span style={{ ...label(TYPE.xs), color: `rgba(${T.ar},.5)`, letterSpacing: ".15em" }}>{lang === "ru" ? "Назад" : "Back"}</span>
+              </button>
+              <div style={{ ...label(TYPE.xs), letterSpacing: ".3em", color: T.accent, marginBottom: SP.sm, textAlign: "center" }}>✦ Frisson ✦</div>
+              <div style={{ ...heading(TYPE.xxl + 2), color: T.text, marginBottom: SP.xl, textAlign: "center", whiteSpace: "pre-line" }}>{lang === "ru" ? "Твоё пространство\nвнутреннего капитала" : "Your space of\ninner capital"}</div>
+              {[
+                { title: lang === "ru" ? "Что это?" : "What is it?", text: lang === "ru" ? "Frisson — это приложение для работы с твоим внутренним ресурсом. Медитации, практики, дневник и трекер состояния помогают укреплять женственность, уходить из тревоги и наполняться каждый день." : "Frisson is an app for working with your inner resource. Meditations, practices, journal and state tracker help strengthen femininity, release anxiety and fill up every day." },
+                { title: lang === "ru" ? "Как пользоваться?" : "How to use?", text: lang === "ru" ? "1. Выбери настроение вверху — медитации подберутся под тебя\n2. Перейди в Библиотеку — слушай медитации\n3. Открой Орбиту — выбери сценарий и начни практику\n4. Веди Дневник — записывай состояния\n5. В Профиле отслеживай свою динамику" : "1. Choose your mood above — meditations will be tailored for you\n2. Go to Library — listen to meditations\n3. Open Orbit — choose a scenario and start practice\n4. Keep a Journal — record your states\n5. In Profile track your dynamics" },
+                { title: lang === "ru" ? "Тест на ресурс" : "Resource test", text: lang === "ru" ? "Каждый день в Профиле проходи тест на психологическую энергию. Он сбрасывается каждое утро — так ты видишь свою динамику в реальном времени." : "Each day in Profile take the psychological energy test. It resets every morning — so you see your dynamics in real time." },
+              ].map((item, i) => (
+                <div key={i} style={{ padding: `${SP.md}px ${SP.lg}px`, background: `rgba(${T.ar},.06)`, border: `1px solid rgba(${T.ar},.12)`, borderRadius: RAD.lg, marginBottom: SP.md }}>
+                  <div style={{ ...label(TYPE.xs), color: T.accent, letterSpacing: ".18em", marginBottom: SP.sm }}>{item.title}</div>
+                  <div style={{ fontFamily: FONT_SERIF, fontSize: TYPE.sm + 1, lineHeight: 1.7, color: `rgba(${T.ar},.75)`, whiteSpace: "pre-line" }}>{item.text}</div>
+                </div>
+              ))}
+              <button type="button" onClick={() => setShowInfo(false)} style={{ width: "100%", marginTop: SP.md, padding: `${SP.lg}px 0`, borderRadius: RAD.lg, background: T.dim, border: `1px solid ${T.border}`, ...label(TYPE.sm), letterSpacing: ".2em", color: T.text, cursor: "pointer", touchAction: "manipulation", WebkitAppearance: "none" }}>{lang === "ru" ? "Понятно" : "Got it"}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ─── Header ─── */}
       <div className="fu1" style={{ padding: `52px ${SP.page}px ${SP.xl}px`, position: "relative", zIndex: 1, textAlign: "center" }}>
+        <div style={{ position: "absolute", top: SP.xl, right: SP.page }}>
+          <button type="button" onClick={() => setShowInfo(true)} style={{ width: 30, height: 30, borderRadius: "50%", border: `1px solid rgba(${T.ar},.2)`, background: `rgba(${T.ar},.06)`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontFamily: FONT_SERIF, fontSize: 14, color: `rgba(${T.ar},.5)`, touchAction: "manipulation", WebkitAppearance: "none", padding: 0 }}>i</button>
+        </div>
         <img src="./brand/ornament-white.png" alt="" style={{ width: 28, height: "auto", opacity: 0.2, marginBottom: SP.md, filter: `drop-shadow(0 0 12px rgba(${T.ar},.3))` }} />
         <div style={{ ...label(TYPE.xs), color: tx("var(--txt)", OP.tertiary - 0.04), letterSpacing: ".3em", marginBottom: SP.sm }}>{moon.n}</div>
         <div style={{ position: "relative", display: "inline-block", margin: `${SP.xs}px 0 ${SP.md}px` }}>
@@ -93,7 +125,7 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
           {Object.entries(THEMES).map(([k, m]) => {
             const on = theme === k;
             return (
-              <div key={k} onClick={() => setTheme(k)} className="pc" style={{
+              <div key={k} onClick={() => { setTheme(k); setTimeout(() => recsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80); }} className="pc" style={{
                 flex: 1, padding: `${SP.md + 2}px ${SP.xs}px ${SP.md}px`, borderRadius: RAD.lg - 2, textAlign: "center", cursor: "pointer",
                 background: on ? `rgba(${m.ar},.14)` : `rgba(255,255,255,.02)`,
                 border: `1.5px solid ${on ? m.accent + "66" : "rgba(255,255,255,.06)"}`,
@@ -184,7 +216,7 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
       </div>
 
       {/* ─── Recommendations ─── */}
-      <div className="fu4" style={{ padding: `0 ${SP.page}px ${SP.xl}px`, position: "relative", zIndex: 1 }}>
+      <div ref={recsRef} className="fu4" style={{ padding: `0 ${SP.page}px ${SP.xl}px`, position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: SP.md }}>
           <div style={{ ...label(TYPE.xs), color: tx("var(--txt)", OP.tertiary), letterSpacing: ".2em" }}>{L("for_you_now")}</div>
           <span onClick={() => setScreen("library")} style={{ ...label(TYPE.xs), color: T.accent, cursor: "pointer" }}>{L("all")}</span>

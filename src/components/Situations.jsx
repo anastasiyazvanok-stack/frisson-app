@@ -5,7 +5,7 @@ import { TYPE, SP, RAD, OP, EASE, FONT_SERIF, FONT_SANS, tx, label, body, headin
 import Orb from "./Orb";
 import { t as tr } from "../utils/i18n";
 
-export default function Situations({ setScreen, theme, goToMed, THEMES, lang = "ru" }) {
+export default function Situations({ setScreen, goBack, theme, goToMed, THEMES, lang = "ru" }) {
   const T = THEMES[theme] || THEMES.full;
   const L = (k) => tr(lang, k);
   const STATES = getStates(lang);
@@ -21,7 +21,7 @@ export default function Situations({ setScreen, theme, goToMed, THEMES, lang = "
     <div style={{ minHeight: "100%", background: T.bg, paddingBottom: 100, position: "relative", transition: "background .6s" }}>
       <Orb style={{ top: -40, right: -60 }} color={T.o1} opacity={OP.bgMedium} w={220} h={220} />
       <div style={{ padding: `50px ${SP.xl}px ${SP.lg + 2}px`, position: "relative", zIndex: 1 }}>
-        <div onClick={() => setScreen("home")} style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer", marginBottom: SP.xl - 2 }}>
+        <div onClick={() => goBack ? goBack() : setScreen("home")} style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer", marginBottom: SP.xl - 2 }}>
           <span style={{ fontSize: TYPE.base, color: tx("var(--txt)", OP.tertiary + 0.08) }}>←</span>
           <span style={{ ...label(TYPE.sm), color: tx("var(--txt)", OP.tertiary + 0.08) }}>{L("back")}</span>
         </div>

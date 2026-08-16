@@ -211,7 +211,7 @@ const LAYERS = [
   { id:6, name:"Поведение", sub:"внешний слой", hex:"#C8960A", col:0xC8960A, lc:0xA07808, radius:30, speed:0.15, bright:0.60, sz:0.46, lineAmt:0.3, desc:"То, что видит мир. Когда бессознательное исцелено, а сознательное выбрало новое, поведение меняется органично, без насилия над собой." },
 ];
 
-export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario, clearInitScenario, lang = "ru" }) {
+export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, initScenario, clearInitScenario, lang = "ru" }) {
   const L = (k, ...a) => tr(lang, k, ...a);
   const isDay = false;
   const canvasRef = useRef(null);
@@ -918,25 +918,15 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
       <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }} />
       <div ref={touchRef} style={{ position: "absolute", inset: 0, zIndex: 5, touchAction: "none", pointerEvents: showTimerPicker || meditating ? "none" : "auto" }} />
 
-      {/* Sidebar — hides during meditation */}
-      <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 44, zIndex: 20, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: SP.sm, padding: "80px 0", background: "linear-gradient(90deg, rgba(6,2,8,.7), transparent)", opacity: hideUI, transition: "opacity .8s", pointerEvents: meditating ? "none" : "auto" }}>
-        {LAYERS.map((l) => (
-          <div key={l.id} onClick={() => openLayer(l.id)} style={{ width: 36, display: "flex", flexDirection: "column", alignItems: "center", gap: SP.xs, cursor: "pointer", opacity: activeId === l.id ? 1 : OP.tertiary, transition: EASE.normal, padding: `${SP.xs}px 0` }}>
-            <span style={{ width: activeId === l.id ? 10 : 7, height: activeId === l.id ? 10 : 7, borderRadius: "50%", background: l.hex, boxShadow: activeId === l.id ? `0 0 ${SP.md}px ${l.hex}` : `0 0 ${SP.xs}px ${l.hex}66`, display: "block", transition: EASE.normal }} />
-            <span style={{ fontSize: 7, letterSpacing: 1, color: activeId === l.id ? "rgba(240,220,200,.85)" : "rgba(210,185,162,.5)", ...ss }}>{l.id}</span>
-          </div>
-        ))}
-      </div>
-
       {/* Top bar — partially hides during meditation */}
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", padding: `0 ${SP.lg}px 0 52px`, background: meditating ? "transparent" : "linear-gradient(180deg, rgba(6,2,8,.86), transparent)", zIndex: 30, pointerEvents: "none", transition: "background .8s" }}>
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", padding: `0 ${SP.lg}px`, background: meditating ? "transparent" : "linear-gradient(180deg, rgba(6,2,8,.86), transparent)", zIndex: 30, pointerEvents: "none", transition: "background .8s" }}>
         <div style={{ display: "flex", alignItems: "center", gap: SP.md, opacity: hideUI, transition: "opacity .8s" }}>
-          <div onClick={() => { if (meditating) return; setScreen("home"); }} style={{ pointerEvents: meditating ? "none" : "all", cursor: "pointer", fontSize: 15, color: "rgba(210,175,145,.5)", padding: `${SP.xs}px ${SP.sm}px` }}>←</div>
+          <div onClick={() => { if (meditating) return; goBack ? goBack() : setScreen("home"); }} style={{ pointerEvents: meditating ? "none" : "all", cursor: "pointer", fontSize: 15, color: "rgba(210,175,145,.5)", padding: `${SP.xs}px ${SP.sm}px` }}>←</div>
           <div>
             <div style={{ fontSize: 8, letterSpacing: 5, textTransform: "uppercase", color: "rgba(190,130,90,.42)", ...ss }}>Frisson</div>
             <div style={{ fontSize: TYPE.base, fontStyle: "italic", color: "rgba(228,202,182,.38)", marginTop: 2, ...ss }}>{L("orb_title")}</div>
           </div>
-          <button type="button" onClick={() => setShowIntro(true)} style={{ pointerEvents: meditating ? "none" : "all", cursor: "pointer", width: SP.xxl, height: SP.xxl, borderRadius: "50%", border: "1px solid rgba(210,175,145,.3)", background: "rgba(6,2,8,.5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: "rgba(210,175,145,.7)", marginLeft: 6, touchAction: "manipulation", WebkitAppearance: "none", padding: 0, ...ss }}>?</button>
+          <button type="button" onClick={() => { if (!meditating) setShowTimerPicker(true); }} style={{ pointerEvents: meditating ? "none" : "all", cursor: "pointer", borderRadius: RAD.md, border: "1px solid rgba(210,175,145,.3)", background: "rgba(6,2,8,.5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, letterSpacing: 1, color: "rgba(210,175,145,.85)", marginLeft: 6, touchAction: "manipulation", WebkitAppearance: "none", padding: "5px 10px", whiteSpace: "nowrap", ...ss }}>{lang === "ru" ? "Начать практику" : "Start practice"}{activeScenario ? ` · ${orbScenarioName(activeScenario, lang)}` : ""}</button>
         </div>
         <button onClick={toggleSound} style={{ pointerEvents: "all", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, background: soundOn ? "rgba(140,30,60,.36)" : "rgba(100,20,50,.2)", border: `1px solid ${soundOn ? "rgba(200,130,90,.5)" : "rgba(190,130,90,.25)"}`, borderRadius: SP.lg, padding: "5px 11px", fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: soundOn ? "rgba(240,210,178,.92)" : "rgba(210,175,145,.6)", transition: EASE.normal, whiteSpace: "nowrap", ...ss }}>{meditating ? L("orb_stop") : soundOn ? L("orb_stop") : `♫ ${orbSoundLabel((activeScenario?.id || "neutral"), getProfile().label, lang)}`}</button>
       </div>
@@ -1050,7 +1040,7 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
       </div>
 
       {/* Scenario chips row — hides during meditation */}
-      <div style={{ position: "absolute", top: 96, left: 0, right: 0, zIndex: 20, overflowX: "auto", padding: `0 ${SP.lg}px 0 52px`, WebkitOverflowScrolling: "touch", opacity: hideUI, transition: "opacity .8s", pointerEvents: meditating ? "none" : "auto" }}>
+      <div style={{ position: "absolute", top: 96, left: 0, right: 0, zIndex: 20, overflowX: "auto", padding: `0 ${SP.lg}px 0 ${SP.lg}px`, WebkitOverflowScrolling: "touch", opacity: hideUI, transition: "opacity .8s", pointerEvents: meditating ? "none" : "auto" }}>
         <div style={{ display: "flex", gap: 6, whiteSpace: "nowrap" }}>
           <div onClick={() => { scenarioRef.current = null; setActiveScenarioState(null); }} style={{ cursor: "pointer", padding: "5px 11px", borderRadius: RAD.md, background: !activeScenario ? "rgba(190,130,90,.25)" : "rgba(30,20,25,.5)", border: `1px solid ${!activeScenario ? "rgba(200,150,110,.45)" : "rgba(190,130,90,.15)"}`, fontSize: 8, letterSpacing: 1.5, textTransform: "uppercase", color: !activeScenario ? `rgba(240,210,178,${OP.primary})` : `rgba(200,175,158,${OP.secondary})`, whiteSpace: "nowrap", flexShrink: 0, ...ss }}>{L("orb_neutral")}</div>
           {SCENARIOS.map((sc) => (
@@ -1070,7 +1060,7 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
         const profDesc = orbSoundDesc(activeScenario?.id || "neutral", prof.desc, lang);
         return (
           <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 25, transition: "all .35s cubic-bezier(.32,.72,0,1)" }}>
-            <div style={{ maxWidth: 640, margin: "0 auto", background: "linear-gradient(180deg, rgba(6,2,8,0) 0%, rgba(6,2,8,.94) 16%, rgba(6,2,8,.98) 100%)", backdropFilter: "blur(20px)", borderTop: `1px solid ${acHex}22`, padding: `0 ${SP.lg}px ${panelExpanded ? SP.page : 10}px 52px`, position: "relative", maxHeight: panelExpanded ? "52%" : "auto", overflowY: panelExpanded ? "auto" : "hidden" }}>
+            <div style={{ maxWidth: 640, margin: "0 auto", background: "linear-gradient(180deg, rgba(6,2,8,0) 0%, rgba(6,2,8,.94) 16%, rgba(6,2,8,.98) 100%)", backdropFilter: "blur(20px)", borderTop: `1px solid ${acHex}22`, padding: `0 ${SP.lg}px ${panelExpanded ? SP.page : 10}px ${SP.lg}px`, position: "relative", maxHeight: panelExpanded ? "55%" : "auto", overflowY: panelExpanded ? "auto" : "hidden" }}>
               {/* Drag handle — toggles expanded */}
               <div onClick={() => setPanelExpanded(!panelExpanded)} style={{ display: "flex", justifyContent: "center", padding: "10px 0 6px", cursor: "pointer", position: panelExpanded ? "sticky" : "relative", top: 0, background: panelExpanded ? "linear-gradient(180deg, rgba(6,2,8,.95) 70%, transparent)" : "transparent", zIndex: 2 }}>
                 <i style={{ display: "block", width: 28, height: 3, borderRadius: 2, background: `${acHex}55`, transition: EASE.fast }} />
@@ -1079,14 +1069,14 @@ export default function Orbit({ setScreen, addGems, doMarkPractice, initScenario
               <div onClick={() => setPanelExpanded(!panelExpanded)} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 10, marginBottom: panelExpanded ? SP.sm : 0 }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: "rgba(190,130,90,.45)", marginBottom: 3, ...ss }}>{panelSub}</div>
-                  <div style={{ fontSize: TYPE.base, fontStyle: "italic", fontWeight: "normal", color: acHex, lineHeight: 1.25, ...ss }}>{panelTitle}</div>
+                  <div style={{ fontSize: TYPE.lg, fontStyle: "italic", fontWeight: "normal", color: acHex, lineHeight: 1.25, ...ss }}>{panelTitle}</div>
                 </div>
                 <div style={{ fontSize: 11, color: `${acHex}88`, transform: panelExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform .3s" }}>▾</div>
               </div>
               {/* Expanded content */}
               {panelExpanded && (
                 <div style={{ animation: "fadeUp .25s ease both" }}>
-                  <div style={{ fontSize: 11, lineHeight: 1.75, color: "rgba(200,175,158,.78)", wordWrap: "break-word", marginBottom: SP.md, marginTop: SP.xs, ...ss }}>{panelDesc}</div>
+                  <div style={{ fontSize: 15, lineHeight: 1.7, color: "rgba(200,175,158,.78)", wordWrap: "break-word", marginBottom: SP.md, marginTop: SP.xs, ...ss }}>{panelDesc}</div>
                   <div style={{ padding: `10px ${SP.md + 2}px`, background: `${acHex}0c`, border: `1px solid ${acHex}22`, borderRadius: RAD.sm + 2 }}>
                     <div style={{ fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: acHex, marginBottom: 5, ...ss }}>♫ {profLabel}</div>
                     <div style={{ fontSize: TYPE.xs, lineHeight: 1.7, color: "rgba(200,175,158,.6)", ...ss }}>{profDesc}</div>

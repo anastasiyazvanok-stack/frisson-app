@@ -110,6 +110,25 @@ export default function Library({ setScreen, theme, initSec, initMed, clearMed, 
           ))}
         </div>
       </div>
+
+      {/* ─── About the Author ─── */}
+      <div className="glass-card" style={{ margin: `0 ${SP.xl}px ${SP.xl}px`, padding: SP.page, background: `rgba(${T.ar},.05)`, border: `1px solid rgba(${T.ar},.12)`, borderRadius: RAD.lg, position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: `radial-gradient(circle, ${T.accent}15 0%, transparent 70%)`, pointerEvents: "none" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 13, marginBottom: SP.lg }}>
+          <div style={{ width: 46, height: 46, borderRadius: "50%", background: "rgba(125,23,54,.35)", border: `1.5px solid ${T.accent}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🎓</div>
+          <div>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 15, color: tx("var(--txt)", 0.92), marginBottom: 2 }}>{L("author_name")}</div>
+            <div style={{ ...label(TYPE.xs), letterSpacing: ".12em", color: T.accent }}>{L("author_role")}</div>
+          </div>
+        </div>
+        <div style={{ ...body(TYPE.base), lineHeight: LH.loose, color: tx("var(--txt)", 0.72), marginBottom: SP.md }}>{L("author_bio")}</div>
+        <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+          {[L("author_tag1"), L("author_tag2"), L("author_tag3")].map((tag) => (
+            <div key={tag} style={{ padding: `4px ${SP.md}px`, borderRadius: RAD.md, background: `rgba(${T.ar},.06)`, border: `1px solid rgba(${T.ar},.1)`, ...label(TYPE.xs), color: tx("var(--txt)", 0.55) }}>{tag}</div>
+          ))}
+        </div>
+      </div>
+
       <div style={{ padding: `0 ${SP.xl}px`, position: "relative", zIndex: 1 }}>
         {vis.map((sec) => (
           <div key={sec.id} style={{ marginBottom: SP.xl + 2 }}>
