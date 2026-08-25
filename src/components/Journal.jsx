@@ -4,7 +4,7 @@ import {
   FONT_SERIF, FONT_SANS,
   tx, label, body, heading,
 } from "../utils/design";
-import { logDiary } from "../data/psycap";
+import { logDiary, detectDiaryAxes } from "../data/psycap";
 import { t as tr, MONTHS_SHORT } from "../utils/i18n";
 import Orb from "./Orb";
 
@@ -60,7 +60,7 @@ const TAB_EMPTY = {
   },
 };
 
-export default function Journal({ theme, addGems, THEMES, lang = "ru" }) {
+export default function Journal({ theme, addGems, THEMES, lang = "ru", doMarkPractice }) {
   const T = THEMES[theme] || THEMES.full;
   const L = (k) => tr(lang, k);
   const MOODS = [["🌑", L("jr_mood_empty")], ["🌒", L("jr_mood_quiet")], ["🌕", L("jr_mood_full")], ["🔥", L("jr_mood_power")]];
@@ -90,7 +90,8 @@ export default function Journal({ theme, addGems, THEMES, lang = "ru" }) {
     setData((d) => ({ ...d, [section]: [entry, ...d[section]] }));
     setText("");
     award(1);
-    logDiary(text, []);
+    logDiary(text, detectDiaryAxes(text));
+    if (doMarkPractice) doMarkPractice(5);
     pop();
   };
 
@@ -101,7 +102,8 @@ export default function Journal({ theme, addGems, THEMES, lang = "ru" }) {
     setText("");
     setMood(null);
     award(1);
-    logDiary(text, []);
+    logDiary(text || "рефлексия", detectDiaryAxes(text));
+    if (doMarkPractice) doMarkPractice(5);
     pop();
   };
 
@@ -111,7 +113,8 @@ export default function Journal({ theme, addGems, THEMES, lang = "ru" }) {
     setData((d) => ({ ...d, goals: [entry, ...d.goals] }));
     setGoalText("");
     award(1);
-    logDiary(goalText, []);
+    logDiary(goalText, detectDiaryAxes(goalText));
+    if (doMarkPractice) doMarkPractice(5);
     pop();
   };
 
@@ -122,7 +125,12 @@ export default function Journal({ theme, addGems, THEMES, lang = "ru" }) {
   const toggleGoal = (id) => {
     setData((d) => {
       const goal = d.goals.find((g) => g.id === id);
-      if (goal && !goal.done) award(2);
+      if (goal && !goal.done) {
+        award(2);
+        logDiary(goal.text, detectDiaryAxes(goal.text));
+        if (doMarkPractice) doMarkPractice(10);
+        pop();
+      }
       return { ...d, goals: d.goals.map((g) => g.id === id ? { ...g, done: !g.done } : g) };
     });
   };

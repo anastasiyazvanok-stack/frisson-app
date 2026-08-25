@@ -5,67 +5,78 @@ const KEY = "frisson_psycap_v2";
 const MAX = 100;
 const MIN = 0;
 const BASELINE = 20;
+const MAX_DAILY_GAIN = 1.5; // max points per axis per day — keeps growth very slow
 
 // ── 6 AXES ──────────────────────────────────────────────────────────────
 const AXES_RU = [
-  { id: "safety",     label: "Внутренняя безопасность", short: "Безопасность", hex: "#7EC8DC", desc: "Ощущение, что с вами всё в порядке и мир не опасен. База для всего остального." },
-  { id: "worth",      label: "Самоценность",             short: "Самоценность", hex: "#E64DA8", desc: "Знание, что вы достойны хорошего просто потому, что вы есть." },
-  { id: "receive",    label: "Способность получать",     short: "Получение",    hex: "#FFAF32", desc: "Умение принимать любовь, деньги, заботу и внимание без вины." },
-  { id: "feminine",   label: "Женская энергия",          short: "Женственность",hex: "#D080B0", desc: "Контакт с мягкостью, чувственностью и магнетизмом вашей природы." },
-  { id: "trust",      label: "Доверие к миру",           short: "Доверие",      hex: "#9F7BD8", desc: "Способность отпускать контроль и доверять жизни." },
-  { id: "authentic",  label: "Аутентичность",            short: "Подлинность",  hex: "#F08838", desc: "Жить из себя настоящей, без масок и чужих ожиданий." },
+  { id: "safety",     label: "Внутренняя безопасность", short: "Безопасность", hex: "#7EC8DC", desc: "Насколько вы чувствуете себя в безопасности внутри — без постоянной тревоги, напряжения и ожидания плохого." },
+  { id: "worth",      label: "Самоценность",             short: "Самоценность", hex: "#E64DA8", desc: "Ощущение, что вы достойны хорошего просто потому, что вы есть — без доказательств и условий." },
+  { id: "receive",    label: "Способность получать",     short: "Получение",    hex: "#FFAF32", desc: "Умение принимать любовь, деньги, помощь и внимание — без стыда, вины и ощущения «мне нельзя»." },
+  { id: "feminine",   label: "Женская энергия",          short: "Женственность",hex: "#D080B0", desc: "Контакт с вашей мягкостью, чувственностью и живым состоянием — когда вы не функция, а живая женщина." },
+  { id: "trust",      label: "Доверие к миру",           short: "Доверие",      hex: "#9F7BD8", desc: "Способность отпустить контроль и позволить жизни идти — без постоянного ожидания подвоха." },
+  { id: "authentic",  label: "Подлинность",              short: "Подлинность",  hex: "#F08838", desc: "Жить из себя настоящей — без масок, ролей и подстройки под чужие ожидания." },
 ];
 const AXES_EN = [
-  { id: "safety",     label: "Inner safety",       short: "Safety",       hex: "#7EC8DC", desc: "The feeling that you are okay and the world isn't dangerous. The foundation for everything else." },
-  { id: "worth",      label: "Self-worth",         short: "Self-worth",   hex: "#E64DA8", desc: "Knowing you deserve good things simply because you exist." },
-  { id: "receive",    label: "Ability to receive", short: "Receiving",    hex: "#FFAF32", desc: "The skill of accepting love, money, care and attention without guilt." },
-  { id: "feminine",   label: "Feminine energy",    short: "Femininity",   hex: "#D080B0", desc: "Contact with the softness, sensuality and magnetism of your nature." },
-  { id: "trust",      label: "Trust in the world", short: "Trust",        hex: "#9F7BD8", desc: "The ability to release control and trust life." },
-  { id: "authentic",  label: "Authenticity",       short: "Authenticity", hex: "#F08838", desc: "Living from your true self, without masks or others' expectations." },
+  { id: "safety",     label: "Inner safety",       short: "Safety",       hex: "#7EC8DC", desc: "How safe you feel inside — without constant anxiety, tension, or waiting for something bad to happen." },
+  { id: "worth",      label: "Self-worth",         short: "Self-worth",   hex: "#E64DA8", desc: "The feeling that you deserve good things simply because you exist — no proof required." },
+  { id: "receive",    label: "Ability to receive", short: "Receiving",    hex: "#FFAF32", desc: "The ability to accept love, money, help and attention — without shame, guilt, or feeling like you shouldn't." },
+  { id: "feminine",   label: "Feminine energy",    short: "Femininity",   hex: "#D080B0", desc: "Contact with your softness, sensuality and aliveness — when you are a living woman, not just a function." },
+  { id: "trust",      label: "Trust in the world", short: "Trust",        hex: "#9F7BD8", desc: "The ability to release control and let life flow — without constantly waiting for a catch." },
+  { id: "authentic",  label: "Authenticity",       short: "Authenticity", hex: "#F08838", desc: "Living from your true self — without masks, roles, or adapting to others' expectations." },
 ];
 export const AXES = AXES_RU;
 export function getAxes(lang = "ru") { return lang === "en" ? AXES_EN : AXES_RU; }
 
 // ── CONTENT TAGGING ─────────────────────────────────────────────────────
-// Each content item maps to 1-2 axes
+// Each meditation maps to exactly 2 axes based on its psychological mechanism
 export const MED_TAGS = {
   // Resource section
-  "Возвращение к наполненности":     ["receive", "feminine"],
-  "Восполниться энергией":           ["feminine", "worth"],
-  "Женское внутреннее расслабление": ["feminine", "safety"],
-  "Я автор своей жизни":             ["authentic", "worth"],
+  "Возвращение к наполненности":        ["worth", "receive"],     // Наполниться = знать что достойна + принять
+  "Восполниться энергией":              ["safety", "feminine"],   // Истощение = угроза безопасности; энергия = женская природа
+  "Женское внутреннее расслабление":    ["safety", "feminine"],   // Снять броню = безопасность; мягкость = женское
+  "Я управляю своей жизнью":                ["authentic", "worth"],   // Взять управление = жить из себя + знать цену
   // Feminine section
-  "Женская энергия":                 ["feminine", "authentic"],
-  "Возвращение к себе женственной":  ["feminine", "authentic"],
-  "Состояние женской притягательности": ["feminine", "worth"],
-  "Женское счастье — это норма":     ["feminine", "trust"],
+  "Женская энергия":                    ["feminine", "authentic"], // Прямая работа с женской природой
+  "Возвращение к себе женственной":     ["feminine", "authentic"], // Женская индивидуальность + возврат к себе
+  "Состояние женской притягательности": ["feminine", "worth"],    // Притяжение = из женского + вкус к себе
   // Receiving section
-  "Где я перекрыла себе получение":  ["receive", "worth"],
-  "Получение благ от мира":          ["receive", "trust"],
-  "Доверие к миру":                  ["trust", "safety"],
-  "Деньги и безопасность":           ["safety", "receive"],
+  "Где я перекрыла себе получение":     ["receive", "worth"],     // Блоки получения + ощущение недостойности
+  "Получение благ от мира":             ["receive", "trust"],     // Принять = открыться + доверять миру
+  "Доверие к миру":                     ["trust", "safety"],      // Доверие + базовая безопасность
+  "Деньги и безопасность":              ["safety", "receive"],    // Деньги как зона безопасности + разрешение получать
   // New level section
-  "Благодарность и новый уровень":   ["trust", "authentic"],
-  "Новый уровень":                   ["authentic", "worth"],
-  "Разговор с собой из будущего":    ["authentic", "worth"],
-  "Вера — мост между реальностями":  ["trust", "safety"],
+  "Благодарность и новый уровень":      ["trust", "authentic"],   // Отпустить = доверие + честное завершение
+  "Новый уровень":                      ["worth", "receive"],     // Я достойна большего + способность это выдержать
+  "Разговор с собой из будущего":       ["authentic", "worth"],   // Связь с собой настоящей + вера в свою ценность
+  "Вера — мост между реальностями":     ["trust", "safety"],      // Довериться переходу + не предать себя
   // Self section
-  "Право быть настоящей":            ["authentic", "trust"],
-  // Techniques (future content)
-  "Техника против тревоги":          ["trust", "safety"],
-  "Техника против ревности":         ["worth", "safety"],
-  "Залатываем дефициты":             ["receive", "worth"],
-  "Контакт с женской частью":        ["feminine", "worth"],
+  "Право быть настоящей":               ["authentic", "trust"],   // Быть собой + доверие что это безопасно
+  "Мой ритм, мой формат, моя жизнь":    ["authentic", "safety"],  // Свой ритм = подлинность + тревога уходит = безопасность
+  // Feminine section addition
+  "Восполнение женской ресурсности":    ["feminine", "receive"],  // Женский ресурс = женское + разрешить себе наполняться
 };
 
 // Diary entry tags → axes (user can tag entries)
 export const DIARY_TAGS = {
-  base:        ["authentic"],              // any entry → authenticity
+  base:        ["authentic", "worth", "safety"], // any entry → 3 core axes
   желания:     ["feminine", "authentic"],
   тело:        ["feminine", "safety"],
   отношения:   ["worth", "trust"],
   деньги:      ["receive", "worth"],
 };
+
+// Auto-detect axes from diary text (keyword scan)
+export function detectDiaryAxes(text) {
+  const t = text.toLowerCase();
+  const axes = new Set(DIARY_TAGS.base);
+  if (/женств|красот|тело|чувств|энерги|мягк|нежн/.test(t))             { axes.add("feminine"); }
+  if (/доверя|отпуст|контрол|страх|тревог|боюсь|верю миру/.test(t))     { axes.add("trust"); }
+  if (/получ|приним|изобил|денег|деньги|подарок|заслуж/.test(t))        { axes.add("receive"); }
+  if (/ценн|достойн|люблю себ|уважаю|я важн|я значим/.test(t))          { axes.add("worth"); }
+  if (/безопасн|спокойств|расслаб|защищ|тревог/.test(t))                { axes.add("safety"); }
+  if (/настоящ|подлинн|маска|честн|я сама|своё|своим/.test(t))          { axes.add("authentic"); }
+  return [...axes];
+}
 
 // Orbit layers → axes
 export const LAYER_AXES = {
@@ -77,17 +88,31 @@ export const LAYER_AXES = {
   6: "receive",   // Поведение
 };
 
+// Orbit scenarios → axes (scenario gives 2 axes when active, overrides layer mapping)
+export const SCENARIO_AXES = {
+  anxiety:   ["safety", "trust"],      // Тревога → безопасность + доверие
+  love:      ["worth", "receive"],     // Любовь · Наполненность → самоценность + получение
+  power:     ["authentic", "worth"],   // Сила → подлинность + самоценность
+  conflict:  ["authentic", "trust"],   // Внутренний конфликт → подлинность + доверие
+  fear:      ["safety", "trust"],      // Страх → безопасность + доверие
+  abundance: ["receive", "trust"],     // Изобилие → получение + доверие
+  feminine:  ["feminine", "authentic"],// Женственность → женская энергия + подлинность
+  capital:   ["worth", "authentic"],   // Психологический капитал → самоценность + подлинность
+};
+
 // ── STATE ───────────────────────────────────────────────────────────────
 function defaults() {
   const axes = {};
   AXES.forEach((a) => (axes[a.id] = BASELINE));
   return {
     axes,
-    events: [],      // { ts, type, name, axes: [...], points, meta }
+    events: [],
     lastActivity: null,
     lastTestScore: null,
-    orbitDaily: {},  // { "2026-04-11": { layerId: true } }
+    orbitDaily: {},
     lastDecay: Date.now(),
+    dailyAxisGain: {},   // { axisId: gainToday } — resets each day
+    dailyAxisGainDate: null,
   };
 }
 
@@ -107,31 +132,42 @@ function today() { return new Date().toISOString().slice(0, 10); }
 function applyDecay(d) {
   const now = Date.now();
   const days = Math.floor((now - (d.lastDecay || now)) / 86400000);
-  if (days >= 3) {
-    const decays = Math.floor(days / 3);
-    const floor = d.lastTestScore !== null ? d.lastTestScore : BASELINE;
+  if (days >= 7) {
+    const periods = Math.floor(days / 7);
     AXES.forEach((a) => {
-      d.axes[a.id] = Math.max(floor, d.axes[a.id] - decays);
+      d.axes[a.id] = Math.max(BASELINE, d.axes[a.id] - periods * 0.5);
     });
     d.lastDecay = now;
   }
 }
 
+// Diminishing returns: progress slows significantly as axis approaches 100
+function calcGain(current, basePoints) {
+  const headroom = MAX - current;
+  if (headroom <= 0) return 0;
+  return basePoints * Math.sqrt(headroom / MAX);
+}
+
 // ── CORE: add event and update axes ─────────────────────────────────────
-function addEvent(type, name, axes, points, meta = {}) {
+function addEvent(type, name, axes, basePoints, meta = {}) {
   const d = load();
   applyDecay(d);
+  const t = today();
+  // Reset daily gain tracker if it's a new day
+  if (d.dailyAxisGainDate !== t) {
+    d.dailyAxisGain = {};
+    d.dailyAxisGainDate = t;
+  }
   axes.forEach((axId) => {
-    d.axes[axId] = Math.min(MAX, d.axes[axId] + points);
+    const alreadyGained = d.dailyAxisGain[axId] || 0;
+    const remaining = MAX_DAILY_GAIN - alreadyGained;
+    if (remaining <= 0) return; // daily cap hit for this axis
+    const rawGain = calcGain(d.axes[axId], basePoints);
+    const gain = Math.min(rawGain, remaining);
+    d.axes[axId] = Math.min(MAX, d.axes[axId] + gain);
+    d.dailyAxisGain[axId] = alreadyGained + gain;
   });
-  d.events.unshift({
-    ts: Date.now(),
-    type,
-    name,
-    axes,
-    points,
-    meta,
-  });
+  d.events.unshift({ ts: Date.now(), type, name, axes, points: basePoints, meta });
   if (d.events.length > 500) d.events = d.events.slice(0, 500);
   d.lastActivity = Date.now();
   save(d);
@@ -144,7 +180,7 @@ function addEvent(type, name, axes, points, meta = {}) {
 export function logMeditation(title, completion = "full") {
   const axes = MED_TAGS[title];
   if (!axes) return;
-  const points = completion === "full" ? 5 : 2;
+  const points = completion === "full" ? 3 : 1.2;
   addEvent("meditation", title, axes, points, { completion });
   addStreakBonus();
 }
@@ -156,42 +192,42 @@ export function logDiary(text, tags = []) {
     const ax = DIARY_TAGS[t];
     if (ax) ax.forEach((id) => axSet.add(id));
   });
-  addEvent("diary", text.slice(0, 40), [...axSet], 4, { tags });
+  addEvent("diary", text.slice(0, 40), [...axSet], 1.5, { tags });
   addStreakBonus();
 }
 
-// Orbit session (>1 min) — capped 1x per layer per day
-// scenarioName: optional, e.g. "Тревога" or "Любовь · Наполненность"
-export function logOrbitSession(layerId, layerName, scenarioName) {
+// Orbit session (>1 min) — capped 1x per layer+scenario combo per day
+export function logOrbitSession(layerId, layerName, scenarioName, scenarioId) {
   const d = load();
   const t = today();
+  const cacheKey = scenarioId ? `${layerId}_${scenarioId}` : String(layerId);
   if (!d.orbitDaily[t]) d.orbitDaily[t] = {};
-  if (d.orbitDaily[t][layerId]) return; // already counted today
-  d.orbitDaily[t][layerId] = true;
+  if (d.orbitDaily[t][cacheKey]) return; // already counted today
+  d.orbitDaily[t][cacheKey] = true;
   save(d);
-  const axId = LAYER_AXES[layerId];
-  if (!axId) return;
-  // Display name: "Орбита · {scenario}" if scenario chosen, else "Орбита · {layer}"
+  // If a scenario is active, map to its 2 axes at 3 pts each; otherwise fall back to layer's 1 axis at 2 pts
   const displayName = scenarioName ? `Орбита · ${scenarioName}` : `Орбита · ${layerName}`;
-  addEvent("orbit", displayName, [axId], 2, { layerId, scenarioName, layerName });
+  if (scenarioId && SCENARIO_AXES[scenarioId]) {
+    addEvent("orbit", displayName, SCENARIO_AXES[scenarioId], 2, { layerId, scenarioName, scenarioId, layerName });
+  } else {
+    const axId = LAYER_AXES[layerId];
+    if (!axId) return;
+    addEvent("orbit", displayName, [axId], 1, { layerId, scenarioName, layerName });
+  }
   addStreakBonus();
 }
 
-// Energy test — recalibrates baseline
+// Energy test — records score for history only, does NOT affect psych capital axes
+// Axes only grow through actual practices (meditations, orbit, diary)
 export function logEnergyTest(score) {
   const d = load();
   applyDecay(d);
   d.lastTestScore = score;
-  // Recalibrate: pull each axis toward test score by 40%
-  AXES.forEach((a) => {
-    const current = d.axes[a.id];
-    d.axes[a.id] = Math.round(current * 0.6 + score * 0.4);
-  });
   d.events.unshift({
     ts: Date.now(),
     type: "test",
     name: `Тест энергии: ${score}`,
-    axes: AXES.map((a) => a.id),
+    axes: [],
     points: 0,
     meta: { score },
   });
@@ -223,13 +259,14 @@ export function logWeeklyCheckin(values) {
   save(d);
 }
 
-// Daily streak bonus — +1 to safety once per day
+// Daily streak bonus — tiny safety nudge once per day for consistent practice
 function addStreakBonus() {
   const d = load();
   const t = today();
   if (d.lastStreakDay === t) return;
   d.lastStreakDay = t;
-  d.axes.safety = Math.min(MAX, d.axes.safety + 1);
+  const gain = calcGain(d.axes.safety, 0.3);
+  d.axes.safety = Math.min(MAX, d.axes.safety + gain);
   save(d);
 }
 
