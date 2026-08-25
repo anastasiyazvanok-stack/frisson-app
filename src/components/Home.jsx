@@ -240,17 +240,10 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
                 <div style={{ ...label(TYPE.xs), color: lc, marginTop: 2 }}>{r.s}</div>
               </div>
               <div
-                onClick={(e) => { e.stopPropagation(); if (hasAudio) playRec(r, lc); else setScreen("library"); }}
-                style={{ width: 32, height: 32, borderRadius: RAD.full, background: isActive && miniPlay ? `${lc}35` : `${lc}14`, border: `1px solid ${lc}55`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}
+                onClick={(e) => { e.stopPropagation(); if (goToMed) goToMed(r.t); else setScreen("library"); }}
+                style={{ width: 32, height: 32, borderRadius: RAD.full, background: `${lc}14`, border: `1px solid ${lc}55`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}
               >
-                {isActive && miniPlay ? (
-                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                    <rect x="1.5" y="1" width="3" height="9" rx="1" fill={lc}/>
-                    <rect x="6.5" y="1" width="3" height="9" rx="1" fill={lc}/>
-                  </svg>
-                ) : (
-                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 1.5L9.5 5.5L2 9.5V1.5Z" fill={lc}/></svg>
-                )}
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 1.5L9.5 5.5L2 9.5V1.5Z" fill={lc}/></svg>
               </div>
             </div>
           );
