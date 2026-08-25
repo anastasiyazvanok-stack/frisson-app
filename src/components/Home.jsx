@@ -1,14 +1,14 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { getEnergyLevel, themeLabel } from "../data/themes";
 import { getSections, getRecommendations, getMoodMessages } from "../data/content";
 import { getMoon, useGreeting } from "../utils/helpers";
 import { t as tr } from "../utils/i18n";
 import { TYPE, SP, RAD, OP, LS, EASE, LH, FONT_SERIF, FONT_SANS, tx, label, body, heading, card as cardStyle, section } from "../utils/design";
+import { AUDIO_URLS } from "../data/audioUrls";
 import Orb from "./Orb";
-import Lock from "./Lock";
 import { VERSION } from "../App";
 
-export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibSec, THEMES, activity, userName, doMarkPractice, lang = "ru" }) {
+export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibSec, THEMES, activity, userName, doMarkPractice, lang = "ru", goToMed }) {
   const T = THEMES[theme] || THEMES.full;
   const L = (k, ...a) => tr(lang, k, ...a);
   const moon = getMoon(lang);
@@ -21,6 +21,51 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
   const [msg, setMsg] = useState(() => msgList[Math.floor(Math.random() * msgList.length)]);
   const [showInfo, setShowInfo] = useState(false);
   const recsRef = useRef(null);
+
+  // ─── Mini player ─────────────────────────────────────────────────────────
+  const miniRef = useRef(null);
+  const [miniDet, setMiniDet] = useState(null); // { title, color }
+  const [miniPlay, setMiniPlay] = useState(false);
+  const [miniProg, setMiniProg] = useState(0);
+  const [miniTime, setMiniTime] = useState(0);
+  const [miniDur, setMiniDur] = useState(0);
+
+  useEffect(() => {
+    const a = miniRef.current;
+    if (!a) return;
+    const onTime = () => {
+      setMiniTime(a.currentTime);
+      setMiniProg(a.duration ? (a.currentTime / a.duration) * 100 : 0);
+    };
+    const onLoaded = () => setMiniDur(a.duration);
+    const onEnded = () => { setMiniPlay(false); setMiniProg(100); };
+    a.addEventListener("timeupdate", onTime);
+    a.addEventListener("loadedmetadata", onLoaded);
+    a.addEventListener("ended", onEnded);
+    return () => { a.removeEventListener("timeupdate", onTime); a.removeEventListener("loadedmetadata", onLoaded); a.removeEventListener("ended", onEnded); };
+  }, [miniDet]);
+
+  const playRec = useCallback((r, lc) => {
+    const url = AUDIO_URLS[r.t];
+    if (!url || !miniRef.current) return;
+    const a = miniRef.current;
+    if (miniDet?.title === r.t) {
+      if (miniPlay) { a.pause(); setMiniPlay(false); } else { a.play().catch(() => {}); setMiniPlay(true); }
+      return;
+    }
+    a.src = url; a.load();
+    setMiniDet({ title: r.t, color: lc });
+    setMiniProg(0); setMiniTime(0); setMiniDur(0);
+    a.play().catch(() => {});
+    setMiniPlay(true);
+  }, [miniDet, miniPlay]);
+
+  const miniClose = useCallback(() => {
+    miniRef.current?.pause();
+    setMiniDet(null); setMiniPlay(false); setMiniProg(0);
+  }, []);
+
+  const miniFmt = (s) => { if (!s || isNaN(s)) return "0:00"; return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`; };
   useEffect(() => {
     const list = getMoodMessages(lang)[theme] || getMoodMessages(lang).full;
     setMsg(list[Math.floor(Math.random() * list.length)]);
@@ -38,6 +83,33 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
 
   return (
     <div style={{ minHeight: "100%", background: T.bg, paddingBottom: 100, position: "relative", transition: EASE.slow }}>
+      <audio ref={miniRef} preload="none" />
+
+      {/* ─── Mini player ─── */}
+      {miniDet && (
+        <div style={{ position: "fixed", bottom: 80, left: 10, right: 10, zIndex: 120, borderRadius: RAD.lg, background: "rgba(6,2,14,.93)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: `1px solid ${miniDet.color}44`, boxShadow: `0 8px 32px rgba(0,0,0,.55), 0 0 20px ${miniDet.color}18`, overflow: "hidden" }}>
+          {/* Progress */}
+          <div style={{ height: 2, background: "rgba(255,255,255,.08)" }}
+            onClick={(e) => { const a = miniRef.current; if (!a?.duration) return; const r = e.currentTarget.getBoundingClientRect(); a.currentTime = ((e.clientX - r.left) / r.width) * a.duration; }}>
+            <div style={{ height: "100%", width: `${miniProg}%`, background: miniDet.color, transition: "width .5s linear" }} />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: SP.md, padding: `${SP.md}px ${SP.lg}px` }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: FONT_SERIF, fontSize: TYPE.base, color: tx("var(--txt)", 0.92), overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{miniDet.title}</div>
+              <div style={{ ...label(TYPE.xs - 1), color: tx("var(--txt)", OP.tertiary + 0.05), marginTop: 2 }}>{miniFmt(miniTime)} / {miniFmt(miniDur)}</div>
+            </div>
+            <div onClick={() => { const a = miniRef.current; if (!a) return; if (miniPlay) { a.pause(); setMiniPlay(false); } else { a.play().catch(() => {}); setMiniPlay(true); } }} style={{ width: 38, height: 38, borderRadius: RAD.full, background: `${miniDet.color}28`, border: `1px solid ${miniDet.color}55`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+              {miniPlay ? (
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="1.5" width="4" height="11" rx="1.5" fill={miniDet.color}/><rect x="8" y="1.5" width="4" height="11" rx="1.5" fill={miniDet.color}/></svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 2L12 7L3 12V2Z" fill={miniDet.color}/></svg>
+              )}
+            </div>
+            <div onClick={miniClose} style={{ width: 28, height: 28, borderRadius: RAD.full, background: "rgba(255,255,255,.06)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, fontSize: 14, color: tx("var(--txt)", 0.4) }}>×</div>
+          </div>
+        </div>
+      )}
+
       <Orb style={{ top: -80, right: -100 }} color={T.o1} opacity={0.16} w={320} h={320} />
       <Orb style={{ bottom: 280, left: -80 }} color={T.o2} opacity={0.2} w={260} h={260} delay={3} />
       <Orb style={{ top: "40%", left: "50%", transform: "translateX(-50%)" }} color={T.o1} opacity={0.06} w={400} h={400} delay={6} />
@@ -85,65 +157,8 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
         <div style={{ ...label(TYPE.xs), color: `rgba(${T.ar},.14)`, marginTop: SP.md, letterSpacing: ".25em" }}>Frisson v{VERSION}</div>
       </div>
 
-      {/* ─── Streak + Practice ─── */}
-      <div className="fu1" style={{ ...section(SP.lg), display: "flex", gap: 10 }}>
-        <div className="glass-card press-card" style={{
-          flex: 1, padding: `${SP.lg}px ${SP.lg}px`,
-          background: `rgba(${T.ar},.06)`, border: `1px solid rgba(${T.ar},.14)`,
-          borderRadius: RAD.lg, display: "flex", alignItems: "center", gap: SP.md,
-          position: "relative", overflow: "hidden",
-        }}>
-          <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: `radial-gradient(circle, rgba(${T.ar},.15), transparent 70%)`, filter: "blur(12px)", pointerEvents: "none" }} />
-          <div className={streak > 0 ? "fire-flicker" : ""} style={{ fontSize: 24, lineHeight: 1 }}>🔥</div>
-          <div>
-            <div style={{ fontFamily: FONT_SERIF, fontSize: 26, fontWeight: 300, color: T.text, lineHeight: 1 }}>{streak}</div>
-            <div style={{ ...label(TYPE.xs), color: tx("var(--txt)", OP.tertiary), marginTop: 2 }}>{streak === 1 ? L("day") : L("day_streak")}</div>
-          </div>
-        </div>
-        <div onClick={() => { if (!activity?.todayDone) doMarkPractice(0); }} className="glass-card press-card" style={{
-          flex: 1, padding: `${SP.lg}px ${SP.lg}px`,
-          background: activity?.todayDone ? `${T.accent}0c` : `rgba(${T.ar},.04)`,
-          border: `1px solid ${activity?.todayDone ? T.accent + "28" : `rgba(${T.ar},.1)`}`,
-          borderRadius: RAD.lg, display: "flex", alignItems: "center", gap: SP.md,
-          cursor: activity?.todayDone ? "default" : "pointer",
-          transition: "all .3s cubic-bezier(.34,1.56,.64,1)",
-          position: "relative", overflow: "hidden",
-        }}>
-          {activity?.todayDone && <div style={{ position: "absolute", top: -8, right: -8, width: 50, height: 50, borderRadius: "50%", background: `radial-gradient(circle, ${T.accent}22, transparent 70%)`, filter: "blur(10px)", pointerEvents: "none" }} />}
-          <div style={{ width: 32, height: 32, borderRadius: RAD.full, border: `1.5px solid ${activity?.todayDone ? T.accent : `rgba(${T.ar},.2)`}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, color: activity?.todayDone ? T.accent : tx("var(--txt)", OP.tertiary), transition: "all .3s ease", background: activity?.todayDone ? `${T.accent}14` : "transparent" }}>{activity?.todayDone ? "✦" : "○"}</div>
-          <div>
-            <div style={{ ...body(TYPE.sm), color: activity?.todayDone ? T.accent : T.text, lineHeight: LH.tight }}>{activity?.todayDone ? L("practice_done") : L("mark_practice")}</div>
-            <div style={{ ...label(TYPE.xs), color: tx("var(--txt)", OP.tertiary), marginTop: 2 }}>{L("today")}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* ─── Mood Picker ─── */}
-      <div className="fu2" style={{ ...section(SP.lg) }}>
-        <div style={{ ...label(TYPE.xs), color: tx("var(--txt)", OP.tertiary - 0.04), marginBottom: SP.md, textAlign: "center", letterSpacing: ".25em" }}>{L("how_are_you")}</div>
-        <div style={{ display: "flex", gap: 8 }}>
-          {Object.entries(THEMES).map(([k, m]) => {
-            const on = theme === k;
-            return (
-              <div key={k} onClick={() => { setTheme(k); setTimeout(() => recsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80); }} className="pc" style={{
-                flex: 1, padding: `${SP.md + 2}px ${SP.xs}px ${SP.md}px`, borderRadius: RAD.lg - 2, textAlign: "center", cursor: "pointer",
-                background: on ? `rgba(${m.ar},.14)` : `rgba(255,255,255,.02)`,
-                border: `1.5px solid ${on ? m.accent + "66" : "rgba(255,255,255,.06)"}`,
-                boxShadow: on ? `0 0 20px rgba(${m.ar},.25), inset 0 0 12px rgba(${m.ar},.08)` : "none",
-                transition: "all .3s cubic-bezier(.34,1.56,.64,1)",
-                position: "relative", overflow: "hidden",
-              }}>
-                {on && <div style={{ position: "absolute", top: -6, left: "50%", transform: "translateX(-50%)", width: 20, height: 2, borderRadius: 2, background: m.accent, boxShadow: `0 0 6px ${m.accent}` }} />}
-                <div style={{ fontSize: 24, marginBottom: SP.xs, transition: "transform .3s cubic-bezier(.34,1.56,.64,1)", transform: on ? "scale(1.15)" : "scale(1)", filter: on ? `drop-shadow(0 0 6px rgba(${m.ar},.5))` : "none" }}>{m.e}</div>
-                <div style={{ ...label(TYPE.xs), fontSize: 9, color: on ? m.accent : tx("var(--txt)", OP.tertiary), transition: "color .3s ease" }}>{themeLabel(k, lang)}</div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
       {/* ─── Energy Card ─── */}
-      <div className="fu2 press-card glass-card" onClick={() => setScreen("profile")} style={{
+      <div className="fu1 press-card glass-card" onClick={() => setScreen("profile")} style={{
         ...section(SP.lg), padding: `${SP.lg + 2}px ${SP.lg}px`,
         background: `rgba(${T.ar},.05)`, border: `1px solid rgba(${T.ar},.12)`,
         borderRadius: RAD.lg, display: "flex", alignItems: "center", gap: SP.lg, cursor: "pointer",
@@ -173,8 +188,77 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
         <div style={{ width: 28, height: 28, borderRadius: RAD.full, background: `rgba(${T.ar},.08)`, border: `1px solid rgba(${T.ar},.14)`, display: "flex", alignItems: "center", justifyContent: "center", ...body(TYPE.sm), color: T.accent, flexShrink: 0 }}>→</div>
       </div>
 
+      {/* ─── Mood Picker ─── */}
+      <div className="fu2" style={{ ...section(SP.lg) }}>
+        <div style={{ ...label(TYPE.xs), color: tx("var(--txt)", OP.tertiary - 0.04), marginBottom: SP.md, textAlign: "center", letterSpacing: ".25em" }}>{L("how_are_you")}</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {Object.entries(THEMES).map(([k, m]) => {
+            const on = theme === k;
+            return (
+              <div key={k} onClick={() => setTheme(k)} className="pc" style={{
+                flex: 1, padding: `${SP.md + 2}px ${SP.xs}px ${SP.md}px`, borderRadius: RAD.lg - 2, textAlign: "center", cursor: "pointer",
+                background: on ? `rgba(${m.ar},.14)` : `rgba(255,255,255,.02)`,
+                border: `1.5px solid ${on ? m.accent + "66" : "rgba(255,255,255,.06)"}`,
+                boxShadow: on ? `0 0 20px rgba(${m.ar},.25), inset 0 0 12px rgba(${m.ar},.08)` : "none",
+                transition: "all .3s cubic-bezier(.34,1.56,.64,1)",
+                position: "relative", overflow: "hidden",
+              }}>
+                {on && <div style={{ position: "absolute", top: -6, left: "50%", transform: "translateX(-50%)", width: 20, height: 2, borderRadius: 2, background: m.accent, boxShadow: `0 0 6px ${m.accent}` }} />}
+                <div style={{ fontSize: 24, marginBottom: SP.xs, transition: "transform .3s cubic-bezier(.34,1.56,.64,1)", transform: on ? "scale(1.15)" : "scale(1)", filter: on ? `drop-shadow(0 0 6px rgba(${m.ar},.5))` : "none" }}>{m.e}</div>
+                <div style={{ ...label(TYPE.xs), fontSize: 9, color: on ? m.accent : tx("var(--txt)", OP.tertiary), transition: "color .3s ease" }}>{themeLabel(k, lang)}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ─── Recommendations ─── */}
+      <div ref={recsRef} className="fu3" style={{ padding: `0 ${SP.page}px ${SP.xl}px`, position: "relative", zIndex: 1 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: SP.md }}>
+          <div style={{ ...label(TYPE.xs), color: tx("var(--txt)", OP.tertiary), letterSpacing: ".2em" }}>{L("for_you_now")}</div>
+          <span onClick={() => setScreen("library")} style={{ ...label(TYPE.xs), color: T.accent, cursor: "pointer" }}>{L("all")}</span>
+        </div>
+        {(RECOMMENDATIONS[theme] || RECOMMENDATIONS.full).map((r, ri) => {
+          const sec = SECTIONS.find((s) => s.id === r.sec);
+          const lc = r.free ? "rgba(160,130,50,.8)" : (sec?.color || T.accent);
+          const isActive = miniDet?.title === r.t;
+          const hasAudio = !!AUDIO_URLS[r.t];
+          return (
+            <div key={r.t} onClick={() => goToMed ? goToMed(r.t) : setScreen("library")} className="press-card glass-card" style={{
+              display: "flex", alignItems: "center", gap: SP.md,
+              padding: `${SP.md + 2}px ${SP.lg}px`,
+              background: isActive ? `${lc}10` : `rgba(${T.ar},.04)`,
+              border: `1px solid ${isActive ? lc + "44" : `rgba(${T.ar},.1)`}`,
+              borderRadius: RAD.lg - 4, marginBottom: 8,
+              cursor: "pointer", position: "relative", overflow: "hidden",
+              animationDelay: `${ri * 0.06}s`,
+            }}>
+              <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 2.5, background: `linear-gradient(to bottom, ${lc}, ${lc}33)`, borderRadius: "3px 0 0 3px" }} />
+              <div style={{ width: 36, height: 36, borderRadius: RAD.md, background: `${lc}12`, border: `1px solid ${lc}30`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, ...body(TYPE.lg), color: lc }}>◦</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ ...body(TYPE.base), color: tx("var(--txt)", OP.primary), overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.t}</div>
+                <div style={{ ...label(TYPE.xs), color: lc, marginTop: 2 }}>{r.s}</div>
+              </div>
+              <div
+                onClick={(e) => { e.stopPropagation(); if (hasAudio) playRec(r, lc); else setScreen("library"); }}
+                style={{ width: 32, height: 32, borderRadius: RAD.full, background: isActive && miniPlay ? `${lc}35` : `${lc}14`, border: `1px solid ${lc}55`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}
+              >
+                {isActive && miniPlay ? (
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                    <rect x="1.5" y="1" width="3" height="9" rx="1" fill={lc}/>
+                    <rect x="6.5" y="1" width="3" height="9" rx="1" fill={lc}/>
+                  </svg>
+                ) : (
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 1.5L9.5 5.5L2 9.5V1.5Z" fill={lc}/></svg>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       {/* ─── Section Cards ─── */}
-      <div className="fu3" style={{ padding: `0 ${SP.page}px ${SP.xl}px`, position: "relative", zIndex: 1 }}>
+      <div className="fu4" style={{ padding: `0 ${SP.page}px ${SP.xl}px`, position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: SP.md }}>
           <div style={{ ...label(TYPE.xs), color: tx("var(--txt)", OP.tertiary), letterSpacing: ".2em" }}>{L("states")}</div>
           <span onClick={() => setScreen("library")} style={{ ...label(TYPE.xs), color: T.accent, cursor: "pointer" }}>{L("all")}</span>
@@ -213,43 +297,6 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
           <div style={{ ...label(TYPE.xs), color: tx("var(--txt)", OP.tertiary), textTransform: "none", letterSpacing: LS.normal, lineHeight: LH.normal }}>{L("situation_hint")}</div>
         </div>
         <div style={{ width: 28, height: 28, borderRadius: RAD.full, background: `rgba(${T.ar},.08)`, border: `1px solid rgba(${T.ar},.14)`, display: "flex", alignItems: "center", justifyContent: "center", ...body(TYPE.sm), color: T.accent, flexShrink: 0 }}>→</div>
-      </div>
-
-      {/* ─── Recommendations ─── */}
-      <div ref={recsRef} className="fu4" style={{ padding: `0 ${SP.page}px ${SP.xl}px`, position: "relative", zIndex: 1 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: SP.md }}>
-          <div style={{ ...label(TYPE.xs), color: tx("var(--txt)", OP.tertiary), letterSpacing: ".2em" }}>{L("for_you_now")}</div>
-          <span onClick={() => setScreen("library")} style={{ ...label(TYPE.xs), color: T.accent, cursor: "pointer" }}>{L("all")}</span>
-        </div>
-        {(RECOMMENDATIONS[theme] || RECOMMENDATIONS.full).map((r, ri) => {
-          const sec = SECTIONS.find((s) => s.id === r.sec);
-          const lc = r.free ? "rgba(160,130,50,.8)" : (sec?.color || T.accent);
-          return (
-            <div key={r.t} onClick={() => setScreen("library")} className="press-card glass-card" style={{
-              display: "flex", alignItems: "center", gap: SP.md,
-              padding: `${SP.md + 2}px ${SP.lg}px`,
-              background: `rgba(${T.ar},.04)`, border: `1px solid rgba(${T.ar},.1)`,
-              borderRadius: RAD.lg - 4, marginBottom: 8,
-              cursor: "pointer", position: "relative", overflow: "hidden",
-              animationDelay: `${ri * 0.06}s`,
-            }}>
-              <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 2.5, background: `linear-gradient(to bottom, ${lc}, ${lc}33)`, borderRadius: "3px 0 0 3px" }} />
-              <div style={{
-                width: 36, height: 36, borderRadius: RAD.md,
-                background: `${lc}12`, border: `1px solid ${lc}30`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                flexShrink: 0, ...body(TYPE.lg), color: lc,
-              }}>◦</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ ...body(TYPE.base), color: tx("var(--txt)", OP.primary), overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.t}</div>
-                <div style={{ ...label(TYPE.xs), color: lc, marginTop: 2 }}>{r.s}</div>
-              </div>
-              {r.free ? (
-                <div style={{ width: 30, height: 30, borderRadius: RAD.full, background: `${lc}14`, border: `1px solid ${lc}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, color: lc, flexShrink: 0 }}>▶</div>
-              ) : <Lock />}
-            </div>
-          );
-        })}
       </div>
 
       {/* ─── Premium CTA ─── */}
