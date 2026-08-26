@@ -23,37 +23,85 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
   const ACHIEVEMENTS = getAchievements(lang);
 
   if (showT) return (
-    <div style={{ minHeight: "100%", background: T.bg, padding: `50px ${SP.xl}px 40px`, transition: EASE.slow }}>
-      <div onClick={() => setShowT(false)} style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer", marginBottom: SP.xl }}>
-        <span style={{ fontSize: TYPE.base, color: tx("var(--txt)", OP.tertiary) }}>←</span>
-        <span style={{ ...label(TYPE.sm), color: tx("var(--txt)", OP.tertiary) }}>{L("cancel")}</span>
-      </div>
-      <div style={{ height: 2, background: `rgba(255,255,255,${OP.bgSubtle})`, borderRadius: 2, overflow: "hidden", marginBottom: SP.xl }}>
-        <div style={{ height: "100%", background: T.accent, width: `${(tI / TEST_QUESTIONS.length) * 100}%`, transition: "width .5s ease", borderRadius: 2 }} />
-      </div>
-      <div style={{ ...label(TYPE.xs), letterSpacing: ".22em", color: tx("var(--txt)", OP.tertiary), textAlign: "center", marginBottom: SP.md }}>{L("question_of", tI + 1, TEST_QUESTIONS.length)}</div>
-      <div style={{ ...heading(TYPE.xl), color: tx("var(--txt)", OP.primary), textAlign: "center", marginBottom: SP.xxl, lineHeight: 1.55 }}>{TEST_QUESTIONS[tI].q}</div>
-      <div style={{ display: "flex", flexDirection: "column", gap: SP.sm, marginBottom: SP.xl }}>
-        {TEST_QUESTIONS[tI].o.map((opt, i) => (
-          <div key={i} className="press-card" onClick={() => { const n = [...tA]; n[tI] = i + 1; setTA(n); }} style={{ padding: `13px ${SP.lg + 1}px`, borderRadius: RAD.lg, display: "flex", alignItems: "center", gap: 13, cursor: "pointer", background: tA[tI] === i + 1 ? T.dim : `rgba(${T.ar},.05)`, border: `1px solid ${tA[tI] === i + 1 ? T.accent : `rgba(${T.ar},.12)`}`, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", transition: EASE.normal }}>
-            <div style={{ fontFamily: FONT_SERIF, fontSize: 20, color: T.accent, width: TYPE.xl, textAlign: "center", flexShrink: 0 }}>{i + 1}</div>
-            <div style={{ ...body(14.5), color: tx("var(--txt)", 0.85) }}>{opt}</div>
+    <div style={{ minHeight: "100%", background: T.bg, position: "relative", overflow: "hidden" }}>
+      <Orb style={{ top: -60, left: "50%", transform: "translateX(-50%)" }} color={T.o1} opacity={0.14} w={280} h={280} />
+      <div style={{ padding: `50px ${SP.xl}px 40px`, position: "relative", zIndex: 1 }}>
+        {/* Header row */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: SP.xl }}>
+          <div onClick={() => setShowT(false)} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+            <span style={{ fontSize: TYPE.base, color: tx("var(--txt)", OP.tertiary) }}>←</span>
+            <span style={{ ...label(TYPE.sm), color: tx("var(--txt)", OP.tertiary) }}>{L("cancel")}</span>
           </div>
-        ))}
+          <span style={{ ...label(TYPE.xs), letterSpacing: ".18em", color: tx("var(--txt)", OP.tertiary) }}>{tI + 1} / {TEST_QUESTIONS.length}</span>
+        </div>
+
+        {/* Progress dots */}
+        <div style={{ display: "flex", gap: 6, marginBottom: SP.xxl, justifyContent: "center" }}>
+          {TEST_QUESTIONS.map((_, di) => (
+            <div key={di} style={{ height: 3, flex: 1, borderRadius: 2, background: di <= tI ? T.accent : `rgba(255,255,255,.1)`, transition: "background .4s ease", boxShadow: di === tI ? `0 0 6px ${T.accent}88` : "none" }} />
+          ))}
+        </div>
+
+        {/* Question */}
+        <div style={{ fontFamily: FONT_SERIF, fontSize: 22, fontWeight: 300, color: tx("var(--txt)", OP.primary), textAlign: "center", marginBottom: SP.xxl, lineHeight: 1.5, minHeight: 80 }}>
+          {TEST_QUESTIONS[tI].q}
+        </div>
+
+        {/* Answer options */}
+        <div style={{ display: "flex", flexDirection: "column", gap: SP.sm, marginBottom: SP.xl }}>
+          {TEST_QUESTIONS[tI].o.map((opt, i) => {
+            const selected = tA[tI] === i + 1;
+            return (
+              <div key={i} className="press-card" onClick={() => { const n = [...tA]; n[tI] = i + 1; setTA(n); }} style={{
+                padding: `${SP.md + 2}px ${SP.lg}px`,
+                borderRadius: RAD.lg,
+                display: "flex", alignItems: "center", gap: SP.md,
+                cursor: "pointer",
+                background: selected ? `${T.accent}1A` : `rgba(${T.ar},.05)`,
+                border: `1.5px solid ${selected ? T.accent : `rgba(${T.ar},.12)`}`,
+                boxShadow: selected ? `0 0 16px ${T.accent}22, inset 0 1px 0 rgba(255,255,255,.06)` : "none",
+                transition: "all .2s ease",
+              }}>
+                {/* Radio indicator */}
+                <div style={{
+                  width: 20, height: 20, borderRadius: RAD.full, flexShrink: 0,
+                  border: `1.5px solid ${selected ? T.accent : `rgba(${T.ar},.3)`}`,
+                  background: selected ? T.accent : "transparent",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  transition: "all .2s ease",
+                }}>
+                  {selected && <div style={{ width: 7, height: 7, borderRadius: RAD.full, background: "#fff" }} />}
+                </div>
+                <div style={{ ...body(15), color: selected ? tx("var(--txt)", 0.95) : tx("var(--txt)", 0.78), lineHeight: 1.4, flex: 1, transition: "color .2s ease" }}>{opt}</div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Next button */}
+        <div onClick={() => {
+          if (!tA[tI]) return;
+          if (tI < TEST_QUESTIONS.length - 1) { setTI(tI + 1); }
+          else {
+            const raw = tA.reduce((s, v) => s + (v || 1), 0);
+            const sc = Math.round((raw / (TEST_QUESTIONS.length * 5)) * 100);
+            setEScore(sc);
+            logEnergyTest(sc);
+            const months = MONTHS_SHORT[lang] || MONTHS_SHORT.ru;
+            setEHist((h) => [...h, { score: sc, date: new Date().getDate() + " " + months[new Date().getMonth()] }].slice(-6));
+            setShowT(false);
+          }
+        }} style={{
+          width: "100%", padding: 15, borderRadius: RAD.lg + 4, textAlign: "center",
+          background: tA[tI] ? T.accent + "22" : `rgba(255,255,255,.02)`,
+          border: `1.5px solid ${tA[tI] ? T.accent + "88" : "rgba(255,255,255,.05)"}`,
+          boxShadow: tA[tI] ? `0 0 20px ${T.accent}22` : "none",
+          ...label(TYPE.sm), letterSpacing: ".2em",
+          color: tA[tI] ? tx("var(--txt)", 0.9) : tx("var(--txt)", OP.disabled),
+          cursor: tA[tI] ? "pointer" : "default",
+          transition: "all .25s ease",
+        }}>{tI === TEST_QUESTIONS.length - 1 ? L("see_result") : L("next_question")}</div>
       </div>
-      <div onClick={() => {
-        if (!tA[tI]) return;
-        if (tI < TEST_QUESTIONS.length - 1) { setTI(tI + 1); }
-        else {
-          const raw = tA.reduce((s, v) => s + (v || 1), 0);
-          const sc = Math.round((raw / (TEST_QUESTIONS.length * 5)) * 100);
-          setEScore(sc);
-          logEnergyTest(sc);
-          const months = MONTHS_SHORT[lang] || MONTHS_SHORT.ru;
-          setEHist((h) => [...h, { score: sc, date: new Date().getDate() + " " + months[new Date().getMonth()] }].slice(-6));
-          setShowT(false);
-        }
-      }} style={{ width: "100%", padding: 13, borderRadius: RAD.lg + 6, textAlign: "center", background: tA[tI] ? T.dim : `rgba(255,255,255,.02)`, border: `1px solid ${tA[tI] ? T.border : "rgba(255,255,255,.05)"}`, ...label(TYPE.sm), letterSpacing: ".22em", color: tA[tI] ? tx("var(--txt)", 0.8) : tx("var(--txt)", OP.disabled), cursor: tA[tI] ? "pointer" : "default" }}>{tI === TEST_QUESTIONS.length - 1 ? L("see_result") : L("next_question")}</div>
     </div>
   );
 
@@ -119,6 +167,9 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
         )}
       </div>
 
+      {/* Psychological Capital Tracker */}
+      <PsycapTracker T={T} setScreen={setScreen} goToScenario={goToScenario} lang={lang} />
+
       <div className="glass-card" style={{ ...section(18), padding: SP.page, background: `rgba(${T.ar},.05)`, border: `1px solid rgba(${T.ar},.12)`, borderRadius: RAD.lg, position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: -20, right: -20, width: 80, height: 80, borderRadius: "50%", background: `radial-gradient(circle, ${T.accent}11 0%, transparent 70%)`, pointerEvents: "none" }} />
         <div style={{ ...label(TYPE.xs), letterSpacing: ".22em", color: tx("var(--txt)", OP.tertiary), marginBottom: SP.xs }}>{L("energy_chart")}</div>
@@ -152,9 +203,6 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
         </div>
       </div>
 
-      {/* Psychological Capital Tracker */}
-      <PsycapTracker T={T} setScreen={setScreen} goToScenario={goToScenario} lang={lang} />
-
       {(() => {
         const totalMeds = activity?.totalMeds || 0;
         const totalMinutes = activity?.totalMinutes || 0;
@@ -162,7 +210,7 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
         const stats = [
           [`${totalMeds}`, L("stat_meds")],
           [`${totalMinutes}`, L("stat_minutes")],
-          [`🔥 ${activity?.streak || 0}`, L("stat_streak")],
+          [`${activity?.streak || 0}`, L("stat_streak")],
           [avgMin > 0 ? `${avgMin}` : "—", lang === "ru" ? "ср. минут" : "avg min"],
         ];
         return (
