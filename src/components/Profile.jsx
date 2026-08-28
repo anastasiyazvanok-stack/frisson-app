@@ -109,8 +109,13 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
   const pd = pLog.slice(-7);
 
   return (
-    <div style={{ minHeight: "100%", background: T.bg, paddingBottom: SP.page, position: "relative", transition: EASE.slow }}>
-      <Orb style={{ top: -50, left: "50%", transform: "translateX(-50%)" }} color={T.o1} opacity={0.15} w={260} h={260} />
+    <div style={{ minHeight: "100%", background: T.bg, paddingBottom: SP.page, position: "relative", transition: EASE.slow, overflowX: "hidden" }}>
+      {/* Ambient Orbs — spread across full page height for smooth atmosphere */}
+      <Orb style={{ top: -80, right: -80 }}                                          color={T.o1} opacity={0.22} w={300} h={300} />
+      <Orb style={{ top: -80, left: -80 }}                                           color={T.o2} opacity={0.12} w={240} h={240} delay={2} />
+      <Orb style={{ top: "28%", left: "50%", transform: "translateX(-50%)" }}        color={T.o1} opacity={0.07} w={380} h={380} delay={4} />
+      <Orb style={{ top: "55%", right: -100 }}                                       color={T.o2} opacity={0.1}  w={260} h={260} delay={6} />
+      <Orb style={{ bottom: 120, left: -60 }}                                        color={T.o1} opacity={0.09} w={220} h={220} delay={3} />
       <div style={{ padding: `50px ${SP.xl}px ${SP.xl - 2}px`, textAlign: "center", position: "relative", zIndex: 1 }}>
         <div style={{ ...label(TYPE.xs), letterSpacing: ".25em", color: T.accent, marginBottom: SP.sm }}>{L("inner_world")}</div>
         <div style={{ position: "relative", width: 80, height: 80, margin: `0 auto ${SP.md}px` }}>
