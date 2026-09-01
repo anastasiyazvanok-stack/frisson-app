@@ -28,6 +28,7 @@ export default function GlobalStyles() {
       @keyframes gemGlow{0%,100%{text-shadow:0 0 6px currentColor}50%{text-shadow:0 0 14px currentColor,0 0 28px currentColor}}
       @keyframes moonHalo{0%,100%{transform:scale(1);opacity:.3}50%{transform:scale(1.25);opacity:.5}}
       @keyframes pulseGlow{0%,100%{box-shadow:0 0 4px var(--glow-color,rgba(176,32,160,.25))}50%{box-shadow:0 0 12px var(--glow-color,rgba(176,32,160,.4))}}
+      @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
       @keyframes glowPulse{0%,100%{filter:drop-shadow(0 0 4px var(--glow-color,rgba(200,100,180,.3)))}50%{filter:drop-shadow(0 0 10px var(--glow-color,rgba(200,100,180,.5)))}}
       @keyframes gradientFlow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
       @keyframes fireFlicker{0%,100%{transform:scale(1);filter:brightness(1)}25%{transform:scale(1.12);filter:brightness(1.2)}50%{transform:scale(1.04);filter:brightness(1.08)}75%{transform:scale(1.14);filter:brightness(1.25)}}

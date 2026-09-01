@@ -10,34 +10,34 @@ const NIGHT = {
     nav: "rgba(100,70,160,.3)", text: "#e8daf8", tr: "232,218,248",
     gF: "#1a1040", gT: "#0c0620"
   },
-  // Тихо — Cherry Cloud: rich dark cherry + soft berry + warm fruit depth
+  // Тихо — Midnight Plum: deep berry + muted violet + soft mist
   quiet: {
-    e: "🌒", l: "Тихо", bg: "linear-gradient(165deg, #1a0610 0%, #2e0c1c 50%, #200818 100%)",
-    card: "rgba(138,28,60,.18)", border: "rgba(170,45,80,.28)",
-    accent: "#C44070", ar: "196,64,112",
-    dim: "rgba(150,35,70,.2)", o1: "rgba(140,24,56,.75)", o2: "rgba(200,80,120,.5)",
-    nav: "rgba(160,40,75,.3)", text: "#fce0ec", tr: "252,224,236",
-    gF: "#300e20", gT: "#1a0610"
+    e: "🌒", l: "Тихо", bg: "linear-gradient(165deg, #130418 0%, #220830 50%, #180620 100%)",
+    card: "rgba(120,36,100,.18)", border: "rgba(150,50,130,.28)",
+    accent: "#9B3878", ar: "155,56,120",
+    dim: "rgba(120,36,100,.2)", o1: "rgba(110,28,90,.75)", o2: "rgba(180,90,180,.5)",
+    nav: "rgba(130,40,110,.3)", text: "#f0d8f0", tr: "240,216,240",
+    gF: "#280A30", gT: "#130418"
   },
-  // Наполнена — Eau Naturelle: warm almond + golden cream + abundant earth
+  // Наполнена — Ember & Amethyst: dark orange heat + deep violet depth
   full: {
-    e: "🌕", l: "Наполнена", bg: "linear-gradient(165deg, #181008 0%, #2c1a0c 45%, #221408 100%)",
-    card: "rgba(196,152,104,.16)", border: "rgba(212,168,112,.26)",
-    accent: "#D4A868", ar: "212,168,104",
-    accent2: "#E8D0B0", ar2: "232,208,176",
-    dim: "rgba(196,152,104,.2)", o1: "rgba(180,120,60,.7)", o2: "rgba(232,208,176,.45)",
-    nav: "rgba(196,148,96,.3)", text: "#F4ECDC", tr: "244,236,220",
-    gF: "#322010", gT: "#181008"
+    e: "🌕", l: "Наполнена", bg: "linear-gradient(165deg, #160808 0%, #280E08 40%, #1A0A1E 100%)",
+    card: "rgba(200,90,30,.16)", border: "rgba(220,110,40,.26)",
+    accent: "#D4682A", ar: "212,104,42",
+    accent2: "#9060C8", ar2: "144,96,200",
+    dim: "rgba(200,90,30,.2)", o1: "rgba(200,80,30,.75)", o2: "rgba(120,70,200,.5)",
+    nav: "rgba(200,90,30,.3)", text: "#F5E8DC", tr: "245,232,220",
+    gF: "#2A1008", gT: "#160808"
   },
-  // В силе — Deep Cherry Fire: dark fruit intensity + crimson core + fierce warmth
+  // В силе — Crimson Fire: pure red heat + ember glow + fierce energy
   power: {
-    e: "🔥", l: "В силе", bg: "linear-gradient(165deg, #100410 0%, #280818 50%, #1c0410 100%)",
-    card: "rgba(154,24,72,.18)", border: "rgba(180,40,90,.28)",
-    accent: "#B83060", ar: "184,48,96",
-    accent2: "#E07898", ar2: "224,120,152",
-    dim: "rgba(160,30,72,.22)", o1: "rgba(154,24,72,.75)", o2: "rgba(224,120,152,.45)",
-    nav: "rgba(170,36,80,.32)", text: "#F8E0EC", tr: "248,224,236",
-    gF: "#2c0a1c", gT: "#100410"
+    e: "🔥", l: "В силе", bg: "linear-gradient(165deg, #1C0404 0%, #340808 50%, #200606 100%)",
+    card: "rgba(200,30,40,.18)", border: "rgba(220,50,55,.28)",
+    accent: "#CC2434", ar: "204,36,52",
+    accent2: "#F08060", ar2: "240,128,96",
+    dim: "rgba(200,30,40,.22)", o1: "rgba(200,24,36,.8)", o2: "rgba(240,128,96,.45)",
+    nav: "rgba(200,36,48,.32)", text: "#FFE4E0", tr: "255,228,224",
+    gF: "#380A08", gT: "#1C0404"
   },
 };
 

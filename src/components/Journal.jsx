@@ -70,6 +70,28 @@ export default function Journal({ theme, addGems, THEMES, lang = "ru", doMarkPra
   const [mood, setMood] = useState(null);
   const [goalText, setGoalText] = useState("");
   const [crystals, setCrystals] = useState([]);
+  const [aiReply, setAiReply] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
+
+  async function getAiReply(entryText) {
+    if (!entryText?.trim() || entryText.trim().length < 20) return;
+    setAiLoading(true);
+    try {
+      const res = await fetch("/api/ai-diary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: entryText, lang }),
+      });
+      if (res.ok) {
+        const { message, axes } = await res.json();
+        if (message) {
+          setAiReply({ message, axes });
+          setTimeout(() => setAiReply(null), 12000);
+        }
+      }
+    } catch {}
+    setAiLoading(false);
+  }
 
   useEffect(() => { save(data); }, [data]);
 
@@ -86,25 +108,29 @@ export default function Journal({ theme, addGems, THEMES, lang = "ru", doMarkPra
 
   const addEntry = (section) => {
     if (!text.trim()) return;
-    const entry = { id: Date.now(), text: text.trim(), ts: Date.now() };
+    const saved = text.trim();
+    const entry = { id: Date.now(), text: saved, ts: Date.now() };
     setData((d) => ({ ...d, [section]: [entry, ...d[section]] }));
     setText("");
     award(1);
-    logDiary(text, detectDiaryAxes(text));
+    logDiary(saved, detectDiaryAxes(saved));
     if (doMarkPractice) doMarkPractice(5);
     pop();
+    getAiReply(saved);
   };
 
   const addReflect = () => {
     if (!text.trim() && mood === null) return;
-    const entry = { id: Date.now(), text: text.trim(), ts: Date.now(), mood };
+    const saved = text.trim();
+    const entry = { id: Date.now(), text: saved, ts: Date.now(), mood };
     setData((d) => ({ ...d, reflect: [entry, ...d.reflect] }));
     setText("");
     setMood(null);
     award(1);
-    logDiary(text || "рефлексия", detectDiaryAxes(text));
+    logDiary(saved || "рефлексия", detectDiaryAxes(saved));
     if (doMarkPractice) doMarkPractice(5);
     pop();
+    if (saved) getAiReply(saved);
   };
 
   const addGoal = () => {
@@ -207,6 +233,34 @@ export default function Journal({ theme, addGems, THEMES, lang = "ru", doMarkPra
       <Orb style={{ top: -80, left: "50%", transform: "translateX(-50%)" }} color={tc.hex} opacity={0.18} w={320} h={320} />
       <Orb style={{ top: 200, right: -60 }} color={tc.hex} opacity={0.08} w={200} h={200} />
       <Orb style={{ bottom: 160, left: -60 }} color={T.o1} opacity={0.07} w={180} h={180} />
+
+      {/* AI reply card */}
+      {(aiLoading || aiReply) && (
+        <div style={{ position: "fixed", bottom: 90, left: "50%", transform: "translateX(-50%)", zIndex: 200, width: "calc(100% - 48px)", maxWidth: 380, animation: "fadeUp .4s ease both" }}>
+          <div style={{ background: "rgba(10,5,18,.92)", border: `1px solid rgba(${tc.rgb},.3)`, borderRadius: RAD.lg + 4, padding: `${SP.lg}px ${SP.xl}px`, backdropFilter: "blur(20px)", boxShadow: `0 8px 40px rgba(0,0,0,.5), 0 0 0 1px rgba(${tc.rgb},.1) inset` }}>
+            {aiLoading ? (
+              <div style={{ display: "flex", alignItems: "center", gap: SP.md }}>
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: tc.hex, animation: "breathe 1.2s ease-in-out infinite" }} />
+                <div style={{ fontFamily: FONT_SANS, fontSize: TYPE.sm, color: `rgba(${tc.rgb},.6)`, fontWeight: 300 }}>
+                  {lang === "ru" ? "Анастасия читает..." : "Anastasia is reading..."}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div style={{ ...label(TYPE.xs - 1), color: tc.hex, letterSpacing: ".2em", marginBottom: SP.sm }}>
+                  ✦ {lang === "ru" ? "Анастасия" : "Anastasia"}
+                </div>
+                <div style={{ fontFamily: FONT_SANS, fontSize: TYPE.sm + 1, fontWeight: 300, lineHeight: 1.7, color: "rgba(245,235,230,.88)" }}>
+                  {aiReply?.message}
+                </div>
+                <div onClick={() => setAiReply(null)} style={{ marginTop: SP.sm, ...label(TYPE.xs - 1), color: `rgba(${tc.rgb},.4)`, cursor: "pointer", textAlign: "right" }}>
+                  {lang === "ru" ? "закрыть" : "close"}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Crystal burst animations */}
       {crystals.map((cr) => (

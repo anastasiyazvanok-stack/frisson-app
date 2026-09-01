@@ -118,7 +118,7 @@ export const STR = {
   what_worries: { ru: "Что меня беспокоит прямо сейчас?", en: "What's bothering me right now?" },
   situation_hint: { ru: "Выберите ситуацию — получите практики именно для вас", en: "Pick a situation — get practices tailored to you" },
   for_you_now: { ru: "Для тебя сейчас", en: "For you now" },
-  premium: { ru: "Frisson Premium", en: "Frisson Premium" },
+  premium: { ru: "LuxMind Premium", en: "LuxMind Premium" },
   premium_title: { ru: "Полная библиотека\nпрактик — открыта", en: "Full library of\npractices — unlocked" },
   per_month: { ru: "zł / мес", en: "zł / mo" },
   yearly_discount: { ru: "или 900 zł / год — выгода 50%", en: "or 900 zł / yr — save 50%" },

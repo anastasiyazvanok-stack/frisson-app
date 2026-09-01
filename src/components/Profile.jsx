@@ -8,13 +8,15 @@ import { t as tr, MONTHS_SHORT, DAYS_SHORT } from "../utils/i18n";
 import { VERSION } from "../App";
 
 import { getAchievements } from "../data/activity";
-import { logEnergyTest } from "../data/psycap";
+import { logEnergyTest, getOverallScore, getPsycap } from "../data/psycap";
 import PsycapTracker from "./PsycapTracker";
 
-export default function Profile({ setScreen, theme, eScore, setEScore, eHist, setEHist, pLog, gems = 0, THEMES, activity, eScoreHistory, goToScenario, lang = "ru", setLang }) {
+export default function Profile({ setScreen, theme, eScore, setEScore, eHist, setEHist, pLog, gems = 0, THEMES, activity, eScoreHistory, goToScenario, lang = "ru", setLang, onSignOut, onAdmin }) {
   const T = THEMES[theme] || THEMES.full;
   const L = (k, ...a) => tr(lang, k, ...a);
   const [showT, setShowT] = useState(false);
+  const [aiInsight, setAiInsight] = useState(null);
+  const [aiInsightLoading, setAiInsightLoading] = useState(false);
   const [tI, setTI] = useState(0);
   const [tA, setTA] = useState([]);
   const lv = eScore !== null ? getEnergyLevel(eScore, lang) : null;
@@ -122,7 +124,7 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
           <div style={{ position: "absolute", inset: -12, borderRadius: "50%", background: `radial-gradient(circle, ${T.accent}22 0%, transparent 70%)`, pointerEvents: "none" }} />
           <div style={{ width: 80, height: 80, borderRadius: "50%", background: "linear-gradient(135deg,#280d18,#1a0812)", border: `2px solid ${T.accent}44`, boxShadow: `0 0 20px ${T.accent}22`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FONT_SERIF, fontSize: 26, color: T.accent, position: "relative" }}>{(activity?.name || "F").slice(0,2).toUpperCase()}</div>
         </div>
-        <div style={{ fontFamily: FONT_SERIF, fontSize: SP.xl, marginBottom: SP.xs, color: tx("var(--txt)", OP.primary) }}>{activity?.name || "Frisson"}</div>
+        <div style={{ fontFamily: FONT_SERIF, fontSize: SP.xl, marginBottom: SP.xs, color: tx("var(--txt)", OP.primary) }}>{activity?.name || "LuxMind"}</div>
         <div style={{ ...label(TYPE.xs), letterSpacing: ".22em", color: T.accent, marginBottom: 18 }}>{L("path_begin")}</div>
         <div onClick={() => setScreen("sub")} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: `9px ${SP.page}px`, borderRadius: RAD.lg + 2, background: T.dim, border: `1px solid ${T.border}`, cursor: "pointer", marginBottom: 18, ...label(TYPE.xs), letterSpacing: ".14em", color: tx("var(--txt)", 0.75) }}>{L("activate_sub")}</div>
       </div>
@@ -174,6 +176,56 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
 
       {/* Psychological Capital Tracker */}
       <PsycapTracker T={T} setScreen={setScreen} goToScenario={goToScenario} lang={lang} />
+
+      {/* AI Coach + Weekly Insight */}
+      <div style={{ ...section(SP.base), display: "flex", flexDirection: "column", gap: SP.sm }}>
+        {/* Go to AI Coach */}
+        <div onClick={() => setScreen("coach")} className="press-card" style={{ padding: `${SP.lg}px ${SP.page}px`, background: "linear-gradient(135deg, rgba(159,110,220,.12), rgba(230,77,168,.08))", border: "1px solid rgba(159,110,220,.25)", borderRadius: RAD.lg, display: "flex", alignItems: "center", gap: SP.md, cursor: "pointer", position: "relative", overflow: "hidden" }}>
+          <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg, rgba(159,110,220,.4), rgba(230,77,168,.3))", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 18 }}>✦</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: TYPE.base + 1, color: tx("var(--txt)", 0.92), marginBottom: 2 }}>{lang === "ru" ? "Поговорить с Анастасией" : "Talk to Anastasia"}</div>
+            <div style={{ ...label(TYPE.xs), color: "rgba(159,110,220,.7)", letterSpacing: ".15em" }}>{lang === "ru" ? "ИИ-коуч · LuxMind" : "AI coach · LuxMind"}</div>
+          </div>
+          <div style={{ fontSize: 18, color: "rgba(159,110,220,.5)" }}>→</div>
+        </div>
+
+        {/* Weekly AI Insight */}
+        <div className="press-card" style={{ padding: `${SP.lg}px ${SP.page}px`, background: `rgba(${T.ar},.05)`, border: `1px solid rgba(${T.ar},.12)`, borderRadius: RAD.lg, position: "relative", overflow: "hidden" }}>
+          {aiInsight ? (
+            <div>
+              <div style={{ ...label(TYPE.xs), letterSpacing: ".2em", color: T.accent, marginBottom: SP.sm }}>{lang === "ru" ? "✦ ИНСАЙТ НЕДЕЛИ" : "✦ WEEKLY INSIGHT"}</div>
+              <div style={{ fontFamily: FONT_SANS, fontSize: TYPE.sm + 1, fontWeight: 300, lineHeight: 1.7, color: tx("var(--txt)", 0.82) }}>{aiInsight}</div>
+              <div onClick={() => setAiInsight(null)} style={{ ...label(TYPE.xs), color: tx("var(--txt)", 0.3), marginTop: SP.md, cursor: "pointer" }}>{lang === "ru" ? "Обновить" : "Refresh"}</div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", gap: SP.md }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ ...label(TYPE.xs), letterSpacing: ".2em", color: tx("var(--txt)", OP.tertiary), marginBottom: SP.xs }}>{lang === "ru" ? "ИНСАЙТ НЕДЕЛИ" : "WEEKLY INSIGHT"}</div>
+                <div style={{ fontFamily: FONT_SANS, fontSize: TYPE.sm + 1, fontWeight: 300, color: tx("var(--txt)", 0.65), lineHeight: 1.5 }}>{lang === "ru" ? "Персональный анализ твоего прогресса от ИИ" : "AI-powered personal progress analysis"}</div>
+              </div>
+              <div onClick={async () => {
+                setAiInsightLoading(true);
+                try {
+                  const psycap = getPsycap();
+                  const res = await fetch("/api/ai-insights", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      capital: { axes: psycap?.axes, overall: getOverallScore() },
+                      activity: { totalMeds: activity?.totalMeds, totalMinutes: activity?.totalMinutes, streak: activity?.streak },
+                      lang,
+                    }),
+                  });
+                  if (res.ok) { const { insight } = await res.json(); setAiInsight(insight); }
+                } catch {}
+                setAiInsightLoading(false);
+              }} style={{ width: 44, height: 44, borderRadius: "50%", background: aiInsightLoading ? `rgba(${T.ar},.08)` : T.accent + "22", border: `1px solid ${aiInsightLoading ? `rgba(${T.ar},.15)` : T.accent + "55"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: aiInsightLoading ? "default" : "pointer", flexShrink: 0, fontSize: 20, transition: EASE.normal }}>
+                {aiInsightLoading ? <div style={{ width: 14, height: 14, border: `2px solid ${T.accent}44`, borderTopColor: T.accent, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} /> : "✦"}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       <div className="glass-card" style={{ ...section(18), padding: SP.page, background: `rgba(${T.ar},.05)`, border: `1px solid rgba(${T.ar},.12)`, borderRadius: RAD.lg, position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: -20, right: -20, width: 80, height: 80, borderRadius: "50%", background: `radial-gradient(circle, ${T.accent}11 0%, transparent 70%)`, pointerEvents: "none" }} />
@@ -282,6 +334,21 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
         <div style={{ ...body(TYPE.base), fontStyle: "italic", lineHeight: LH.loose, color: tx("var(--txt)", 0.45) }}>{L("oliver_quote")}</div>
         <div style={{ ...label(TYPE.xs), letterSpacing: ".15em", color: tx("var(--txt)", 0.25), marginTop: 6 }}>Mary Oliver</div>
       </div>
+
+      {(onAdmin || onSignOut) && (
+        <div style={{ textAlign: "center", paddingBottom: SP.sm, paddingTop: SP.sm, position: "relative", zIndex: 1, display: "flex", justifyContent: "center", gap: SP.xl }}>
+          {onAdmin && (
+            <span onClick={onAdmin} style={{ fontFamily: FONT_SANS, fontSize: TYPE.xs + 1, color: tx("var(--txt)", 0.36), cursor: "pointer", textDecoration: "underline", letterSpacing: ".08em" }}>
+              ⚙ Admin
+            </span>
+          )}
+          {onSignOut && (
+            <span onClick={onSignOut} style={{ fontFamily: FONT_SANS, fontSize: TYPE.xs + 1, color: tx("var(--txt)", 0.28), cursor: "pointer", textDecoration: "underline", letterSpacing: ".08em" }}>
+              {lang === "ru" ? "Выйти из аккаунта" : "Sign out"}
+            </span>
+          )}
+        </div>
+      )}
 
       <div style={{ textAlign: "center", paddingBottom: SP.xl, position: "relative", zIndex: 1 }}>
         <span style={{ ...label(TYPE.xs), color: tx("var(--txt)", OP.disabled), letterSpacing: ".1em" }}>v{VERSION}</span>

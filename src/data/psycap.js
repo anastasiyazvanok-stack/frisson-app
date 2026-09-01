@@ -4,7 +4,7 @@
 const KEY = "frisson_psycap_v2";
 const MAX = 100;
 const MIN = 0;
-const BASELINE = 20;
+const BASELINE = 0;
 const MAX_DAILY_GAIN = 1.5; // max points per axis per day — keeps growth very slow
 
 // ── 6 AXES ──────────────────────────────────────────────────────────────
@@ -37,7 +37,6 @@ export const MED_TAGS = {
   "Я управляю своей жизнью":                ["authentic", "worth"],   // Взять управление = жить из себя + знать цену
   // Feminine section
   "Женская энергия":                    ["feminine", "authentic"], // Прямая работа с женской природой
-  "Возвращение к себе женственной":     ["feminine", "authentic"], // Женская индивидуальность + возврат к себе
   "Состояние женской притягательности": ["feminine", "worth"],    // Притяжение = из женского + вкус к себе
   // Receiving section
   "Где я перекрыла себе получение":     ["receive", "worth"],     // Блоки получения + ощущение недостойности
@@ -185,13 +184,9 @@ export function logMeditation(title, completion = "full") {
   addStreakBonus();
 }
 
-// Diary entry completed
+// Diary entry completed — tags are already axis IDs from detectDiaryAxes
 export function logDiary(text, tags = []) {
-  const axSet = new Set(DIARY_TAGS.base);
-  tags.forEach((t) => {
-    const ax = DIARY_TAGS[t];
-    if (ax) ax.forEach((id) => axSet.add(id));
-  });
+  const axSet = new Set([...DIARY_TAGS.base, ...tags]);
   addEvent("diary", text.slice(0, 40), [...axSet], 1.5, { tags });
   addStreakBonus();
 }

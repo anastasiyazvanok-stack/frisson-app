@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { getThemes } from "./data/themes";
 import { getActivity, markPractice, getName, setName as saveName } from "./data/activity";
-import { fetchMeditations, fetchSections } from "./lib/supabase";
+import { supabase, fetchMeditations, fetchSections, getSession, signOut, syncToCloud, loadFromCloud, applyCloudData, collectLocalData, getIsRecoveryMode } from "./lib/supabase";
 import { TYPE, SP, RAD, OP, EASE, FONT_SERIF, FONT_SANS, tx, label, heading } from "./utils/design";
 import { useLangState, t as tr } from "./utils/i18n";
 import GlobalStyles from "./components/GlobalStyles";
+import Auth, { PasswordResetForm } from "./components/Auth";
+import Admin from "./components/Admin";
 import Onboarding from "./components/Onboarding";
 import AppTour from "./components/AppTour";
 import Home from "./components/Home";
@@ -15,13 +17,112 @@ import Profile from "./components/Profile";
 import SubPage from "./components/SubPage";
 import Orbit from "./components/Orbit";
 import Nav from "./components/Nav";
+import AICoach from "./components/AICoach";
 
 export const VERSION = "5.8.0";
 
 export default function App() {
   const [lang, setLang] = useLangState();
   const L = (k, ...a) => tr(lang, k, ...a);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [userEmail, setUserEmail] = useState(null);
+  const recoveryRef = useRef(
+    localStorage.getItem("lux_pw_reset") === "1" || getIsRecoveryMode()
+  );
+  const [showPasswordReset, setShowPasswordReset] = useState(() => recoveryRef.current);
+
+  // ─── Auth state ───
+  const [authChecked, setAuthChecked] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const syncTimer = useRef(null);
+
+  const queueSync = (uid) => {
+    if (!uid) return;
+    clearTimeout(syncTimer.current);
+    syncTimer.current = setTimeout(() => syncToCloud(uid), 2000);
+  };
+
+  useEffect(() => {
+    // Check existing session on mount
+    getSession().then((session) => {
+      if (session?.user) {
+        setUserId(session.user.id);
+        setUserEmail(session.user.email);
+        handleCloudLoad(session.user.id);
+      }
+      setAuthChecked(true);
+    });
+
+    // Listen for auth state changes (login, logout, email verification)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        recoveryRef.current = true;
+        setShowPasswordReset(true);
+        setAuthChecked(true);
+      } else if (session?.user) {
+        if (recoveryRef.current) {
+          // SIGNED_IN fires right after PASSWORD_RECOVERY — don't override recovery mode
+          setAuthChecked(true);
+        } else {
+          setShowPasswordReset(false);
+          setUserId(session.user.id);
+          setUserEmail(session.user.email);
+          handleCloudLoad(session.user.id);
+          setAuthChecked(true);
+        }
+      } else {
+        recoveryRef.current = false;
+        setShowPasswordReset(false);
+        setUserId(null);
+        setUserEmail(null);
+        setAuthChecked(true);
+      }
+    });
+
+    // Sync on visibility change (app goes to background)
+    const onHide = () => {
+      if (document.visibilityState === "hidden") {
+        getSession().then((s) => { if (s?.user) syncToCloud(s.user.id); });
+      }
+    };
+    document.addEventListener("visibilitychange", onHide);
+
+    return () => {
+      subscription.unsubscribe();
+      document.removeEventListener("visibilitychange", onHide);
+      clearTimeout(syncTimer.current);
+    };
+  }, []);
+
+  async function handleCloudLoad(uid) {
+    const cloudData = await loadFromCloud(uid);
+    if (cloudData && Object.keys(cloudData).length > 0) {
+      // Cloud has data — apply it (cloud wins to support multi-device)
+      applyCloudData(cloudData);
+    } else {
+      // First login — upload existing localStorage
+      syncToCloud(uid);
+    }
+  }
+
+  function handleAuthDone(nameFromReg) {
+    if (nameFromReg) {
+      saveName(nameFromReg);
+      setUserName(nameFromReg);
+      setShowNameInput(false);
+    }
+    // onAuthStateChange will handle userId + cloud load — no duplicate call needed
+  }
+
+  async function handleSignOut() {
+    clearTimeout(syncTimer.current);
+    if (userId) await syncToCloud(userId);
+    await signOut();
+    setUserId(null);
+  }
+
   const [onb, setOnb] = useState(() => localStorage.getItem("frisson_onb") === "1");
+  const [afterOnboarding, setAfterOnboarding] = useState(false);
   const [tour, setTour] = useState(() => localStorage.getItem("frisson_tour") === "1");
   const [screen, setScreenRaw] = useState("home");
   const historyRef = useRef(["home"]);
@@ -53,6 +154,7 @@ export default function App() {
     localStorage.setItem("frisson_escore", v === null ? "null" : String(v));
     localStorage.setItem("frisson_escore_date", todayStr);
     setEScoreRaw(v);
+    queueSync(userId);
   };
   const [eHist, setEHistRaw] = useState(() => {
     try { const v = JSON.parse(localStorage.getItem("frisson_ehist")); return Array.isArray(v) ? v : []; }
@@ -71,7 +173,7 @@ export default function App() {
   const [openScenario, setOpenScenario] = useState(null);
   const goToScenario = (scId) => { setOpenScenario(scId); setScreen("orbit"); };
   const [gems, setGems] = useState(() => parseInt(localStorage.getItem("frisson_gems")) || 0);
-  const addGems = (n) => setGems((g) => { const v = g + n; localStorage.setItem("frisson_gems", v); return v; });
+  const addGems = (n) => setGems((g) => { const v = g + n; localStorage.setItem("frisson_gems", v); queueSync(userId); return v; });
 
   // ─── Cloud content (fetched once on app load, cached for offline) ───
   const [remoteMeds, setRemoteMeds] = useState([]);
@@ -85,17 +187,49 @@ export default function App() {
   const [userName, setUserName] = useState(getName);
   const [showNameInput, setShowNameInput] = useState(() => !getName());
   const [nameVal, setNameVal] = useState("");
-  const doMarkPractice = (minutes) => { const a = markPractice(minutes); setActivity({ ...a }); };
-  const doSetName = (n) => { saveName(n); setUserName(n); setShowNameInput(false); };
+  const doMarkPractice = (minutes) => { const a = markPractice(minutes); setActivity({ ...a }); queueSync(userId); };
+  const doSetName = (n) => { saveName(n); setUserName(n); setShowNameInput(false); queueSync(userId); };
 
   const scrollRef = useRef(null);
   useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = 0; }, [screen]);
 
   const T = THEMES[theme] || THEMES.full;
-  const showNav = screen !== "sub" && screen !== "situations";
+  const showNav = screen !== "sub" && screen !== "situations" && screen !== "coach";
 
-  if (!onb) return (<><GlobalStyles /><Onboarding onDone={() => { localStorage.setItem("frisson_onb", "1"); setOnb(true); }} lang={lang} setLang={setLang} /></>);
-  if (!tour) return (<><GlobalStyles /><AppTour onDone={() => { localStorage.setItem("frisson_tour", "1"); setTour(true); }} theme={theme} THEMES={THEMES} lang={lang} /></>);
+  // Auth gate — show loading spinner while checking, then Auth screen if not logged in
+  if (showPasswordReset) return (<><GlobalStyles /><PasswordResetForm onDone={() => {
+    localStorage.removeItem("lux_pw_reset");
+    recoveryRef.current = false;
+    setShowPasswordReset(false);
+    getSession().then(s => { if (s?.user) { setUserId(s.user.id); setUserEmail(s.user.email); } });
+  }} /></>);
+  if (showAdmin) return (<><GlobalStyles /><Admin userEmail={userEmail} onClose={() => setShowAdmin(false)} /></>);
+
+  if (!authChecked) return (
+    <><GlobalStyles />
+    <div style={{ width: "100%", height: "100dvh", background: "#06030a", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(230,77,168,.6)", boxShadow: "0 0 20px rgba(230,77,168,.5)", animation: "breathe 1.8s ease-in-out infinite" }} />
+    </div></>
+  );
+  // Logged-in users always skip onboarding
+  if (userId && !onb) {
+    localStorage.setItem("frisson_onb", "1");
+    setOnb(true);
+  }
+
+  if (!userId && !onb && !afterOnboarding) return (
+    <><GlobalStyles /><Onboarding onDone={() => setAfterOnboarding(true)} lang={lang} setLang={setLang} /></>
+  );
+
+  if (!userId) return (
+    <><GlobalStyles /><Auth startMode={afterOnboarding ? "register" : "login"} onAuth={(name) => {
+      localStorage.setItem("frisson_onb", "1");
+      setOnb(true);
+      setAfterOnboarding(false);
+      handleAuthDone(name);
+    }} /></>
+  );
+  if (!tour) return (<><GlobalStyles /><AppTour onDone={() => { localStorage.setItem("frisson_tour", "1"); setTour(true); queueSync(userId); }} theme={theme} THEMES={THEMES} lang={lang} /></>);
 
   if (showNameInput) return (
     <><GlobalStyles />
@@ -104,7 +238,7 @@ export default function App() {
       <div style={{ position: "absolute", width: "55%", height: "55%", bottom: "-10%", right: "-8%", borderRadius: "50%", background: "radial-gradient(circle,rgba(240,136,56,.5),rgba(208,128,176,.4) 55%,transparent 72%)", filter: "blur(50px)", animation: "breathe 22s 4s ease-in-out infinite" }} />
       <div style={{ position: "relative", zIndex: 1, width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
         <img src="./brand/ornament-white.png" alt="" style={{ width: 56, height: "auto", opacity: 0.7, filter: "drop-shadow(0 0 20px rgba(230,77,168,.4))", marginBottom: SP.lg }} />
-        <div style={{ ...heading(40), color: "#fff", textAlign: "center", textShadow: "0 0 40px rgba(230,77,168,.5)", marginBottom: SP.sm }}>Frisson</div>
+        <div style={{ ...heading(40), color: "#fff", textAlign: "center", textShadow: "0 0 40px rgba(230,77,168,.5)", marginBottom: SP.sm }}>LuxMind</div>
         <div style={{ ...label(TYPE.xs), color: "rgba(180,150,165,.5)", letterSpacing: ".3em", marginBottom: 40 }}>{L("ask_name")}</div>
         <input
           autoFocus
@@ -139,8 +273,9 @@ export default function App() {
     orbit: <Orbit setScreen={setScreen} goBack={goBack} addGems={addGems} doMarkPractice={doMarkPractice} initScenario={openScenario} clearInitScenario={() => setOpenScenario(null)} lang={lang} eScore={eScore} theme={theme} THEMES={THEMES} activity={activity} userName={userName} />,
     journal: <Journal theme={theme} addGems={addGems} THEMES={THEMES} doMarkPractice={doMarkPractice} lang={lang} />,
     situations: <Situations setScreen={setScreen} goBack={goBack} theme={theme} goToMed={goToMed} THEMES={THEMES} lang={lang} />,
-    profile: <Profile setScreen={setScreen} theme={theme} eScore={eScore} setEScore={setEScore} eHist={eHist} setEHist={setEHist} pLog={pLog} gems={gems} THEMES={THEMES} activity={activity} eScoreHistory={eHist} goToScenario={goToScenario} lang={lang} setLang={setLang} />,
+    profile: <Profile setScreen={setScreen} theme={theme} eScore={eScore} setEScore={setEScore} eHist={eHist} setEHist={setEHist} pLog={pLog} gems={gems} THEMES={THEMES} activity={activity} eScoreHistory={eHist} goToScenario={goToScenario} lang={lang} setLang={setLang} onSignOut={handleSignOut} onAdmin={userEmail === "anastasiyazvanok@gmail.com" ? () => setShowAdmin(true) : undefined} />,
     sub: <SubPage setScreen={setScreen} goBack={goBack} theme={theme} THEMES={THEMES} lang={lang} />,
+    coach: <AICoach goBack={goBack} lang={lang} />,
   };
 
   return (

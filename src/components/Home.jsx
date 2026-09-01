@@ -123,10 +123,10 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
                 <span style={{ fontSize: TYPE.base, color: `rgba(${T.ar},.5)` }}>←</span>
                 <span style={{ ...label(TYPE.xs), color: `rgba(${T.ar},.5)`, letterSpacing: ".15em" }}>{lang === "ru" ? "Назад" : "Back"}</span>
               </button>
-              <div style={{ ...label(TYPE.xs), letterSpacing: ".3em", color: T.accent, marginBottom: SP.sm, textAlign: "center" }}>✦ Frisson ✦</div>
+              <div style={{ ...label(TYPE.xs), letterSpacing: ".3em", color: T.accent, marginBottom: SP.sm, textAlign: "center" }}>✦ LuxMind ✦</div>
               <div style={{ ...heading(TYPE.xxl + 2), color: T.text, marginBottom: SP.xl, textAlign: "center", whiteSpace: "pre-line" }}>{lang === "ru" ? "Твоё пространство\nвнутреннего капитала" : "Your space of\ninner capital"}</div>
               {[
-                { title: lang === "ru" ? "Что это?" : "What is it?", text: lang === "ru" ? "Frisson — это приложение для работы с твоим внутренним ресурсом. Медитации, практики, дневник и трекер состояния помогают укреплять женственность, уходить из тревоги и наполняться каждый день." : "Frisson is an app for working with your inner resource. Meditations, practices, journal and state tracker help strengthen femininity, release anxiety and fill up every day." },
+                { title: lang === "ru" ? "Что это?" : "What is it?", text: lang === "ru" ? "LuxMind — это приложение для работы с твоим внутренним ресурсом. Медитации, практики, дневник и трекер состояния помогают укреплять женственность, уходить из тревоги и наполняться каждый день." : "LuxMind is an app for working with your inner resource. Meditations, practices, journal and state tracker help strengthen femininity, release anxiety and fill up every day." },
                 { title: lang === "ru" ? "Как пользоваться?" : "How to use?", text: lang === "ru" ? "1. Выбери настроение вверху — медитации подберутся под тебя\n2. Перейди в Библиотеку — слушай медитации\n3. Открой Орбиту — выбери сценарий и начни практику\n4. Веди Дневник — записывай состояния\n5. В Профиле отслеживай свою динамику" : "1. Choose your mood above — meditations will be tailored for you\n2. Go to Library — listen to meditations\n3. Open Orbit — choose a scenario and start practice\n4. Keep a Journal — record your states\n5. In Profile track your dynamics" },
                 { title: lang === "ru" ? "Тест на ресурс" : "Resource test", text: lang === "ru" ? "Каждый день в Профиле проходи тест на психологическую энергию. Он сбрасывается каждое утро — так ты видишь свою динамику в реальном времени." : "Each day in Profile take the psychological energy test. It resets every morning — so you see your dynamics in real time." },
               ].map((item, i) => (
@@ -152,9 +152,9 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
           <div className="moon-halo" style={{ position: "absolute", inset: -18, borderRadius: RAD.full, background: `radial-gradient(circle, rgba(${T.ar},.45), transparent 65%)`, filter: "blur(16px)", pointerEvents: "none" }} />
           <div style={{ fontSize: 44, lineHeight: 1, position: "relative", filter: `drop-shadow(0 0 8px rgba(${T.ar},.4))` }}>{moon.e}</div>
         </div>
-        <div style={{ ...heading(30), color: T.text, marginBottom: SP.sm, letterSpacing: "0.01em" }}>{gr},<br/><span style={{ color: T.accent, filter: `drop-shadow(0 0 16px ${T.accent}44)` }}>{userName || "Frisson"}</span></div>
+        <div style={{ ...heading(30), color: T.text, marginBottom: SP.sm, letterSpacing: "0.01em" }}>{gr},<br/><span style={{ color: T.accent, filter: `drop-shadow(0 0 16px ${T.accent}44)` }}>{userName || "LuxMind"}</span></div>
         <div style={{ fontFamily: FONT_SERIF, fontSize: 15, fontStyle: "italic", fontWeight: 300, lineHeight: 1.65, color: `rgba(${T.ar},.55)`, transition: EASE.slow, maxWidth: 300, margin: "0 auto", letterSpacing: "0.02em" }}>{msg}</div>
-        <div style={{ ...label(TYPE.xs), color: `rgba(${T.ar},.14)`, marginTop: SP.md, letterSpacing: ".25em" }}>Frisson v{VERSION}</div>
+        <div style={{ ...label(TYPE.xs), color: `rgba(${T.ar},.14)`, marginTop: SP.md, letterSpacing: ".25em" }}>LuxMind v{VERSION}</div>
       </div>
 
       {/* ─── Energy Card ─── */}

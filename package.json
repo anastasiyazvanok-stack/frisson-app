@@ -15,6 +15,7 @@
     "icons": "node scripts/generate-icons.cjs && npx capacitor-assets generate --ios"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.122.0",
     "@capacitor/cli": "^8.3.0",
     "@capacitor/core": "^8.3.0",
     "@capacitor/haptics": "^8.0.2",

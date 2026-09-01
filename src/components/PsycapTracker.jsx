@@ -35,6 +35,12 @@ function fmtTime(ts) {
 
 // ── OVERVIEW TAB ────────────────────────────────────────────────────────
 function Overview({ T, data, score, delta, rec, goToScenario, setScreen, expandedAxis, setExpandedAxis, lang, L, AXES }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
   const radius = 60;
   const circ = 2 * Math.PI * radius;
   const offset = circ - (score / 100) * circ;
@@ -47,7 +53,7 @@ function Overview({ T, data, score, delta, rec, goToScenario, setScreen, expande
           <svg width="160" height="160" style={{ transform: "rotate(-90deg)" }}>
             <circle cx="80" cy="80" r={radius} fill="none" stroke="rgba(var(--txt),.07)" strokeWidth="8" />
             <circle cx="80" cy="80" r={radius} fill="none" stroke={T.accent} strokeWidth="8" strokeLinecap="round"
-              strokeDasharray={circ} strokeDashoffset={offset} style={{ transition: "stroke-dashoffset 1.4s ease" }} />
+              strokeDasharray={circ} strokeDashoffset={mounted ? offset : circ} style={{ transition: "stroke-dashoffset 1.4s cubic-bezier(.25,.46,.45,.94)" }} />
           </svg>
           <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
             <div style={{ fontFamily: FONT_SERIF, fontSize: 48, fontWeight: 300, color: `rgba(var(--txt),${OP.primary})`, lineHeight: 1 }}>{score}</div>
@@ -63,22 +69,28 @@ function Overview({ T, data, score, delta, rec, goToScenario, setScreen, expande
 
       {/* 6 Axis bars */}
       <div style={{ display: "flex", flexDirection: "column", gap: SP.md, marginBottom: SP.page }}>
-        {AXES.map((a) => {
+        {AXES.map((a, i) => {
           const value = data.axes[a.id];
           const isExpanded = expandedAxis === a.id;
           const lastTs = getLastAxisActivity(a.id);
           const lastStr = lastTs ? (lang === "en" ? `${Math.floor((Date.now() - lastTs) / 86400000)}d ago` : `${Math.floor((Date.now() - lastTs) / 86400000)} дн назад`) : L("pc_never");
           // Find meditations that feed this axis
           const meds = Object.entries(MED_TAGS).filter(([, axes]) => axes.includes(a.id)).map(([name]) => name);
+          const barDelay = `${0.1 + i * 0.18}s`;
+          const displayVal = Math.round(value);
+          const isMastered = displayVal >= 100;
           return (
             <div key={a.id}>
               <div onClick={() => setExpandedAxis(isExpanded ? null : a.id)} style={{ cursor: "pointer" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 3 }}>
                   <span style={{ ...body(TYPE.base), color: "rgba(var(--txt),.88)" }}>{a.label}</span>
-                  <span style={{ fontFamily: FONT_SANS, fontSize: TYPE.sm, color: a.hex, fontWeight: 500 }}>{value}</span>
+                  <span style={{ fontFamily: FONT_SANS, fontSize: TYPE.sm, color: isMastered ? "#FFD77A" : a.hex, fontWeight: 500, transition: `opacity .4s ${barDelay}`, opacity: mounted ? 1 : 0 }}>
+                    {isMastered ? "✦ 100" : displayVal}
+                  </span>
                 </div>
-                <div style={{ height: 7, borderRadius: SP.xs, background: "rgba(var(--txt),.05)", overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: `${value}%`, background: `linear-gradient(90deg, ${a.hex}77, ${a.hex})`, borderRadius: SP.xs, transition: "width 1.2s ease", boxShadow: `0 0 10px ${a.hex}55` }} />
+                <div style={{ ...body(TYPE.xs + 0.5), color: `rgba(var(--txt),.45)`, lineHeight: 1.4, marginBottom: 7, fontStyle: "italic" }}>{a.desc}</div>
+                <div style={{ height: 6, borderRadius: SP.xs, background: "rgba(var(--txt),.05)", overflow: "hidden", boxShadow: isMastered ? `0 0 8px #FFD77A55` : "none" }}>
+                  <div style={{ height: "100%", width: mounted ? `${Math.min(100, value)}%` : "0%", background: isMastered ? "linear-gradient(90deg, #FFB83088, #FFD77A)" : `linear-gradient(90deg, ${a.hex}77, ${a.hex})`, borderRadius: SP.xs, transition: `width 1s cubic-bezier(.25,.46,.45,.94) ${barDelay}`, boxShadow: isMastered ? `0 0 14px #FFD77Acc` : `0 0 10px ${a.hex}55` }} />
                 </div>
               </div>
               {isExpanded && (

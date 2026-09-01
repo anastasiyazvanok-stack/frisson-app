@@ -91,7 +91,7 @@ export default function Situations({ setScreen, goBack, theme, goToMed, THEMES, 
 
         <div onClick={() => setScreen("sub")} className="press-card glass-card" style={{ marginTop: SP.sm, padding: `${SP.md + 2}px ${SP.lg + 2}px`, background: `rgba(${T.ar},.05)`, border: `1px solid rgba(${T.ar},.12)`, borderRadius: RAD.lg, textAlign: "center", cursor: "pointer" }}>
           <div style={{ ...body(TYPE.base), color: tx("var(--txt)", 0.65) }}>{L("sit_open_lib")}</div>
-          <div style={{ ...label(9), letterSpacing: ".14em", color: T.accent, marginTop: 5 }}>Frisson Premium →</div>
+          <div style={{ ...label(9), letterSpacing: ".14em", color: T.accent, marginTop: 5 }}>LuxMind Premium →</div>
         </div>
       </div>
     </div>

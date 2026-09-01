@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { MED_GUIDES, getMedGuides } from "../data/medGuides";
 import { logOrbitSession } from "../data/psycap";
 
-import { TYPE, SP, RAD, OP, EASE, FONT_SERIF, FONT_SANS, tx, label, body, heading } from "../utils/design";
+import { TYPE, SP, RAD, OP, LS, EASE, LH, FONT_SERIF, FONT_SANS, tx, label, body, heading } from "../utils/design";
 import { t as tr } from "../utils/i18n";
 
 // Orbit EN translation maps for names/sounds
@@ -211,16 +211,18 @@ const LAYERS = [
   { id:6, name:"Поведение", sub:"внешний слой", hex:"#C8960A", col:0xC8960A, lc:0xA07808, radius:30, speed:0.15, bright:0.60, sz:0.46, lineAmt:0.3, desc:"То, что видит мир. Когда бессознательное исцелено, а сознательное выбрало новое, поведение меняется органично, без насилия над собой." },
 ];
 
-export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, initScenario, clearInitScenario, lang = "ru" }) {
+export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, initScenario, clearInitScenario, lang = "ru", eScore = null, theme = "full", THEMES = {}, activity = null, userName = "" }) {
   const L = (k, ...a) => tr(lang, k, ...a);
+  const T = THEMES[theme] || { accent: "#D4682A", ar: "212,104,42", text: "#F5E8DC" };
   const isDay = false;
   const canvasRef = useRef(null);
   const touchRef = useRef(null);
   const stateRef = useRef(null);
   const camRef = useRef(null);
+  const themeColorRef = useRef(null);
   const [activeId, setActiveId] = useState(1);
   const [activeScenario, setActiveScenarioState] = useState(null);
-  const [panelMode, setPanelMode] = useState("layer"); // "layer" | "scenario"
+  const [panelMode, setPanelMode] = useState("layer");
   const scenarioRef = useRef(null);
   const [panelOpen, setPanelOpen] = useState(true);
   const [panelExpanded, setPanelExpanded] = useState(false);
@@ -231,10 +233,16 @@ export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, init
   const [isPaused, setIsPaused] = useState(false);
   const pauseStartRef = useRef(0);
   const pausedTotalRef = useRef(0);
-  const [showIntro, setShowIntro] = useState(false);
-  // Clear any stale intro flag from previous versions
-  useEffect(() => { localStorage.removeItem("frisson_orbit_intro"); }, []);
-  const dismissIntro = () => setShowIntro(false);
+  const [showIntro, setShowIntro] = useState(() => localStorage.getItem("frisson_orbit_seen") !== "1");
+
+  // Sync theme color to animation loop
+  useEffect(() => {
+    if (T?.ar) {
+      const [r, g, b] = T.ar.split(",").map((n) => parseInt(n.trim()) / 255);
+      themeColorRef.current = { r, g, b };
+    }
+  }, [theme, THEMES]);
+  const dismissIntro = () => { localStorage.setItem("frisson_orbit_seen", "1"); setShowIntro(false); };
   const timerRef = useRef(null);
   const [gemPop, setGemPop] = useState(null);
   const medDurationRef = useRef(0);
@@ -439,7 +447,7 @@ export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, init
     try { if (doMarkPractice) doMarkPractice(Math.round(seconds / 60)); } catch (e) {}
     try {
       const curLayer = LAYERS[activeId - 1];
-      if (curLayer) logOrbitSession(activeId, curLayer.name, activeScenario?.name);
+      if (curLayer) logOrbitSession(activeId, curLayer.name, activeScenario?.name, activeScenario?.id);
     } catch (e) {}
     setGemPop({ amount: earned, id: Date.now() });
     setTimeout(() => setGemPop(null), 4000);
@@ -762,9 +770,12 @@ export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, init
       }
       elGeo.setDrawRange(0, alive); ep.needsUpdate = true;
 
-      // Color shifts toward warm calm during meditation healing
-      let targetCol = sc ? new THREE.Color(sc.tint) : new THREE.Color(l.col);
-      let targetLc = sc ? new THREE.Color(sc.tint).multiplyScalar(0.6) : new THREE.Color(l.lc);
+      // Color: use mood theme color as base when no scenario active
+      const tc = themeColorRef.current;
+      const baseCol = tc ? new THREE.Color(tc.r, tc.g, tc.b) : new THREE.Color(l.col);
+      const baseColDim = baseCol.clone().multiplyScalar(0.45);
+      let targetCol = sc ? new THREE.Color(sc.tint) : baseCol;
+      let targetLc = sc ? new THREE.Color(sc.tint).multiplyScalar(0.6) : baseColDim;
       if (hp > 0 && isNegative) {
         const healCol = new THREE.Color(0xF0A0D0); // warm pink = healed state
         targetCol = new THREE.Color(sc.tint).lerp(healCol, hp * 0.7);
@@ -921,14 +932,20 @@ export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, init
       {/* Top bar — partially hides during meditation */}
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", padding: `0 ${SP.lg}px`, background: meditating ? "transparent" : "linear-gradient(180deg, rgba(6,2,8,.86), transparent)", zIndex: 30, pointerEvents: "none", transition: "background .8s" }}>
         <div style={{ display: "flex", alignItems: "center", gap: SP.md, opacity: hideUI, transition: "opacity .8s" }}>
-          <div onClick={() => { if (meditating) return; goBack ? goBack() : setScreen("home"); }} style={{ pointerEvents: meditating ? "none" : "all", cursor: "pointer", fontSize: 15, color: "rgba(210,175,145,.5)", padding: `${SP.xs}px ${SP.sm}px` }}>←</div>
-          <div>
-            <div style={{ fontSize: 8, letterSpacing: 5, textTransform: "uppercase", color: "rgba(190,130,90,.42)", ...ss }}>Frisson</div>
-            <div style={{ fontSize: TYPE.base, fontStyle: "italic", color: "rgba(228,202,182,.38)", marginTop: 2, ...ss }}>{L("orb_title")}</div>
+          <div onClick={() => { if (meditating) return; goBack ? goBack() : setScreen("home"); }} style={{ pointerEvents: meditating ? "none" : "all", cursor: "pointer", fontSize: 15, color: `rgba(${T.ar},.45)`, padding: `${SP.xs}px ${SP.sm}px` }}>←</div>
+          <div onClick={() => { if (!meditating) setShowIntro(true); }} style={{ pointerEvents: meditating ? "none" : "all", cursor: "pointer" }}>
+            <div style={{ fontSize: 8, letterSpacing: 4, textTransform: "uppercase", color: `rgba(${T.ar},.35)`, ...ss }}>Frisson</div>
+            <div style={{ fontSize: TYPE.sm, fontStyle: "italic", color: `rgba(${T.ar},.75)`, marginTop: 2, ...ss }}>{lang === "ru" ? "Мой внутренний мир" : "My inner world"}</div>
           </div>
-          <button type="button" onClick={() => { if (!meditating) setShowTimerPicker(true); }} style={{ pointerEvents: meditating ? "none" : "all", cursor: "pointer", borderRadius: RAD.md, border: "1px solid rgba(210,175,145,.3)", background: "rgba(6,2,8,.5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, letterSpacing: 1, color: "rgba(210,175,145,.85)", marginLeft: 6, touchAction: "manipulation", WebkitAppearance: "none", padding: "5px 10px", whiteSpace: "nowrap", ...ss }}>{lang === "ru" ? "Начать практику" : "Start practice"}{activeScenario ? ` · ${orbScenarioName(activeScenario, lang)}` : ""}</button>
         </div>
-        <button onClick={toggleSound} style={{ pointerEvents: "all", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, background: soundOn ? "rgba(140,30,60,.36)" : "rgba(100,20,50,.2)", border: `1px solid ${soundOn ? "rgba(200,130,90,.5)" : "rgba(190,130,90,.25)"}`, borderRadius: SP.lg, padding: "5px 11px", fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: soundOn ? "rgba(240,210,178,.92)" : "rgba(210,175,145,.6)", transition: EASE.normal, whiteSpace: "nowrap", ...ss }}>{meditating ? L("orb_stop") : soundOn ? L("orb_stop") : `♫ ${orbSoundLabel((activeScenario?.id || "neutral"), getProfile().label, lang)}`}</button>
+        {meditating ? (
+          <button onClick={toggleSound} style={{ pointerEvents: "all", cursor: "pointer", background: "rgba(140,30,60,.3)", border: "1px solid rgba(200,130,90,.4)", borderRadius: SP.lg, padding: "5px 11px", fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: "rgba(240,210,178,.85)", ...ss }}>{L("orb_stop")}</button>
+        ) : (
+          <div style={{ textAlign: "right", opacity: hideUI, transition: "opacity .8s", pointerEvents: "none", background: "rgba(4,2,8,.5)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", borderRadius: RAD.md, padding: `${SP.xs}px ${SP.sm + 2}px` }}>
+            <div style={{ ...heading(TYPE.lg), color: tx("var(--txt)", OP.primary), textShadow: "0 1px 12px rgba(0,0,0,.9)" }}>{userName || "Frisson"}</div>
+            <div style={{ ...label(TYPE.xs), color: T.accent, marginTop: 2, textTransform: "none", letterSpacing: LS.normal }}>{T.e} {T.l || (lang === "ru" ? "Наполнена" : "Full")}</div>
+          </div>
+        )}
       </div>
 
       {/* Meditation: guide text + timer */}
@@ -989,37 +1006,71 @@ export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, init
         </div>
       )}
 
-      {/* First-visit intro overlay */}
+      {/* ─── First-visit intro overlay ─── */}
       {showIntro && !showTimerPicker && !meditating && (
-        <div style={{ position: "absolute", inset: 0, zIndex: 55, background: "rgba(6,2,8,.95)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", pointerEvents: "auto", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
-          <div style={{ minHeight: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", padding: `40px ${SP.xl}px 40px` }}>
-          <div style={{ maxWidth: 340, width: "100%", textAlign: "center" }}>
-            <div style={{ fontFamily: FONT_SANS, fontSize: 9, letterSpacing: ".3em", textTransform: "uppercase", color: "rgba(230,180,200,.6)", marginBottom: 10 }}>✦ {L("orb_title")} ✦</div>
-            <div style={{ ...heading(TYPE.xxl), color: "#fff", marginBottom: 18 }}>{L("orb_intro_title")}</div>
+        <div style={{ position: "absolute", inset: 0, zIndex: 55, background: "rgba(4,2,8,.97)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", pointerEvents: "auto", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+          <div style={{ minHeight: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", padding: `52px ${SP.xl}px 48px` }}>
+            <div style={{ maxWidth: 340, width: "100%" }}>
+              <div style={{ textAlign: "center", marginBottom: SP.xl }}>
+                <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase", color: `rgba(${T.ar},.45)`, fontFamily: FONT_SANS, marginBottom: SP.md }}>✦ Frisson ✦</div>
+                <div style={{ fontFamily: FONT_SERIF, fontSize: 28, fontWeight: 300, color: "#fff", lineHeight: 1.2, marginBottom: SP.md }}>
+                  {lang === "ru" ? "Мой внутренний мир" : "My Inner World"}
+                </div>
+                <div style={{ fontFamily: FONT_SERIF, fontSize: TYPE.base, fontStyle: "italic", color: "rgba(220,200,185,.6)", lineHeight: 1.65 }}>
+                  {lang === "ru"
+                    ? "Это живая визуализация твоего психологического состояния — здесь видно то, что обычно скрыто внутри"
+                    : "A living visualization of your psychological state — here you can see what's usually hidden inside"}
+                </div>
+              </div>
 
-            <div style={{ ...body(TYPE.base), color: "rgba(245,235,230,.78)", marginBottom: 18 }} dangerouslySetInnerHTML={{ __html: L("orb_intro_body") }} />
+              {[
+                {
+                  icon: "◉",
+                  title: lang === "ru" ? "Нейронная сеть" : "Neural network",
+                  text: lang === "ru"
+                    ? "Трёхмерная нейронная сеть — визуальная метафора твоих психических паттернов. Движение, плотность и характер частиц отражают, как именно выбранное состояние проживается в психике: тревога сжимает и ускоряет сеть, любовь — расширяет и успокаивает, сила — наполняет направленным импульсом."
+                    : "A three-dimensional neural network — a visual metaphor for your mental patterns. The movement, density and character of particles reflect how the chosen state is experienced psychologically: anxiety contracts and accelerates the network, love expands and calms it, power fills it with directed impulse.",
+                },
+                {
+                  icon: "◈",
+                  title: lang === "ru" ? "8 психологических сценариев" : "8 psychological scenarios",
+                  text: lang === "ru"
+                    ? "Каждый сценарий — архетипическое внутреннее состояние: Тревога, Любовь, Сила, Внутренний конфликт, Страх, Изобилие, Женственность, Психологический капитал. При выборе сценария нейронная сеть перестраивается, а звуковой пад настраивается на терапевтические частоты, резонирующие с этим состоянием."
+                    : "Each scenario is an archetypal inner state: Anxiety, Love, Power, Inner conflict, Fear, Abundance, Femininity, Psychological capital. When you choose a scenario, the neural network restructures itself and the sound pad tunes to therapeutic frequencies resonating with that state.",
+                },
+                {
+                  icon: "▶",
+                  title: lang === "ru" ? "Медитативная практика" : "Meditative practice",
+                  text: lang === "ru"
+                    ? "Выбери сценарий и нажми «Начать практику». Терапевтический нейрозвук — уникальный для каждого состояния — запустит процесс нейронной перестройки через слуховой канал. Достаточно закрыть глаза, наблюдать дыхание и позволить звуку делать свою работу."
+                    : "Choose a scenario and tap «Start practice». The therapeutic neural sound — unique to each state — initiates neural restructuring through the auditory channel. Simply close your eyes, observe your breathing and let the sound do its work.",
+                },
+              ].map((card, i) => (
+                <div key={i} style={{ background: `rgba(${T.ar},.06)`, border: `1px solid rgba(${T.ar},.12)`, borderRadius: RAD.lg, padding: `${SP.md}px ${SP.lg}px`, marginBottom: SP.md }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: SP.md, marginBottom: SP.sm }}>
+                    <div style={{ fontSize: 18, color: T.accent }}>{card.icon}</div>
+                    <div style={{ ...label(TYPE.xs), color: T.accent }}>{card.title}</div>
+                  </div>
+                  <div style={{ ...body(TYPE.sm), lineHeight: LH.loose, color: `rgba(220,200,185,.72)` }}>{card.text}</div>
+                </div>
+              ))}
 
-            <div style={{ padding: `${SP.md}px ${SP.md + 2}px`, background: `rgba(255,255,255,${OP.bgSubtle})`, border: `1px solid rgba(255,255,255,${OP.bgSubtle + 0.02})`, borderRadius: RAD.md, marginBottom: SP.md, textAlign: "left" }}>
-              <div style={{ ...label(), fontSize: 9, color: "rgba(230,180,200,.65)", marginBottom: 6 }}>{L("orb_intro_layers")}</div>
-              <div style={{ fontFamily: FONT_SERIF, fontSize: TYPE.sm, lineHeight: 1.75, color: "rgba(245,235,230,.7)" }} dangerouslySetInnerHTML={{ __html: L("orb_intro_layers_body") }} />
+              <button type="button" onClick={dismissIntro} style={{
+                width: "100%", marginTop: SP.md, padding: `${SP.lg}px 0`, borderRadius: RAD.lg,
+                background: `linear-gradient(135deg, rgba(${T.ar},.4), rgba(${T.ar},.22))`,
+                border: `1.5px solid rgba(${T.ar},.6)`,
+                fontFamily: FONT_SERIF, fontSize: TYPE.base, fontStyle: "italic",
+                color: "#fff", cursor: "pointer", letterSpacing: ".04em",
+                boxShadow: `0 0 28px rgba(${T.ar},.25)`,
+                touchAction: "manipulation", WebkitAppearance: "none",
+              }}>
+                {lang === "ru" ? "Понятно, начать" : "Got it, start"}
+              </button>
             </div>
-
-            <div style={{ padding: `${SP.md}px ${SP.md + 2}px`, background: `rgba(255,255,255,${OP.bgSubtle})`, border: `1px solid rgba(255,255,255,${OP.bgSubtle + 0.02})`, borderRadius: RAD.md, marginBottom: SP.md, textAlign: "left" }}>
-              <div style={{ ...label(), fontSize: 9, color: "rgba(230,180,200,.65)", marginBottom: 6 }}>{L("orb_intro_scenarios")}</div>
-              <div style={{ fontFamily: FONT_SERIF, fontSize: TYPE.sm, lineHeight: 1.75, color: "rgba(245,235,230,.7)" }}>{L("orb_intro_scenarios_body")}</div>
-            </div>
-
-            <div style={{ padding: `${SP.md}px ${SP.md + 2}px`, background: `rgba(255,255,255,${OP.bgSubtle})`, border: `1px solid rgba(255,255,255,${OP.bgSubtle + 0.02})`, borderRadius: RAD.md, marginBottom: SP.page, textAlign: "left" }}>
-              <div style={{ ...label(), fontSize: 9, color: "rgba(230,180,200,.65)", marginBottom: 6 }}>{L("orb_intro_medit")}</div>
-              <div style={{ fontFamily: FONT_SERIF, fontSize: TYPE.sm, lineHeight: 1.75, color: "rgba(245,235,230,.7)" }}>{L("orb_intro_medit_body")}</div>
-            </div>
-
-            <button type="button" onClick={dismissIntro} style={{ padding: `14px ${SP.xxl}px`, borderRadius: RAD.lg + 4, background: "linear-gradient(135deg, rgba(230,77,168,.55), rgba(240,136,56,.45))", border: "1.5px solid rgba(240,136,56,.7)", fontFamily: FONT_SANS, fontSize: 11, letterSpacing: ".2em", textTransform: "uppercase", color: "#fff", cursor: "pointer", boxShadow: `0 0 ${SP.xl}px rgba(230,77,168,.3)`, touchAction: "manipulation", WebkitAppearance: "none", marginTop: SP.sm }}>{L("orb_start")}</button>
-            <div onClick={dismissIntro} style={{ marginTop: 14, padding: `${SP.sm}px ${SP.lg}px`, fontFamily: FONT_SANS, fontSize: 9, letterSpacing: 1.5, textTransform: "uppercase", color: `rgba(245,235,230,${OP.tertiary})`, cursor: "pointer" }}>{L("orb_skip")}</div>
-          </div>
           </div>
         </div>
       )}
+
 
       {/* Timer picker overlay */}
       {showTimerPicker && (
@@ -1033,60 +1084,49 @@ export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, init
         </div>
       )}
 
-      {/* Active label + name — hides during meditation */}
-      <div style={{ position: "absolute", top: 62, left: "50%", transform: "translateX(-50%)", textAlign: "center", pointerEvents: "none", zIndex: 20, opacity: hideUI, transition: "opacity .8s" }}>
-        <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase", color: (panelMode === "scenario" && activeScenario) ? activeScenario.hex : layer.hex, whiteSpace: "nowrap", ...ss }}>{(panelMode === "scenario" && activeScenario) ? orbScenarioName(activeScenario, lang) : orbLayerName(layer, lang)}</div>
-        <div style={{ fontSize: 8, letterSpacing: 2, color: `rgba(220,195,172,${OP.tertiary})`, marginTop: 3, ...ss }}>{(panelMode === "scenario" && activeScenario) ? L("orb_scenario") : orbLayerSub(layer, lang)}</div>
-      </div>
 
-      {/* Scenario chips row — hides during meditation */}
-      <div style={{ position: "absolute", top: 96, left: 0, right: 0, zIndex: 20, overflowX: "auto", padding: `0 ${SP.lg}px 0 ${SP.lg}px`, WebkitOverflowScrolling: "touch", opacity: hideUI, transition: "opacity .8s", pointerEvents: meditating ? "none" : "auto" }}>
-        <div style={{ display: "flex", gap: 6, whiteSpace: "nowrap" }}>
-          <div onClick={() => { scenarioRef.current = null; setActiveScenarioState(null); }} style={{ cursor: "pointer", padding: "5px 11px", borderRadius: RAD.md, background: !activeScenario ? "rgba(190,130,90,.25)" : "rgba(30,20,25,.5)", border: `1px solid ${!activeScenario ? "rgba(200,150,110,.45)" : "rgba(190,130,90,.15)"}`, fontSize: 8, letterSpacing: 1.5, textTransform: "uppercase", color: !activeScenario ? `rgba(240,210,178,${OP.primary})` : `rgba(200,175,158,${OP.secondary})`, whiteSpace: "nowrap", flexShrink: 0, ...ss }}>{L("orb_neutral")}</div>
-          {SCENARIOS.map((sc) => (
-            <div key={sc.id} onClick={() => setScenario(activeScenario?.id === sc.id ? null : sc)} style={{ cursor: "pointer", padding: "5px 11px", borderRadius: RAD.md, background: activeScenario?.id === sc.id ? `${sc.hex}30` : "rgba(30,20,25,.5)", border: `1px solid ${activeScenario?.id === sc.id ? sc.hex : "rgba(190,130,90,.15)"}`, fontSize: 8, letterSpacing: 1.5, textTransform: "uppercase", color: activeScenario?.id === sc.id ? sc.hex : `rgba(200,175,158,${OP.secondary})`, whiteSpace: "nowrap", flexShrink: 0, ...ss }}>{orbScenarioName(sc, lang)}</div>
-          ))}
-        </div>
-      </div>
-
-      {/* Bottom panel — collapsed/expanded, hidden during meditation */}
-      {panelOpen && !meditating && (() => {
-        const acHex = activeScenario ? activeScenario.hex : layer.hex;
-        const panelTitle = activeScenario ? orbScenarioName(activeScenario, lang) : orbLayerName(layer, lang);
-        const panelSub = activeScenario ? `${L("orb_scenario_of")} · ${orbLayerName(layer, lang)}` : `${L("orb_level")} ${layer.id}`;
-        const panelDesc = activeScenario ? orbScenarioByLayer(activeScenario, layer.id, lang) : orbLayerDesc(layer, lang);
-        const prof = getProfile();
-        const profLabel = orbSoundLabel(activeScenario?.id || "neutral", prof.label, lang);
-        const profDesc = orbSoundDesc(activeScenario?.id || "neutral", prof.desc, lang);
-        return (
-          <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 25, transition: "all .35s cubic-bezier(.32,.72,0,1)" }}>
-            <div style={{ maxWidth: 640, margin: "0 auto", background: "linear-gradient(180deg, rgba(6,2,8,0) 0%, rgba(6,2,8,.94) 16%, rgba(6,2,8,.98) 100%)", backdropFilter: "blur(20px)", borderTop: `1px solid ${acHex}22`, padding: `0 ${SP.lg}px ${panelExpanded ? SP.page : 10}px ${SP.lg}px`, position: "relative", maxHeight: panelExpanded ? "55%" : "auto", overflowY: panelExpanded ? "auto" : "hidden" }}>
-              {/* Drag handle — toggles expanded */}
-              <div onClick={() => setPanelExpanded(!panelExpanded)} style={{ display: "flex", justifyContent: "center", padding: "10px 0 6px", cursor: "pointer", position: panelExpanded ? "sticky" : "relative", top: 0, background: panelExpanded ? "linear-gradient(180deg, rgba(6,2,8,.95) 70%, transparent)" : "transparent", zIndex: 2 }}>
-                <i style={{ display: "block", width: 28, height: 3, borderRadius: 2, background: `${acHex}55`, transition: EASE.fast }} />
-              </div>
-              {/* Title row — always visible */}
-              <div onClick={() => setPanelExpanded(!panelExpanded)} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 10, marginBottom: panelExpanded ? SP.sm : 0 }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: "rgba(190,130,90,.45)", marginBottom: 3, ...ss }}>{panelSub}</div>
-                  <div style={{ fontSize: TYPE.lg, fontStyle: "italic", fontWeight: "normal", color: acHex, lineHeight: 1.25, ...ss }}>{panelTitle}</div>
-                </div>
-                <div style={{ fontSize: 11, color: `${acHex}88`, transform: panelExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform .3s" }}>▾</div>
-              </div>
-              {/* Expanded content */}
-              {panelExpanded && (
-                <div style={{ animation: "fadeUp .25s ease both" }}>
-                  <div style={{ fontSize: 15, lineHeight: 1.7, color: "rgba(200,175,158,.78)", wordWrap: "break-word", marginBottom: SP.md, marginTop: SP.xs, ...ss }}>{panelDesc}</div>
-                  <div style={{ padding: `10px ${SP.md + 2}px`, background: `${acHex}0c`, border: `1px solid ${acHex}22`, borderRadius: RAD.sm + 2 }}>
-                    <div style={{ fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: acHex, marginBottom: 5, ...ss }}>♫ {profLabel}</div>
-                    <div style={{ fontSize: TYPE.xs, lineHeight: 1.7, color: "rgba(200,175,158,.6)", ...ss }}>{profDesc}</div>
-                  </div>
-                </div>
-              )}
+      {/* ─── Bottom personal dashboard ─── */}
+      {!meditating && (
+        <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 25, background: "linear-gradient(0deg, rgba(4,2,8,.97) 0%, rgba(4,2,8,.88) 50%, transparent 100%)", padding: `${SP.xl}px ${SP.lg}px ${SP.lg}px`, opacity: showTimerPicker ? 0 : hideUI, transition: "opacity .5s", pointerEvents: showTimerPicker ? "none" : "auto" }}>
+          {/* Scenario chips */}
+          <div style={{ marginBottom: SP.md }}>
+            <div style={{ fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: `rgba(${T.ar},.35)`, fontFamily: FONT_SANS, marginBottom: SP.sm }}>{lang === "ru" ? "Сценарий" : "Scenario"}</div>
+            <div style={{ display: "flex", gap: 6, overflowX: "auto", margin: `0 -${SP.lg}px`, padding: `2px ${SP.lg}px 4px`, WebkitOverflowScrolling: "touch" }}>
+              <div onClick={() => { scenarioRef.current = null; setActiveScenarioState(null); }} style={{
+                cursor: "pointer", padding: "5px 11px", borderRadius: RAD.md, flexShrink: 0,
+                background: !activeScenario ? `rgba(${T.ar},.22)` : "rgba(255,255,255,.04)",
+                border: `1px solid ${!activeScenario ? `rgba(${T.ar},.5)` : "rgba(255,255,255,.08)"}`,
+                fontSize: 8, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: FONT_SANS,
+                color: !activeScenario ? T.accent : "rgba(200,180,170,.4)", whiteSpace: "nowrap",
+              }}>{lang === "ru" ? "Нейтрально" : "Neutral"}</div>
+              {SCENARIOS.map((sc) => (
+                <div key={sc.id} onClick={() => setScenario(activeScenario?.id === sc.id ? null : sc)} style={{
+                  cursor: "pointer", padding: "5px 11px", borderRadius: RAD.md, flexShrink: 0,
+                  background: activeScenario?.id === sc.id ? `${sc.hex}28` : "rgba(255,255,255,.04)",
+                  border: `1px solid ${activeScenario?.id === sc.id ? sc.hex : "rgba(255,255,255,.08)"}`,
+                  fontSize: 8, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: FONT_SANS,
+                  color: activeScenario?.id === sc.id ? sc.hex : "rgba(200,180,170,.4)", whiteSpace: "nowrap",
+                }}>{orbScenarioName(sc, lang)}</div>
+              ))}
             </div>
           </div>
-        );
-      })()}
+          {/* Practice button */}
+          <button type="button" onClick={() => setShowTimerPicker(true)} style={{
+            width: "100%", padding: `${SP.lg}px 0`, borderRadius: RAD.lg,
+            background: activeScenario
+              ? `linear-gradient(135deg, ${activeScenario.hex}33, ${activeScenario.hex}16)`
+              : `linear-gradient(135deg, rgba(${T.ar},.28), rgba(${T.ar},.14))`,
+            border: `1.5px solid ${activeScenario ? activeScenario.hex + "88" : `rgba(${T.ar},.5)`}`,
+            fontFamily: FONT_SERIF, fontSize: TYPE.base, fontStyle: "italic",
+            color: activeScenario ? activeScenario.hex : T.text, cursor: "pointer", letterSpacing: ".04em",
+            boxShadow: `0 0 24px ${activeScenario ? activeScenario.hex + "22" : `rgba(${T.ar},.18)`}`,
+            touchAction: "manipulation", WebkitAppearance: "none",
+          }}>
+            {lang === "ru" ? "Начать практику" : "Start practice"}
+            {activeScenario ? ` · ${orbScenarioName(activeScenario, lang)}` : ""}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

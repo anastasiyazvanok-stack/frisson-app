@@ -1,6 +1,6 @@
 {
   "appId": "com.frisson.app",
-  "appName": "Frisson",
+  "appName": "LuxMind",
   "webDir": "dist",
   "server": {
     "androidScheme": "https"
@@ -28,6 +28,6 @@
     "contentInset": "automatic",
     "backgroundColor": "#060208",
     "preferredContentMode": "mobile",
-    "scheme": "Frisson"
+    "scheme": "LuxMind"
   }
 }
