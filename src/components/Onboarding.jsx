@@ -309,17 +309,40 @@ export default function Onboarding({ onDone, lang = "ru", setLang }) {
             <span style={{ ...label(TYPE.xs), color: "rgba(180,150,165,.45)", letterSpacing: ".2em" }}>{lang === "ru" ? "Назад" : "Back"}</span>
           </div>
         )}
-        <div onClick={() => canNext && (isLast ? onDone() : setStep((s) => s + 1))} style={{
-          width: "100%", padding: SP.lg, borderRadius: RAD.xxl || 28, textAlign: "center",
-          cursor: canNext ? "pointer" : "default",
-          background: canNext ? "linear-gradient(135deg, rgba(210,55,140,.7) 0%, rgba(230,77,168,.55) 45%, rgba(220,110,40,.55) 100%)" : "rgba(255,255,255,.03)",
-          border: `1.5px solid ${canNext ? "rgba(220,100,55,.6)" : "rgba(255,255,255,.07)"}`,
-          backdropFilter: "blur(20px)",
-          boxShadow: canNext ? "0 0 40px rgba(210,55,140,.4), 0 0 80px rgba(230,100,40,.2), inset 0 1px 0 rgba(255,255,255,.08)" : "none",
-          ...label(TYPE.xs), fontWeight: 400, letterSpacing: ".28em",
-          color: canNext ? "rgba(245,228,233,.96)" : `rgba(230,218,225,${OP.disabled})`,
-          opacity: canNext ? 1 : 0.4, transition: EASE.normal,
-        }}>{isLast ? TX.enterSpace : cur.type === "splash" ? TX.enter : TX.next}</div>
+        {isLast ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: SP.sm }}>
+            <div onClick={() => canNext && onDone("register")} style={{
+              width: "100%", padding: SP.lg, borderRadius: RAD.xxl || 28, textAlign: "center",
+              cursor: canNext ? "pointer" : "default",
+              background: canNext ? "linear-gradient(135deg, rgba(210,55,140,.7) 0%, rgba(230,77,168,.55) 45%, rgba(220,110,40,.55) 100%)" : "rgba(255,255,255,.03)",
+              border: `1.5px solid ${canNext ? "rgba(220,100,55,.6)" : "rgba(255,255,255,.07)"}`,
+              backdropFilter: "blur(20px)",
+              boxShadow: canNext ? "0 0 40px rgba(210,55,140,.4), 0 0 80px rgba(230,100,40,.2), inset 0 1px 0 rgba(255,255,255,.08)" : "none",
+              ...label(TYPE.xs), fontWeight: 400, letterSpacing: ".28em",
+              color: canNext ? "rgba(245,228,233,.96)" : `rgba(230,218,225,${OP.disabled})`,
+              opacity: canNext ? 1 : 0.4, transition: EASE.normal,
+            }}>{lang === "ru" ? "СОЗДАТЬ АККАУНТ →" : "CREATE ACCOUNT →"}</div>
+            <div onClick={() => canNext && onDone("login")} style={{
+              width: "100%", padding: `${SP.md + 2}px`, textAlign: "center",
+              cursor: canNext ? "pointer" : "default",
+              ...label(TYPE.xs), letterSpacing: ".2em",
+              color: canNext ? "rgba(180,150,165,.7)" : `rgba(180,150,165,.25)`,
+              opacity: canNext ? 1 : 0.4, transition: EASE.normal,
+            }}>{lang === "ru" ? "Уже есть аккаунт → Войти" : "Already have an account → Log in"}</div>
+          </div>
+        ) : (
+          <div onClick={() => canNext && setStep((s) => s + 1)} style={{
+            width: "100%", padding: SP.lg, borderRadius: RAD.xxl || 28, textAlign: "center",
+            cursor: canNext ? "pointer" : "default",
+            background: canNext ? "linear-gradient(135deg, rgba(210,55,140,.7) 0%, rgba(230,77,168,.55) 45%, rgba(220,110,40,.55) 100%)" : "rgba(255,255,255,.03)",
+            border: `1.5px solid ${canNext ? "rgba(220,100,55,.6)" : "rgba(255,255,255,.07)"}`,
+            backdropFilter: "blur(20px)",
+            boxShadow: canNext ? "0 0 40px rgba(210,55,140,.4), 0 0 80px rgba(230,100,40,.2), inset 0 1px 0 rgba(255,255,255,.08)" : "none",
+            ...label(TYPE.xs), fontWeight: 400, letterSpacing: ".28em",
+            color: canNext ? "rgba(245,228,233,.96)" : `rgba(230,218,225,${OP.disabled})`,
+            opacity: canNext ? 1 : 0.4, transition: EASE.normal,
+          }}>{cur.type === "splash" ? TX.enter : TX.next}</div>
+        )}
       </div>
     </div>
   );

@@ -122,7 +122,7 @@ export default function App() {
   }
 
   const [onb, setOnb] = useState(() => localStorage.getItem("frisson_onb") === "1");
-  const [afterOnboarding, setAfterOnboarding] = useState(false);
+  const [afterOnboarding, setAfterOnboarding] = useState(null); // "register" | "login" | null
   const [tour, setTour] = useState(() => localStorage.getItem("frisson_tour") === "1");
   const [screen, setScreenRaw] = useState("home");
   const historyRef = useRef(["home"]);
@@ -211,21 +211,16 @@ export default function App() {
       <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(230,77,168,.6)", boxShadow: "0 0 20px rgba(230,77,168,.5)", animation: "breathe 1.8s ease-in-out infinite" }} />
     </div></>
   );
-  // Logged-in users always skip onboarding
-  if (userId && !onb) {
-    localStorage.setItem("frisson_onb", "1");
-    setOnb(true);
-  }
-
-  if (!userId && !onb && !afterOnboarding) return (
-    <><GlobalStyles /><Onboarding onDone={() => setAfterOnboarding(true)} lang={lang} setLang={setLang} /></>
+  // Non-logged-in users always see onboarding (unless they just finished it)
+  if (!userId && !afterOnboarding) return (
+    <><GlobalStyles /><Onboarding onDone={(mode) => setAfterOnboarding(mode)} lang={lang} setLang={setLang} /></>
   );
 
   if (!userId) return (
-    <><GlobalStyles /><Auth startMode={afterOnboarding ? "register" : "login"} onAuth={(name) => {
+    <><GlobalStyles /><Auth startMode={afterOnboarding} onAuth={(name) => {
       localStorage.setItem("frisson_onb", "1");
       setOnb(true);
-      setAfterOnboarding(false);
+      setAfterOnboarding(null);
       handleAuthDone(name);
     }} /></>
   );
