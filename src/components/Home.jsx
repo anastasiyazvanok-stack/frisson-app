@@ -1,22 +1,26 @@
+import { buildCatalog } from "../data/catalog.js";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { getEnergyLevel, themeLabel } from "../data/themes";
 import { getSections, getRecommendations, getMoodMessages } from "../data/content";
 import { getMoon, useGreeting } from "../utils/helpers";
 import { t as tr } from "../utils/i18n";
 import { TYPE, SP, RAD, OP, LS, EASE, LH, FONT_SERIF, FONT_SANS, tx, label, body, heading, card as cardStyle, section } from "../utils/design";
-import { AUDIO_URLS } from "../data/audioUrls";
+import { getAudioUrl } from "../data/audioUrls";
 import Orb from "./Orb";
 import { VERSION } from "../App";
 
-export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibSec, THEMES, activity, userName, doMarkPractice, lang = "ru", goToMed }) {
+export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibSec, THEMES, activity, userName, doMarkPractice, lang = "ru", goToMed, remoteMeds = null, remoteSections = null }) {
   const T = THEMES[theme] || THEMES.full;
   const L = (k, ...a) => tr(lang, k, ...a);
   const moon = getMoon(lang);
   const gr = useGreeting(lang);
   const lv = eScore !== null ? getEnergyLevel(eScore, lang) : null;
   const MOOD_MESSAGES = getMoodMessages(lang);
-  const SECTIONS = getSections(lang);
+  const SECTIONS = buildCatalog(lang, remoteMeds, remoteSections);
+  const findMed = title => SECTIONS.flatMap(s => s.meds).find(m => m.title === title || m.canonicalTitle === title);
   const RECOMMENDATIONS = getRecommendations(lang);
+  const suggested = (RECOMMENDATIONS[theme] || RECOMMENDATIONS.full).filter(r => findMed(r.t));
+  const recommendations = suggested.length ? suggested : SECTIONS.flatMap(s => s.meds.map(m => ({ t: m.title, s: m.dur, sec: s.id }))).slice(0, 3);
   const msgList = MOOD_MESSAGES[theme] || MOOD_MESSAGES.full;
   const [msg, setMsg] = useState(() => msgList[Math.floor(Math.random() * msgList.length)]);
   const [showInfo, setShowInfo] = useState(false);
@@ -46,7 +50,7 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
   }, [miniDet]);
 
   const playRec = useCallback((r, lc) => {
-    const url = AUDIO_URLS[r.t];
+    const url = getAudioUrl(findMed(r.t));
     if (!url || !miniRef.current) return;
     const a = miniRef.current;
     if (miniDet?.title === r.t) {
@@ -218,11 +222,11 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
           <div style={{ ...label(TYPE.xs), color: tx("var(--txt)", OP.tertiary), letterSpacing: ".2em" }}>{L("for_you_now")}</div>
           <span onClick={() => setScreen("library")} style={{ ...label(TYPE.xs), color: T.accent, cursor: "pointer" }}>{L("all")}</span>
         </div>
-        {(RECOMMENDATIONS[theme] || RECOMMENDATIONS.full).map((r, ri) => {
+        {recommendations.map((r, ri) => {
           const sec = SECTIONS.find((s) => s.id === r.sec);
           const lc = r.free ? "rgba(160,130,50,.8)" : (sec?.color || T.accent);
           const isActive = miniDet?.title === r.t;
-          const hasAudio = !!AUDIO_URLS[r.t];
+          const hasAudio = !!getAudioUrl(findMed(r.t));
           return (
             <div key={r.t} onClick={() => goToMed ? goToMed(r.t) : setScreen("library")} className="press-card glass-card" style={{
               display: "flex", alignItems: "center", gap: SP.md,

@@ -1,3 +1,5 @@
+import { aiFetch } from "../lib/ai.js";
+import { userStorage as localStorage } from "../lib/userStorage.js";
 import { useState, useEffect } from "react";
 import {
   TYPE, SP, RAD, OP, LS, EASE, LH,
@@ -71,17 +73,20 @@ export default function Journal({ theme, addGems, THEMES, lang = "ru", doMarkPra
   const [goalText, setGoalText] = useState("");
   const [crystals, setCrystals] = useState([]);
   const [aiReply, setAiReply] = useState(null);
+  const [aiError, setAiError] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
 
   async function getAiReply(entryText) {
     if (!entryText?.trim() || entryText.trim().length < 20) return;
+    setAiError(false);
     setAiLoading(true);
     try {
-      const res = await fetch("/api/ai-diary", {
+      const res = await aiFetch("/api/ai-diary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: entryText, lang }),
       });
+      if (!res.ok) throw new Error("AI unavailable");
       if (res.ok) {
         const { message, axes } = await res.json();
         if (message) {
@@ -89,7 +94,7 @@ export default function Journal({ theme, addGems, THEMES, lang = "ru", doMarkPra
           setTimeout(() => setAiReply(null), 12000);
         }
       }
-    } catch {}
+    } catch { setAiError(true); }
     setAiLoading(false);
   }
 
@@ -234,6 +239,7 @@ export default function Journal({ theme, addGems, THEMES, lang = "ru", doMarkPra
       <Orb style={{ top: 200, right: -60 }} color={tc.hex} opacity={0.08} w={200} h={200} />
       <Orb style={{ bottom: 160, left: -60 }} color={T.o1} opacity={0.07} w={180} h={180} />
 
+      {aiError && <p role="status">{lang === "ru" ? "Запись сохранена. ИИ-отклик сейчас недоступен." : "Entry saved. AI response is currently unavailable."}</p>}
       {/* AI reply card */}
       {(aiLoading || aiReply) && (
         <div style={{ position: "fixed", bottom: 90, left: "50%", transform: "translateX(-50%)", zIndex: 200, width: "calc(100% - 48px)", maxWidth: 380, animation: "fadeUp .4s ease both" }}>

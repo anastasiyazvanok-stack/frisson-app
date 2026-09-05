@@ -1,7 +1,9 @@
+import { localDay, previousDay } from "../utils/dates.js";
+import { userStorage as localStorage } from "../lib/userStorage.js";
 // Activity tracking: streaks, daily practice, achievements
 const KEY = "frisson_activity";
 
-function today() { return new Date().toISOString().slice(0, 10); }
+const today = localDay;
 
 function load() {
   try { return JSON.parse(localStorage.getItem(KEY)) || defaults(); }
@@ -20,8 +22,8 @@ export function getActivity() {
   // Reset todayDone if day changed
   if (d.lastDay && d.lastDay !== t) {
     // Check if yesterday — streak continues. Otherwise streak breaks.
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-    if (d.lastDay !== yesterday && d.todayDone) {
+    const yesterday = previousDay();
+    if (d.lastDay !== yesterday) {
       // last activity was NOT yesterday — streak resets
       d.streak = 0;
     }
@@ -32,11 +34,11 @@ export function getActivity() {
 }
 
 export function markPractice(minutes = 0) {
-  const d = load();
+  const d = getActivity();
   const t = today();
   if (!d.todayDone) {
     // First practice today
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    const yesterday = previousDay();
     if (d.lastDay === yesterday || d.lastDay === t) {
       d.streak += d.lastDay === t ? 0 : 1;
     } else {

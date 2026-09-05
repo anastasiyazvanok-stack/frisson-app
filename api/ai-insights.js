@@ -1,9 +1,10 @@
+import { authorizeAI } from "../server/ai-access.js";
 import Anthropic from "@anthropic-ai/sdk";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).end();
+  if (!await authorizeAI(req, res)) return;
 
   const { capital, activity, lang = "ru" } = req.body || {};
 
@@ -26,6 +27,7 @@ export default async function handler(req, res) {
     : `You are Anastasia, women's psychological capital expert. Based on user data, write a personal insight — what's growing, where there's potential, what can be done right now. Write warmly, specifically, to the point. 4-6 sentences. No lists — flowing text.`;
 
   try {
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 20000, maxRetries: 0 });
     const response = await client.messages.create({
       model: "claude-opus-4-5",
       max_tokens: 500,
