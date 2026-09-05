@@ -1,3 +1,4 @@
+import { createUserSync } from "./userSync.js";
 import { createClient } from "@supabase/supabase-js";
 
 const url = import.meta.env.VITE_SUPABASE_URL;
@@ -12,8 +13,10 @@ let _recoveryMode = false;
 export const getIsRecoveryMode = () => _recoveryMode;
 supabase.auth.onAuthStateChange((event) => {
   if (event === "PASSWORD_RECOVERY") _recoveryMode = true;
-  else if (event === "SIGNED_IN" || event === "SIGNED_OUT") _recoveryMode = false;
+  else if (event === "SIGNED_OUT") _recoveryMode = false;
 });
+
+export function clearRecoveryMode() { _recoveryMode = false; }
 
 // ─── Auth helpers ───
 
@@ -35,7 +38,7 @@ export async function signOut() {
 
 export async function resetPassword(email) {
   return await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}?resetpw=1`,
+    redirectTo: import.meta.env.VITE_AUTH_REDIRECT_URL || new URL(import.meta.env.BASE_URL, window.location.origin).href,
   });
 }
 
@@ -45,68 +48,17 @@ export async function getSession() {
 }
 
 // ─── User data sync ───
-
-const SYNC_KEYS = [
-  "frisson-theme",
-  "frisson_escore",
-  "frisson_escore_date",
-  "frisson_ehist",
-  "frisson_gems",
-  "frisson_activity",
-  "frisson_psycap_v2",
-  "frisson_journal",
-];
-
-export function collectLocalData() {
-  const out = {};
-  for (const key of SYNC_KEYS) {
-    const v = localStorage.getItem(key);
-    if (v !== null) out[key] = v;
-  }
-  return out;
-}
-
-export function applyCloudData(cloudData) {
-  if (!cloudData || typeof cloudData !== "object") return;
-  for (const key of SYNC_KEYS) {
-    if (cloudData[key] !== undefined) {
-      localStorage.setItem(key, cloudData[key]);
-    }
-  }
-}
-
-export async function syncToCloud(userId) {
-  try {
-    const data = collectLocalData();
-    await supabase
-      .from("user_data")
-      .upsert({ id: userId, data, updated_at: new Date().toISOString() });
-  } catch (e) {
-    console.warn("[frisson] sync failed:", e);
-  }
-}
-
-export async function loadFromCloud(userId) {
-  try {
-    const { data, error } = await supabase
-      .from("user_data")
-      .select("data")
-      .eq("id", userId)
-      .single();
-    if (error) return null;
-    return data?.data || null;
-  } catch {
-    return null;
-  }
-}
+const userSync = createUserSync(supabase);
+export const syncToCloud = userSync.sync;
+export const loadFromCloud = userSync.load;
 
 // ─── Content fetchers (read-only, cached) ───
 
 // Fetch meditations from backend, fall back to empty array on error.
 // Called once on app load — result cached in localStorage for offline access.
 function readCache(key) {
-  try { const v = localStorage.getItem(key); return v ? JSON.parse(v).data || [] : []; }
-  catch { return []; }
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v).data ?? null : null; }
+  catch { return null; }
 }
 
 export async function fetchMeditations() {

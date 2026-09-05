@@ -1,49 +1,22 @@
-const CACHE_NAME = 'frisson-v5.5.1';
-const BASE = '/frisson/';
-
-// Aggressive: on install, wipe ALL caches and take over immediately
-self.addEventListener('install', (e) => {
-  self.skipWaiting();
-  e.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
-  );
+// Build injects an explicit public app-shell allowlist. Never cache API responses.
+const PRECACHE = [];
+const CACHE_NAME = 'frisson-shell-development';
+const SHELL_URL = new URL('index.html', self.registration.scope).href;
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE)));
 });
-
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim())
-  );
+self.addEventListener('activate', event => {
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys
+    .filter(key => key.startsWith('frisson-shell-') && key !== CACHE_NAME)
+    .map(key => caches.delete(key)))).then(() => self.clients.claim()));
 });
-
-// Network-first for HTML and JS (always get fresh code)
-// Cache fallback only for offline
-self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET') return;
-  const url = new URL(e.request.url);
-  const isHTML = e.request.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname === BASE;
-  const isJS = url.pathname.endsWith('.js');
-
-  if (isHTML || isJS) {
-    // Always network first, no caching for JS/HTML
-    e.respondWith(
-      fetch(e.request, { cache: 'no-store' }).catch(() => caches.match(e.request))
-    );
-    return;
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin || url.pathname.includes('/api/')) return;
+  if (event.request.mode === 'navigate' && url.href.startsWith(self.registration.scope)) {
+    event.respondWith(fetch(event.request).catch(() => caches.match(SHELL_URL)));
+  } else if (PRECACHE.includes(url.pathname)) {
+    event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request)));
   }
-
-  // For other assets, cache-first with network fallback
-  e.respondWith(
-    caches.match(e.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(e.request).then((res) => {
-        if (res.ok) {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
-        }
-        return res;
-      });
-    })
-  );
 });

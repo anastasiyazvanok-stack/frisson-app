@@ -69,7 +69,7 @@ function Field({ label, children }) {
 // ─── Meditation form ───
 function MedForm({ initial, sections, onSave, onClose }) {
   const blank = { title: "", short: "", long: "", n: "", section_id: sections[0]?.id || "", audio_url: "", sort_order: 0, active: true };
-  const [form, setForm] = useState(initial || blank);
+  const [form, setForm] = useState(() => ({ ...blank, ...initial, ...Object.fromEntries(["title", "short", "long", "n", "audio_url"].map(key => [key, String(initial?.[key] ?? blank[key] ?? "")])) }));
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [err, setErr] = useState("");
@@ -91,6 +91,7 @@ function MedForm({ initial, sections, onSave, onClose }) {
   async function save() {
     if (!form.title.trim()) { setErr("Название обязательно"); return; }
     setSaving(true);
+    try {
     const payload = {
       title: form.title.trim(),
       short: form.short.trim(),
@@ -110,6 +111,8 @@ function MedForm({ initial, sections, onSave, onClose }) {
     setSaving(false);
     if (error) { setErr(error.message); return; }
     onSave();
+    } catch (error) { setErr(error.message || "Не удалось сохранить медитацию"); }
+    finally { setSaving(false); }
   }
 
   return (

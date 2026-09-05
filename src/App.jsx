@@ -1,7 +1,9 @@
+import { userStorage as localStorage, activateUser, readUser, subscribeUserChanges } from "./lib/userStorage.js";
+import { localDay } from "./utils/dates.js";
 import { useState, useRef, useEffect } from "react";
 import { getThemes } from "./data/themes";
 import { getActivity, markPractice, getName, setName as saveName } from "./data/activity";
-import { supabase, fetchMeditations, fetchSections, getSession, signOut, syncToCloud, loadFromCloud, applyCloudData, collectLocalData, getIsRecoveryMode } from "./lib/supabase";
+import { supabase, fetchMeditations, fetchSections, getSession, signOut, syncToCloud, loadFromCloud, getIsRecoveryMode, clearRecoveryMode } from "./lib/supabase";
 import { TYPE, SP, RAD, OP, EASE, FONT_SERIF, FONT_SANS, tx, label, heading } from "./utils/design";
 import { useLangState, t as tr } from "./utils/i18n";
 import GlobalStyles from "./components/GlobalStyles";
@@ -21,108 +23,106 @@ import AICoach from "./components/AICoach";
 
 export const VERSION = "5.8.0";
 
+function Loading() {
+  return <div role="status" style={{ background: '#06030a', color: '#eee', height: '100dvh', display: 'grid', placeItems: 'center' }}>LuxMind · …</div>;
+}
+
 export default function App() {
   const [lang, setLang] = useLangState();
-  const L = (k, ...a) => tr(lang, k, ...a);
-  const [showAdmin, setShowAdmin] = useState(false);
-  const [userEmail, setUserEmail] = useState(null);
-  const recoveryRef = useRef(
-    localStorage.getItem("lux_pw_reset") === "1" || getIsRecoveryMode()
-  );
-  const [showPasswordReset, setShowPasswordReset] = useState(() => recoveryRef.current);
-
-  // ─── Auth state ───
-  const [authChecked, setAuthChecked] = useState(false);
-  const [userId, setUserId] = useState(null);
-  const syncTimer = useRef(null);
-
-  const queueSync = (uid) => {
-    if (!uid) return;
-    clearTimeout(syncTimer.current);
-    syncTimer.current = setTimeout(() => syncToCloud(uid), 2000);
-  };
+  const [session, setSession] = useState(null);
+  const [checked, setChecked] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [recovery, setRecovery] = useState(getIsRecoveryMode);
+  const [mode, setMode] = useState(null);
+  const [loadError, setLoadError] = useState(null);
+  const [retry, setRetry] = useState(0);
+  const recoveryRef = useRef(getIsRecoveryMode());
 
   useEffect(() => {
-    // Check existing session on mount
-    getSession().then((session) => {
-      if (session?.user) {
-        setUserId(session.user.id);
-        setUserEmail(session.user.email);
-        handleCloudLoad(session.user.id);
-      }
-      setAuthChecked(true);
-    });
-
-    // Listen for auth state changes (login, logout, email verification)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY") {
-        recoveryRef.current = true;
-        setShowPasswordReset(true);
-        setAuthChecked(true);
-      } else if (session?.user) {
-        if (recoveryRef.current) {
-          // SIGNED_IN fires right after PASSWORD_RECOVERY — don't override recovery mode
-          setAuthChecked(true);
-        } else {
-          setShowPasswordReset(false);
-          setUserId(session.user.id);
-          setUserEmail(session.user.email);
-          handleCloudLoad(session.user.id);
-          setAuthChecked(true);
-        }
-      } else {
-        recoveryRef.current = false;
-        setShowPasswordReset(false);
-        setUserId(null);
-        setUserEmail(null);
-        setAuthChecked(true);
-      }
-    });
-
-    // Sync on visibility change (app goes to background)
-    const onHide = () => {
-      if (document.visibilityState === "hidden") {
-        getSession().then((s) => { if (s?.user) syncToCloud(s.user.id); });
-      }
+    let alive = true;
+    let receivedEvent = false;
+    // Keep this callback synchronous: Supabase auth operations must not be
+    // awaited while its auth-state callback holds the session lock.
+    const receive = (event, next) => {
+      if (!alive) return;
+      receivedEvent = true;
+      if (event === 'PASSWORD_RECOVERY') recoveryRef.current = true;
+      if (!next) recoveryRef.current = false;
+      setRecovery(recoveryRef.current);
+      setSession(previous => previous?.user?.id === next?.user?.id ? previous : next);
+      setChecked(true);
     };
-    document.addEventListener("visibilitychange", onHide);
-
-    return () => {
-      subscription.unsubscribe();
-      document.removeEventListener("visibilitychange", onHide);
-      clearTimeout(syncTimer.current);
-    };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(receive);
+    getSession().then(next => { if (alive && !receivedEvent) receive('INITIAL_SESSION', next); })
+      .catch(error => { if (alive) { setLoadError(error); setChecked(true); } });
+    return () => { alive = false; subscription.unsubscribe(); };
   }, []);
 
-  async function handleCloudLoad(uid) {
-    const cloudData = await loadFromCloud(uid);
-    if (cloudData && Object.keys(cloudData).length > 0) {
-      // Cloud has data — apply it (cloud wins to support multi-device)
-      applyCloudData(cloudData);
-    } else {
-      // First login — upload existing localStorage
-      syncToCloud(uid);
-    }
-  }
+  const uid = session?.user?.id;
+  useEffect(() => {
+    let alive = true;
+    activateUser(uid);
+    setReady(false);
+    setLoadError(null);
+    if (!uid) return () => { alive = false; };
+    loadFromCloud(uid).then(() => {
+      if (!alive) return;
+      if (!getName() && session.user.user_metadata?.name) saveName(session.user.user_metadata.name);
+      setReady(uid);
+    }).catch(error => {
+      if (!alive) return;
+      setLoadError(error);
+      // Only an already initialized, account-scoped cache is safe offline.
+      if (readUser(uid).loaded) setReady(uid);
+    });
+    return () => { alive = false; };
+  }, [uid, retry]);
 
-  function handleAuthDone(nameFromReg) {
-    if (nameFromReg) {
-      saveName(nameFromReg);
-      setUserName(nameFromReg);
-      setShowNameInput(false);
-    }
-    // onAuthStateChange will handle userId + cloud load — no duplicate call needed
+  async function logout() {
+    try { if (uid) await syncToCloud(uid); } catch { /* Dirty account cache is retained for retry. */ }
+    const { error } = await signOut();
+    if (error) throw error;
+    clearRecoveryMode(); setRecovery(false); setMode(null);
   }
+  if (recovery && session) return <><GlobalStyles /><PasswordResetForm onDone={() => {
+    clearRecoveryMode(); recoveryRef.current = false; setRecovery(false);
+  }} onCancel={logout} /></>;
+  if (!checked) return <Loading />;
+  if (!uid) return <><GlobalStyles />{mode
+    ? <Auth startMode={mode} onAuth={() => setMode(null)} />
+    : <Onboarding onDone={setMode} lang={lang} setLang={setLang} />}</>;
+  if (ready !== uid) return loadError ? <div role="alert" style={{ padding: 32, color: '#fff', background: '#160a20', minHeight: '100dvh' }}>
+    <p>{lang === 'ru' ? 'Не удалось загрузить ваши данные. Проверьте соединение и попробуйте ещё раз.' : 'Could not load your data. Check your connection and try again.'}</p>
+    <button onClick={() => setRetry(n => n + 1)}>{lang === 'ru' ? 'Повторить' : 'Retry'}</button>
+  </div> : <Loading />;
+  return <UserApp key={uid} userId={uid} userEmail={session.user.email} lang={lang} setLang={setLang} onSignOut={logout} initialSyncError={loadError} />;
+}
 
-  async function handleSignOut() {
+function UserApp({ userId, userEmail, lang, setLang, onSignOut, initialSyncError }) {
+  const L = (k, ...a) => tr(lang, k, ...a);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [syncError, setSyncError] = useState(initialSyncError);
+  const syncTimer = useRef(null);
+  const queueSync = () => {
     clearTimeout(syncTimer.current);
-    if (userId) await syncToCloud(userId);
-    await signOut();
-    setUserId(null);
-  }
-
-  const [onb, setOnb] = useState(() => localStorage.getItem("frisson_onb") === "1");
-  const [afterOnboarding, setAfterOnboarding] = useState(null); // "register" | "login" | null
+    syncTimer.current = setTimeout(() => {
+      syncToCloud(userId).then(() => setSyncError(null)).catch(setSyncError);
+    }, 1000);
+  };
+  useEffect(() => {
+    let alive = true;
+    const flush = () => syncToCloud(userId).then(() => { if (alive) setSyncError(null); })
+      .catch(error => { if (alive) setSyncError(error); });
+    const unsubscribe = subscribeUserChanges(uid => { if (uid === userId) queueSync(); });
+    const onHide = () => { if (document.visibilityState === 'hidden') flush(); };
+    const interval = setInterval(flush, 30000);
+    window.addEventListener('online', flush);
+    document.addEventListener('visibilitychange', onHide);
+    flush();
+    return () => { alive = false; unsubscribe(); clearTimeout(syncTimer.current); clearInterval(interval);
+      window.removeEventListener('online', flush); document.removeEventListener('visibilitychange', onHide); };
+  }, [userId]);
+  async function handleSignOut() { try { await onSignOut(); } catch (error) { setSyncError(error); } }
   const [tour, setTour] = useState(() => localStorage.getItem("frisson_tour") === "1");
   const [screen, setScreenRaw] = useState("home");
   const historyRef = useRef(["home"]);
@@ -145,12 +145,12 @@ export default function App() {
   const [eScore, setEScoreRaw] = useState(() => {
     const v = localStorage.getItem("frisson_escore");
     const savedDate = localStorage.getItem("frisson_escore_date");
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = localDay();
     if (savedDate && savedDate !== todayStr) return null;
     return v !== null && v !== "null" ? parseInt(v) : null;
   });
   const setEScore = (v) => {
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = localDay();
     localStorage.setItem("frisson_escore", v === null ? "null" : String(v));
     localStorage.setItem("frisson_escore_date", todayStr);
     setEScoreRaw(v);
@@ -176,12 +176,13 @@ export default function App() {
   const addGems = (n) => setGems((g) => { const v = g + n; localStorage.setItem("frisson_gems", v); queueSync(userId); return v; });
 
   // ─── Cloud content (fetched once on app load, cached for offline) ───
-  const [remoteMeds, setRemoteMeds] = useState([]);
-  const [remoteSections, setRemoteSections] = useState([]);
-  useEffect(() => {
+  const [remoteMeds, setRemoteMeds] = useState(null);
+  const [remoteSections, setRemoteSections] = useState(null);
+  function refreshContent() {
     Promise.all([fetchMeditations(), fetchSections()])
       .then(([m, s]) => { setRemoteMeds(m); setRemoteSections(s); });
-  }, []);
+  }
+  useEffect(() => { refreshContent(); }, []);
 
   const [activity, setActivity] = useState(getActivity);
   const [userName, setUserName] = useState(getName);
@@ -196,34 +197,8 @@ export default function App() {
   const T = THEMES[theme] || THEMES.full;
   const showNav = screen !== "sub" && screen !== "situations" && screen !== "coach";
 
-  // Auth gate — show loading spinner while checking, then Auth screen if not logged in
-  if (showPasswordReset) return (<><GlobalStyles /><PasswordResetForm onDone={() => {
-    localStorage.removeItem("lux_pw_reset");
-    recoveryRef.current = false;
-    setShowPasswordReset(false);
-    getSession().then(s => { if (s?.user) { setUserId(s.user.id); setUserEmail(s.user.email); } });
-  }} /></>);
-  if (showAdmin) return (<><GlobalStyles /><Admin userEmail={userEmail} onClose={() => setShowAdmin(false)} /></>);
+  if (showAdmin) return (<><GlobalStyles /><Admin userEmail={userEmail} onClose={() => { setShowAdmin(false); refreshContent(); }} /></>);
 
-  if (!authChecked) return (
-    <><GlobalStyles />
-    <div style={{ width: "100%", height: "100dvh", background: "#06030a", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(230,77,168,.6)", boxShadow: "0 0 20px rgba(230,77,168,.5)", animation: "breathe 1.8s ease-in-out infinite" }} />
-    </div></>
-  );
-  // Non-logged-in users always see onboarding (unless they just finished it)
-  if (!userId && !afterOnboarding) return (
-    <><GlobalStyles /><Onboarding onDone={(mode) => setAfterOnboarding(mode)} lang={lang} setLang={setLang} /></>
-  );
-
-  if (!userId) return (
-    <><GlobalStyles /><Auth startMode={afterOnboarding} onAuth={(name) => {
-      localStorage.setItem("frisson_onb", "1");
-      setOnb(true);
-      setAfterOnboarding(null);
-      handleAuthDone(name);
-    }} /></>
-  );
   if (!tour) return (<><GlobalStyles /><AppTour onDone={() => { localStorage.setItem("frisson_tour", "1"); setTour(true); queueSync(userId); }} theme={theme} THEMES={THEMES} lang={lang} /></>);
 
   if (showNameInput) return (
@@ -263,7 +238,7 @@ export default function App() {
   );
 
   const screens = {
-    home: <Home setScreen={setScreen} theme={theme} setTheme={setThemePersisted} eScore={eScore} pLog={pLog} setLibSec={setLibSec} THEMES={THEMES} activity={activity} userName={userName} doMarkPractice={doMarkPractice} lang={lang} goToMed={goToMed} />,
+    home: <Home setScreen={setScreen} theme={theme} setTheme={setThemePersisted} eScore={eScore} pLog={pLog} setLibSec={setLibSec} THEMES={THEMES} activity={activity} userName={userName} doMarkPractice={doMarkPractice} lang={lang} goToMed={goToMed} remoteMeds={remoteMeds} remoteSections={remoteSections} />,
     library: <Library setScreen={setScreen} goBack={goBack} theme={theme} initSec={libSec} initMed={openMed} clearMed={() => setOpenMed(null)} medFrom={medFrom} clearMedFrom={() => setMedFrom(null)} THEMES={THEMES} doMarkPractice={doMarkPractice} addGems={addGems} remoteMeds={remoteMeds} remoteSections={remoteSections} lang={lang} />,
     orbit: <Orbit setScreen={setScreen} goBack={goBack} addGems={addGems} doMarkPractice={doMarkPractice} initScenario={openScenario} clearInitScenario={() => setOpenScenario(null)} lang={lang} eScore={eScore} theme={theme} THEMES={THEMES} activity={activity} userName={userName} />,
     journal: <Journal theme={theme} addGems={addGems} THEMES={THEMES} doMarkPractice={doMarkPractice} lang={lang} />,
@@ -298,6 +273,9 @@ export default function App() {
               })}
             </div>
           )}
+          {syncError && <div role="alert" style={{ padding: '10px 16px', color: '#ffe9dc', background: '#613647', position: 'relative', zIndex: 2, fontSize: 12 }}>
+            {lang === 'ru' ? (syncError.code === 'SYNC_CONFLICT' ? 'На другом устройстве есть изменения. Ваша локальная копия сохранена; синхронизация приостановлена, чтобы ничего не перезаписать.' : 'Не удалось сохранить данные в облаке. Изменения сохранены на этом устройстве; повторим отправку при восстановлении связи.') : (syncError.code === 'SYNC_CONFLICT' ? 'Another device has changes. Your local copy is safe; sync is paused to prevent overwriting it.' : 'Cloud sync failed. Your changes are saved on this device and will be retried.')}
+          </div>}
           <div ref={scrollRef} key={screen} className="screen-in" style={{ flex: 1, overflowY: screen === "orbit" ? "hidden" : "auto", overflowX: "hidden", position: "relative", zIndex: 1, display: "flex", flexDirection: "column" }}>{screens[screen]}</div>
           {/* Edge-swipe back gesture (left edge swipe-right) */}
           {screen !== "orbit" && screen !== "home" && (

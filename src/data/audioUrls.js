@@ -17,3 +17,17 @@ export const AUDIO_URLS = {
   "Получение благ от мира":             `${BASE}/poluchenie-blag-ot-mira.mp3`,
   "Разговор с собой из будущего":       `${BASE}/razgovor-s-soboy-iz-budushchego.mp3`,
 };
+
+// Display names may be translated; canonicalTitle stays stable across languages.
+// Only advertise local recordings actually included in this build, or a configured CDN.
+export function getAudioUrl(med, config = import.meta.env || {}) {
+  if (!med) return null;
+  if (med.audio_url && /^(https?:\/\/|\/[^/])/.test(med.audio_url)) return med.audio_url;
+  const path = AUDIO_URLS[med.canonicalTitle || med.title];
+  if (!path) return null;
+  const base = config.VITE_AUDIO_BASE_URL;
+  if (base && /^https:\/\//.test(base)) return `${base.replace(/\/$/, '')}/${path.split('/').pop()}`;
+  const files = config.LOCAL_AUDIO_FILES || [];
+  if (!files.includes(path.split('/').pop())) return null;
+  return `${config.BASE_URL || '/'}audio/${path.split('/').pop()}`;
+}

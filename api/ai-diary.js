@@ -1,6 +1,7 @@
+import { authorizeAI } from "../server/ai-access.js";
 import Anthropic from "@anthropic-ai/sdk";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
 
 const SYSTEM = {
   ru: `Ты — голос приложения LuxMind, созданного магистром клинической психологии Анастасией Званок. Твоя задача — отвечать на дневниковые записи женщин тепло, точно и поддерживающе. Ты эксперт по женскому психологическому капиталу.
@@ -28,12 +29,13 @@ No extra text, only JSON.`,
 };
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).end();
+  if (!await authorizeAI(req, res)) return;
 
   const { text, lang = "ru" } = req.body || {};
-  if (!text?.trim()) return res.status(400).json({ error: "No text" });
+  if (typeof text !== "string" || !text.trim()) return res.status(400).json({ error: "No text" });
 
   try {
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 20000, maxRetries: 0 });
     const response = await client.messages.create({
       model: "claude-opus-4-5",
       max_tokens: 400,

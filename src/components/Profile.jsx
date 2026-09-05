@@ -1,3 +1,4 @@
+import { aiFetch } from "../lib/ai.js";
 import { useState } from "react";
 import { getEnergyLevel, themeLabel } from "../data/themes";
 import { getTestQuestions } from "../data/content";
@@ -16,6 +17,7 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
   const L = (k, ...a) => tr(lang, k, ...a);
   const [showT, setShowT] = useState(false);
   const [aiInsight, setAiInsight] = useState(null);
+  const [aiError, setAiError] = useState(false);
   const [aiInsightLoading, setAiInsightLoading] = useState(false);
   const [tI, setTI] = useState(0);
   const [tA, setTA] = useState([]);
@@ -204,10 +206,12 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
                 <div style={{ fontFamily: FONT_SANS, fontSize: TYPE.sm + 1, fontWeight: 300, color: tx("var(--txt)", 0.65), lineHeight: 1.5 }}>{lang === "ru" ? "Персональный анализ твоего прогресса от ИИ" : "AI-powered personal progress analysis"}</div>
               </div>
               <div onClick={async () => {
+                if (aiInsightLoading) return;
+                setAiError(false);
                 setAiInsightLoading(true);
                 try {
                   const psycap = getPsycap();
-                  const res = await fetch("/api/ai-insights", {
+                  const res = await aiFetch("/api/ai-insights", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -216,8 +220,9 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
                       lang,
                     }),
                   });
-                  if (res.ok) { const { insight } = await res.json(); setAiInsight(insight); }
-                } catch {}
+                  if (!res.ok) throw new Error("AI unavailable");
+                  const { insight } = await res.json(); setAiInsight(insight);
+                } catch { setAiError(true); }
                 setAiInsightLoading(false);
               }} style={{ width: 44, height: 44, borderRadius: "50%", background: aiInsightLoading ? `rgba(${T.ar},.08)` : T.accent + "22", border: `1px solid ${aiInsightLoading ? `rgba(${T.ar},.15)` : T.accent + "55"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: aiInsightLoading ? "default" : "pointer", flexShrink: 0, fontSize: 20, transition: EASE.normal }}>
                 {aiInsightLoading ? <div style={{ width: 14, height: 14, border: `2px solid ${T.accent}44`, borderTopColor: T.accent, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} /> : "✦"}
@@ -227,6 +232,7 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
         </div>
       </div>
 
+      {aiError && <p role="alert">{lang === "ru" ? "Не удалось получить инсайт. Попробуйте позже." : "Could not load insight. Please try later."}</p>}
       <div className="glass-card" style={{ ...section(18), padding: SP.page, background: `rgba(${T.ar},.05)`, border: `1px solid rgba(${T.ar},.12)`, borderRadius: RAD.lg, position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: -20, right: -20, width: 80, height: 80, borderRadius: "50%", background: `radial-gradient(circle, ${T.accent}11 0%, transparent 70%)`, pointerEvents: "none" }} />
         <div style={{ ...label(TYPE.xs), letterSpacing: ".22em", color: tx("var(--txt)", OP.tertiary), marginBottom: SP.xs }}>{L("energy_chart")}</div>
