@@ -119,7 +119,7 @@ export default function Journal({ theme, addGems, THEMES, lang = "ru", doMarkPra
     setText("");
     award(1);
     logDiary(saved, detectDiaryAxes(saved));
-    if (doMarkPractice) doMarkPractice(5);
+    if (doMarkPractice) doMarkPractice(0, 'journal');
     pop();
     getAiReply(saved);
   };
@@ -133,7 +133,7 @@ export default function Journal({ theme, addGems, THEMES, lang = "ru", doMarkPra
     setMood(null);
     award(1);
     logDiary(saved || "рефлексия", detectDiaryAxes(saved));
-    if (doMarkPractice) doMarkPractice(5);
+    if (doMarkPractice) doMarkPractice(0, 'journal');
     pop();
     if (saved) getAiReply(saved);
   };
@@ -145,7 +145,7 @@ export default function Journal({ theme, addGems, THEMES, lang = "ru", doMarkPra
     setGoalText("");
     award(1);
     logDiary(goalText, detectDiaryAxes(goalText));
-    if (doMarkPractice) doMarkPractice(5);
+    if (doMarkPractice) doMarkPractice(0, 'journal');
     pop();
   };
 
@@ -159,7 +159,7 @@ export default function Journal({ theme, addGems, THEMES, lang = "ru", doMarkPra
       if (goal && !goal.done) {
         award(2);
         logDiary(goal.text, detectDiaryAxes(goal.text));
-        if (doMarkPractice) doMarkPractice(10);
+        if (doMarkPractice) doMarkPractice(0, 'journal');
         pop();
       }
       return { ...d, goals: d.goals.map((g) => g.id === id ? { ...g, done: !g.done } : g) };

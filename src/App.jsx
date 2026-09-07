@@ -2,7 +2,7 @@ import { userStorage as localStorage, activateUser, readUser, subscribeUserChang
 import { localDay } from "./utils/dates.js";
 import { useState, useRef, useEffect } from "react";
 import { getThemes } from "./data/themes";
-import { getActivity, markPractice, getName, setName as saveName } from "./data/activity";
+import { getActivity, getWeekPractices, markPractice, getName, setName as saveName } from "./data/activity";
 import { supabase, fetchMeditations, fetchSections, getSession, signOut, syncToCloud, loadFromCloud, getIsRecoveryMode, clearRecoveryMode } from "./lib/supabase";
 import { TYPE, SP, RAD, OP, EASE, FONT_SERIF, FONT_SANS, tx, label, heading } from "./utils/design";
 import { useLangState, t as tr } from "./utils/i18n";
@@ -169,7 +169,6 @@ function UserApp({ userId, userEmail, lang, setLang, onSignOut, initialSyncError
     localStorage.setItem("frisson_ehist", JSON.stringify(next));
     return next;
   });
-  const [pLog] = useState([0, 1, 0, 2, 1, 0, 0]);
   const [libSec, setLibSec] = useState("all");
   const [openMed, setOpenMed] = useState(null);
   const [medFrom, setMedFrom] = useState(null);
@@ -191,10 +190,11 @@ function UserApp({ userId, userEmail, lang, setLang, onSignOut, initialSyncError
   useEffect(() => { refreshContent(); }, []);
 
   const [activity, setActivity] = useState(getActivity);
+  const pLog = getWeekPractices(activity);
   const [userName, setUserName] = useState(getName);
   const [showNameInput, setShowNameInput] = useState(() => !getName());
   const [nameVal, setNameVal] = useState("");
-  const doMarkPractice = (minutes) => { const a = markPractice(minutes); setActivity({ ...a }); queueSync(userId); };
+  const doMarkPractice = (minutes, kind) => { const a = markPractice(minutes, kind); setActivity({ ...a }); queueSync(userId); };
   const doSetName = (n) => { saveName(n); setUserName(n); setShowNameInput(false); queueSync(userId); };
 
   const scrollRef = useRef(null);

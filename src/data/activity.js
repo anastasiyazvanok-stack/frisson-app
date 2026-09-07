@@ -33,7 +33,7 @@ export function getActivity() {
   return d;
 }
 
-export function markPractice(minutes = 0) {
+export function markPractice(minutes = 0, kind = 'meditation') {
   const d = getActivity();
   const t = today();
   if (!d.todayDone) {
@@ -47,8 +47,11 @@ export function markPractice(minutes = 0) {
     d.todayDone = true;
     d.lastDay = t;
   }
-  d.totalMeds += 1;
-  d.totalMinutes += minutes;
+  if (kind === 'meditation') {
+    d.totalMeds += 1;
+    d.totalMinutes += minutes;
+  }
+  d.dailyPractices = { ...d.dailyPractices, [t]: (d.dailyPractices?.[t] || 0) + 1 };
   // Check achievements
   d.achievements = checkAchievements(d);
   save(d);
@@ -92,3 +95,12 @@ export function getAchievements(lang = "ru") {
 }
 
 export { ACHIEVEMENTS };
+
+export function getWeekPractices(activity, date = new Date()) {
+  const monday = new Date(date);
+  monday.setDate(monday.getDate() - (monday.getDay() + 6) % 7);
+  return Array.from({ length: 7 }, (_, i) => {
+    const day = new Date(monday); day.setDate(day.getDate() + i);
+    return activity?.dailyPractices?.[localDay(day)] || 0;
+  });
+}

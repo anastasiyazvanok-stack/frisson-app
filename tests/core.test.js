@@ -4,7 +4,7 @@ import { activateUser, acceptCloud, readUser, userStorage } from '../src/lib/use
 import { createUserSync } from '../src/lib/userSync.js';
 import { buildCatalog } from '../src/data/catalog.js';
 import { AUDIO_URLS, getAudioUrl } from '../src/data/audioUrls.js';
-import { getActivity, markPractice } from '../src/data/activity.js';
+import { getActivity, getWeekPractices, markPractice } from '../src/data/activity.js';
 import { localDay, previousDay } from '../src/utils/dates.js';
 import { authorizeAI } from '../server/ai-access.js';
 
@@ -93,4 +93,20 @@ test('AI accepts a valid session and database quota with native CORS',async()=>{
 test('AI rejects unapproved origins and malformed bodies',async()=>{
   let res=response();await authorizeAI({method:'POST',headers:{origin:'https://foreign.test'},body:{}},res);assert.equal(res.code,403);
   res=response();await authorizeAI({method:'POST',headers:{authorization:'Bearer test'},body:'bad'},res,()=>({auth:{getUser:async()=>({data:{user:{id:'A'}}})},rpc(){throw Error('must not call quota')}}));assert.equal(res.code,400);
+});
+
+test('journal activity does not count as listened audio and stays account scoped', () => {
+  activateUser('A');
+  markPractice(0, 'journal'); markPractice(0, 'journal');
+  assert.equal(getActivity().totalMeds, 0);
+  assert.equal(getActivity().totalMinutes, 0);
+  markPractice(8);
+  assert.equal(getActivity().totalMeds, 1);
+  assert.equal(getActivity().totalMinutes, 8);
+  assert.equal(getWeekPractices(getActivity()).reduce((a,b)=>a+b,0), 3);
+  activateUser('B');
+  assert.equal(getActivity().totalMeds, 0);
+  assert.deepEqual(getWeekPractices(getActivity()), [0,0,0,0,0,0,0]);
+  activateUser('A');
+  assert.equal(getActivity().totalMeds, 1);
 });
