@@ -282,7 +282,7 @@ function UserApp({ userId, userEmail, lang, setLang, onSignOut, initialSyncError
           {syncError && <div role="alert" style={{ padding: '10px 16px', color: '#ffe9dc', background: '#613647', position: 'relative', zIndex: 2, fontSize: 12 }}>
             {lang === 'ru' ? (syncError.code === 'SYNC_CONFLICT' ? 'На другом устройстве есть изменения. Ваша локальная копия сохранена; синхронизация приостановлена, чтобы ничего не перезаписать.' : 'Не удалось сохранить данные в облаке. Изменения сохранены на этом устройстве; повторим отправку при восстановлении связи.') : (syncError.code === 'SYNC_CONFLICT' ? 'Another device has changes. Your local copy is safe; sync is paused to prevent overwriting it.' : 'Cloud sync failed. Your changes are saved on this device and will be retried.')}
           </div>}
-          <AccessPanel membership={membership} lang={lang} compact />
+          {screen !== 'sub' && (membership.active || ['journal', 'profile'].includes(screen)) && <AccessPanel membership={membership} lang={lang} compact />}
           <div ref={scrollRef} key={screen} className="screen-in" style={{ flex: 1, overflowY: screen === "orbit" ? "hidden" : "auto", overflowX: "hidden", position: "relative", zIndex: 1, display: "flex", flexDirection: "column" }}>{screen === 'sub' || (!membership.active && !['journal', 'profile'].includes(screen)) ? <AccessPanel membership={membership} lang={lang} /> : screens[screen]}</div>
           {/* Edge-swipe back gesture (left edge swipe-right) */}
           {screen !== "orbit" && screen !== "home" && (
