@@ -30,6 +30,9 @@ export async function authorizeAI(req, res, create = createClient) {
     const { data, error } = await client.auth.getUser(token);
     if (error || !data?.user) { res.status(401).json({ error: 'Invalid session' }); return null; }
     if (!validBody(req.body)) { res.status(400).json({ error: 'Invalid request body' }); return null; }
+    const membership = await client.rpc('get_member_access');
+    if (membership.error) { res.status(503).json({ error: 'Membership unavailable' }); return null; }
+    if (membership.data?.active !== true) { res.status(403).json({ error: 'Active access required' }); return null; }
     // Database quota is shared by all serverless instances, and fails closed.
     const quota = await client.rpc('consume_ai_quota');
     if (quota.error) { res.status(503).json({ error: 'AI quota unavailable' }); return null; }

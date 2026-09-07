@@ -3,8 +3,10 @@ import react from '@vitejs/plugin-react';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { ensureAudio } from './scripts/preserve-audio.mjs';
 
-export default defineConfig(() => {
+export default defineConfig(async ({ command }) => {
+  if (command === 'build') await ensureAudio();
   const base = process.env.APP_BASE_PATH || '/';
   if (!base.startsWith('/') || !base.endsWith('/')) throw new Error('APP_BASE_PATH must start and end with /');
   const audioDir = path.resolve('public/audio');

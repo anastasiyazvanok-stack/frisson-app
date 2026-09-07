@@ -16,8 +16,8 @@ export const signIn = async () => ({error:null});
 export const signUp = async () => ({error:null});
 export const resetPassword = async () => ({error:null});
 export const syncToCloud = async () => {};
-export const fetchMeditations = async () => null;
-export const fetchSections = async () => null;
+export const fetchMeditations = async () => [];
+export const fetchSections = async () => [];
 export const fetchBooks = async () => [];
 export function loadFromCloud(uid) {
  state.loads.push(uid);
@@ -33,7 +33,8 @@ test('account UI waits for hydration, remounts on account change, and ignores to
   globalThis.document={addEventListener(){},removeEventListener(){}};
   const server=await createServer({server:{middlewareMode:true,hmr:false},appType:'custom',plugins:[{name:'test-auth',enforce:'pre',load(id){
     if(id.endsWith('/src/lib/supabase.js'))return fakeSupabase;
-    if(id.endsWith('/src/components/Home.jsx'))return `import React from 'react'; export default function Home(p){return React.createElement('p',{'data-home':true},p.userName)}`;
+    if(id.endsWith('/src/lib/memberAccess.js'))return `export const useMemberAccess=()=>({access:{active:true,status:'admin'},active:true,error:false})`;
+    if(id.endsWith('/src/components/Home.jsx'))return `import React from 'react'; export default function Home(p){return React.createElement('p',{'data-home':true,'data-remote':p.remoteMeds},p.userName)}`;
   }}]});
   let renderer;
   try {
@@ -43,6 +44,7 @@ test('account UI waits for hydration, remounts on account change, and ignores to
     assert.equal(renderer.root.findAll(n=>n.props['data-home']).length,0);
     await act(async()=>state.pending.A());
     assert.equal(renderer.root.find(n=>n.props['data-home']).children[0],'A');
+    assert.equal(renderer.root.find(n=>n.props['data-home']).props['data-remote'],null);
     await act(async()=>state.listener('TOKEN_REFRESHED',state.session));
     assert.deepEqual(state.loads,['A']);
     state.session={user:{id:'B',email:'b@example.test'}};

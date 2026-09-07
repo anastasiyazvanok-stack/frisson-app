@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import BetaAdmin from './BetaAdmin.jsx';
 import { supabase } from "../lib/supabase";
 import { SP, RAD, TYPE, EASE, FONT_SANS, FONT_SERIF } from "../utils/design";
 
@@ -293,6 +294,7 @@ export default function Admin({ userEmail, onClose }) {
         </div>
       )}
 
+      <BetaAdmin />
       {/* Tabs */}
       <div style={{ padding: "16px 24px 0", display: "flex", gap: 4, borderBottom: `1px solid ${S.border}` }}>
         {[["meditations", "🎧 Медитации"], ["sections", "📂 Разделы"]].map(([id, label]) => (

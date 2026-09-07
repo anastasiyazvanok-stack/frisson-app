@@ -20,6 +20,8 @@ import SubPage from "./components/SubPage";
 import Orbit from "./components/Orbit";
 import Nav from "./components/Nav";
 import AICoach from "./components/AICoach";
+import { useMemberAccess } from './lib/memberAccess.js';
+import AccessPanel from './components/AccessPanel.jsx';
 
 export const VERSION = "5.8.0";
 
@@ -80,6 +82,7 @@ export default function App() {
 
   async function logout() {
     try { if (uid) await syncToCloud(uid); } catch { /* Dirty account cache is retained for retry. */ }
+    await fetch('/api/access', { method: 'DELETE', credentials: 'same-origin' }).catch(() => {});
     const { error } = await signOut();
     if (error) throw error;
     clearRecoveryMode(); setRecovery(false); setMode(null);
@@ -99,6 +102,7 @@ export default function App() {
 }
 
 function UserApp({ userId, userEmail, lang, setLang, onSignOut, initialSyncError }) {
+  const membership = useMemberAccess(userId);
   const L = (k, ...a) => tr(lang, k, ...a);
   const [showAdmin, setShowAdmin] = useState(false);
   const [syncError, setSyncError] = useState(initialSyncError);
@@ -179,6 +183,8 @@ function UserApp({ userId, userEmail, lang, setLang, onSignOut, initialSyncError
   const [remoteMeds, setRemoteMeds] = useState(null);
   const [remoteSections, setRemoteSections] = useState(null);
   function refreshContent() {
+    // The published app uses the built-in catalogue. Switch only after migration.
+    if (import.meta.env.VITE_CATALOG_SOURCE !== 'remote') return;
     Promise.all([fetchMeditations(), fetchSections()])
       .then(([m, s]) => { setRemoteMeds(m); setRemoteSections(s); });
   }
@@ -276,7 +282,8 @@ function UserApp({ userId, userEmail, lang, setLang, onSignOut, initialSyncError
           {syncError && <div role="alert" style={{ padding: '10px 16px', color: '#ffe9dc', background: '#613647', position: 'relative', zIndex: 2, fontSize: 12 }}>
             {lang === 'ru' ? (syncError.code === 'SYNC_CONFLICT' ? 'На другом устройстве есть изменения. Ваша локальная копия сохранена; синхронизация приостановлена, чтобы ничего не перезаписать.' : 'Не удалось сохранить данные в облаке. Изменения сохранены на этом устройстве; повторим отправку при восстановлении связи.') : (syncError.code === 'SYNC_CONFLICT' ? 'Another device has changes. Your local copy is safe; sync is paused to prevent overwriting it.' : 'Cloud sync failed. Your changes are saved on this device and will be retried.')}
           </div>}
-          <div ref={scrollRef} key={screen} className="screen-in" style={{ flex: 1, overflowY: screen === "orbit" ? "hidden" : "auto", overflowX: "hidden", position: "relative", zIndex: 1, display: "flex", flexDirection: "column" }}>{screens[screen]}</div>
+          <AccessPanel membership={membership} lang={lang} compact />
+          <div ref={scrollRef} key={screen} className="screen-in" style={{ flex: 1, overflowY: screen === "orbit" ? "hidden" : "auto", overflowX: "hidden", position: "relative", zIndex: 1, display: "flex", flexDirection: "column" }}>{screen === 'sub' || (!membership.active && !['journal', 'profile'].includes(screen)) ? <AccessPanel membership={membership} lang={lang} /> : screens[screen]}</div>
           {/* Edge-swipe back gesture (left edge swipe-right) */}
           {screen !== "orbit" && screen !== "home" && (
             <div

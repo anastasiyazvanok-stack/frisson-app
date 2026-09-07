@@ -46,7 +46,7 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
     a.addEventListener("timeupdate", onTime);
     a.addEventListener("loadedmetadata", onLoaded);
     a.addEventListener("ended", onEnded);
-    return () => { a.removeEventListener("timeupdate", onTime); a.removeEventListener("loadedmetadata", onLoaded); a.removeEventListener("ended", onEnded); };
+    return () => { a.pause(); a.removeEventListener("timeupdate", onTime); a.removeEventListener("loadedmetadata", onLoaded); a.removeEventListener("ended", onEnded); };
   }, [miniDet]);
 
   const playRec = useCallback((r, lc) => {

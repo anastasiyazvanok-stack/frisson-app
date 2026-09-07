@@ -85,10 +85,10 @@ test('AI rejects forged sessions, enforces quota, and fails closed if migration 
   process.env.SUPABASE_URL='https://example.test';process.env.SUPABASE_ANON_KEY='test';
   const req={method:'POST',headers:{authorization:'Bearer test'},body:{text:'synthetic'}};
   let res=response();await authorizeAI(req,res,()=>({auth:{getUser:async()=>({error:{}})}}));assert.equal(res.code,401);
-  for(const [quota,expected] of [[{error:{}},503],[{data:false},429]]){res=response();await authorizeAI(req,res,()=>({auth:{getUser:async()=>({data:{user:{id:'A'}}})},rpc:async()=>quota}));assert.equal(res.code,expected)}
+  for(const [quota,expected] of [[{error:{}},503],[{data:false},429]]){res=response();await authorizeAI(req,res,()=>({auth:{getUser:async()=>({data:{user:{id:'A'}}})},rpc:async name=>name==='get_member_access'?{data:{active:true}}:quota}));assert.equal(res.code,expected)}
 });
 test('AI accepts a valid session and database quota with native CORS',async()=>{
-  process.env.SUPABASE_URL='https://example.test';process.env.SUPABASE_ANON_KEY='test';const res=response();const user=await authorizeAI({method:'POST',headers:{authorization:'Bearer test',origin:'capacitor://localhost'},body:{text:'synthetic'}},res,()=>({auth:{getUser:async()=>({data:{user:{id:'A'}}})},rpc:async()=>({data:true})}));assert.equal(user.id,'A');assert.equal(res.headers['Access-Control-Allow-Origin'],'capacitor://localhost');
+  process.env.SUPABASE_URL='https://example.test';process.env.SUPABASE_ANON_KEY='test';const res=response();const user=await authorizeAI({method:'POST',headers:{authorization:'Bearer test',origin:'capacitor://localhost'},body:{text:'synthetic'}},res,()=>({auth:{getUser:async()=>({data:{user:{id:'A'}}})},rpc:async name=>({data:name==='get_member_access'?{active:true}:true})}));assert.equal(user.id,'A');assert.equal(res.headers['Access-Control-Allow-Origin'],'capacitor://localhost');
 });
 test('AI rejects unapproved origins and malformed bodies',async()=>{
   let res=response();await authorizeAI({method:'POST',headers:{origin:'https://foreign.test'},body:{}},res);assert.equal(res.code,403);
