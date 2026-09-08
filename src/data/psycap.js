@@ -1,3 +1,5 @@
+import { localDay } from "../utils/dates.js";
+import { userStorage as localStorage } from "../lib/userStorage.js";
 // Psychological Capital tracker — 6 axes of inner growth
 // All scores 0-100, persisted in localStorage
 
@@ -126,7 +128,7 @@ function load() {
 }
 function save(d) { localStorage.setItem(KEY, JSON.stringify(d)); }
 
-function today() { return new Date().toISOString().slice(0, 10); }
+const today = localDay;
 
 function applyDecay(d) {
   const now = Date.now();
@@ -337,7 +339,7 @@ export function getEventsByDay() {
   const d = getPsycap();
   const groups = {};
   d.events.forEach((e) => {
-    const day = new Date(e.ts).toISOString().slice(0, 10);
+    const day = localDay(new Date(e.ts));
     if (!groups[day]) groups[day] = [];
     groups[day].push(e);
   });

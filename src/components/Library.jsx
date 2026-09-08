@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { buildCatalog } from "../data/catalog.js";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 // THEMES passed via props
 import { getSections, getComingSoon } from "../data/content";
 import { getTales } from "../data/tales";
-import { AUDIO_URLS } from "../data/audioUrls";
+import { getAudioUrl } from "../data/audioUrls";
 import { TYPE, SP, RAD, OP, LS, EASE, LH, FONT_SERIF, FONT_SANS, tx, label, body, heading } from "../utils/design";
 import { logMeditation } from "../data/psycap";
 import Orb from "./Orb";
@@ -21,16 +22,16 @@ const PauseIcon = () => (
   </svg>
 );
 
-export default function Library({ setScreen, goBack, theme, initSec, initMed, clearMed, medFrom, clearMedFrom, THEMES, doMarkPractice, addGems, lang = "ru" }) {
+export default function Library({ setScreen, goBack, theme, initSec, initMed, clearMed, medFrom, clearMedFrom, THEMES, doMarkPractice, addGems, remoteMeds = null, remoteSections = null, lang = "ru" }) {
   const T = THEMES[theme] || THEMES.full;
   const L = (k) => tr(lang, k);
-  const SECTIONS = getSections(lang);
+  const SECTIONS = useMemo(() => buildCatalog(lang, remoteMeds, remoteSections), [lang, remoteMeds, remoteSections]);
   const COMING_SOON = getComingSoon(lang);
   const TALES = getTales(lang);
   const ALL_MEDS = SECTIONS.flatMap((s) => s.meds);
 
   const [det, setDet] = useState(() => {
-    if (initMed) { const m = ALL_MEDS.find((x) => x.title === initMed); return m || null; }
+    if (initMed) { const m = ALL_MEDS.find((x) => (x.title === initMed || x.canonicalTitle === initMed || x.id === initMed)); return m || null; }
     return null;
   });
   const [taleDet, setTaleDet] = useState(null);
@@ -38,18 +39,26 @@ export default function Library({ setScreen, goBack, theme, initSec, initMed, cl
   const [prog, setProg] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [audioReady, setAudioReady] = useState(false);
+  const [audioError, setAudioError] = useState(false);
+  const pendingPlay = useRef(false);
   const audioRef = useRef(null);
   const [active, setActive] = useState(initSec || "all");
 
   useEffect(() => { setActive(initSec || "all"); }, [initSec]);
   useEffect(() => {
     if (initMed) {
-      const m = ALL_MEDS.find((x) => x.title === initMed);
+      const m = ALL_MEDS.find((x) => (x.title === initMed || x.canonicalTitle === initMed || x.id === initMed));
       if (m) setDet(m);
       if (clearMed) clearMed();
     }
-  }, [initMed]);
+  }, [initMed, SECTIONS]);
+
+  useEffect(() => {
+    setDet(current => {
+      if (!current) return null;
+      return SECTIONS.flatMap(s => s.meds).find(m => m.id === current.id || m.canonicalTitle === current.canonicalTitle) || null;
+    });
+  }, [SECTIONS]);
 
   // ─── Audio engine ────────────────────────────────────────────────────────
   const loggedRef = useRef(false);
@@ -60,24 +69,29 @@ export default function Library({ setScreen, goBack, theme, initSec, initMed, cl
       setCurrentTime(audio.currentTime);
       const pct = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
       setProg(pct);
-      if (!loggedRef.current && pct >= 80 && det) {
+      const played = Array.from({ length: audio.played.length }, (_, i) => [audio.played.start(i), audio.played.end(i)]);
+      const listened = played.reduce((sum, [start, end]) => sum + end - start, 0);
+      if (!loggedRef.current && audio.duration > 0 && listened / audio.duration >= 0.8 && det) {
         loggedRef.current = true;
-        logMeditation(det.title, "full");
-        if (doMarkPractice) doMarkPractice(parseInt(det.dur) || 20);
-        if (addGems) addGems(Math.max(1, parseInt(det.dur) || 20));
+        logMeditation(det.canonicalTitle || det.title, "full");
+        if (doMarkPractice) doMarkPractice(Math.round(audio.duration / 60));
+        if (addGems) addGems(Math.max(1, Math.round(audio.duration / 60)));
       }
     };
-    const onLoaded = () => { setDuration(audio.duration); setAudioReady(true); };
+    const onLoaded = () => { setDuration(audio.duration); setAudioError(false); };
     const onEnded = () => { setPlay(false); setProg(100); };
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("loadedmetadata", onLoaded);
     audio.addEventListener("canplay", onLoaded);
+    const onError = () => { setPlay(false); setAudioError(true); };
+    audio.addEventListener("error", onError);
     audio.addEventListener("ended", onEnded);
     return () => {
       audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("loadedmetadata", onLoaded);
       audio.removeEventListener("canplay", onLoaded);
       audio.removeEventListener("ended", onEnded);
+      audio.removeEventListener("error", onError);
     };
   }, [det]);
 
@@ -87,23 +101,26 @@ export default function Library({ setScreen, goBack, theme, initSec, initMed, cl
     setProg(0);
     setCurrentTime(0);
     setDuration(0);
-    setAudioReady(false);
+    setAudioError(false);
     loggedRef.current = false;
     const audio = audioRef.current;
-    if (audio) { audio.pause(); audio.currentTime = 0; }
-  }, [det?.title]);
+    if (pendingPlay.current) {
+      pendingPlay.current = false;
+      setPlay(true);
+    } else if (audio) { audio.pause(); audio.currentTime = 0; }
+  }, [det?.id]);
 
   const togglePlay = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    const audioUrl = det ? AUDIO_URLS[det.title] || det?.audio_url : null;
+    const audioUrl = getAudioUrl(det);
     if (!audioUrl) return;
-    if (!audio.src || !audio.src.includes(audioUrl.split("/").pop())) {
+    if (audio.src !== new URL(audioUrl, window.location.href).href) {
       audio.src = audioUrl;
       audio.load();
     }
     if (play) { audio.pause(); setPlay(false); }
-    else { audio.play().catch(() => setPlay(false)); setPlay(true); }
+    else { audio.play().catch(() => { setPlay(false); setAudioError(true); }); setPlay(true); }
   }, [play, det]);
 
   const seekTo = useCallback((pct) => {
@@ -121,14 +138,16 @@ export default function Library({ setScreen, goBack, theme, initSec, initMed, cl
   // Open meditation and auto-play (call synchronously in tap handler for iOS gesture chain)
   const startMed = useCallback((med) => {
     setDet(med);
-    const audioUrl = AUDIO_URLS[med.title] || med?.audio_url;
+    const audioUrl = getAudioUrl(med);
     if (!audioUrl || !audioRef.current) return;
     const audio = audioRef.current;
-    if (!audio.src.includes(audioUrl.split("/").pop())) {
+    pendingPlay.current = true;
+    setAudioError(false);
+    if (audio.src !== new URL(audioUrl, window.location.href).href) {
       audio.src = audioUrl;
       audio.load();
     }
-    audio.play().catch(() => setPlay(false));
+    audio.play().catch(() => { setPlay(false); setAudioError(true); });
     setPlay(true);
     setProg(0); setCurrentTime(0); setDuration(0);
     loggedRef.current = false;
@@ -143,7 +162,7 @@ export default function Library({ setScreen, goBack, theme, initSec, initMed, cl
         artist: "LuxMind",
         album: lang === "ru" ? "Медитации" : "Meditations",
       });
-      navigator.mediaSession.setActionHandler("play", () => { audioRef.current?.play(); setPlay(true); });
+      navigator.mediaSession.setActionHandler("play", () => { audioRef.current?.play().catch(() => { setPlay(false); setAudioError(true); }); setPlay(true); });
       navigator.mediaSession.setActionHandler("pause", () => { audioRef.current?.pause(); setPlay(false); });
       navigator.mediaSession.setActionHandler("seekbackward", (d) => skipSeconds(-(d?.seekOffset ?? 15)));
       navigator.mediaSession.setActionHandler("seekforward", (d) => skipSeconds(d?.seekOffset ?? 15));
@@ -154,6 +173,18 @@ export default function Library({ setScreen, goBack, theme, initSec, initMed, cl
     if (!("mediaSession" in navigator)) return;
     try { navigator.mediaSession.playbackState = play ? "playing" : "paused"; } catch (e) {}
   }, [play]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    return () => {
+      audio?.pause();
+      if ('mediaSession' in navigator) {
+        for (const action of ['play', 'pause', 'seekbackward', 'seekforward']) {
+          try { navigator.mediaSession.setActionHandler(action, null); } catch { /* unsupported action */ }
+        }
+      }
+    };
+  }, []);
 
   const fmt = (s) => {
     if (!s || isNaN(s)) return "0:00";
@@ -171,7 +202,11 @@ export default function Library({ setScreen, goBack, theme, initSec, initMed, cl
     { id: "self", l: L("lib_filter_self"), c: "#D080B0" },
     { id: "tales", l: lang === "ru" ? "Сказки" : "Tales", c: "#C080D0" },
   ];
-  const vis = (active === "all" || active === "tales") ? SECTIONS : SECTIONS.filter((s) => s.id === active);
+  if (Array.isArray(remoteMeds)) {
+    filters.splice(1, 5, ...SECTIONS.map(s => ({ id: s.id, l: s.title, c: s.color })));
+  }
+  const effectiveActive = filters.some(f => f.id === active) ? active : "all";
+  const vis = (effectiveActive === "all" || effectiveActive === "tales") ? SECTIONS : SECTIONS.filter((s) => s.id === effectiveActive);
 
   return (
     <>
@@ -218,7 +253,7 @@ export default function Library({ setScreen, goBack, theme, initSec, initMed, cl
       {!taleDet && det && (() => {
         const sec = SECTIONS.find((s) => s.meds && s.meds.some((m) => m.n === det.n));
         const ac = (sec && sec.color) || T.accent;
-        const hasAudio = !!(AUDIO_URLS[det.title] || det?.audio_url) || det?.audio_url;
+        const hasAudio = !!getAudioUrl(det);
         const iconColor = hasAudio ? "white" : `rgba(255,255,255,0.35)`;
         return (
           <div style={{ minHeight: "100%", background: T.bg, paddingBottom: SP.page * 2, transition: EASE.slow }}>
@@ -255,6 +290,8 @@ export default function Library({ setScreen, goBack, theme, initSec, initMed, cl
                 <div style={{ ...body(TYPE.base + 1), lineHeight: 1.8, color: tx("var(--txt)", 0.85) }}>{det.long || det.short}</div>
               </div>
 
+              {audioError && <div role="alert" style={{ color: '#ffccd0', marginBottom: 12 }}>{lang === 'ru' ? 'Не удалось загрузить аудио. Проверьте соединение и нажмите воспроизведение ещё раз.' : 'Could not load audio. Check your connection and try playing again.'}</div>}
+              {lang === 'en' && hasAudio && !det.audio_language && <p style={{ opacity: .7 }}>Recording language: Russian</p>}
               {/* ─── Player card ─── */}
               <div className="glass-card" style={{ padding: `${SP.lg + 2}px ${SP.page}px ${SP.xl}px`, background: `${ac}15`, border: `1px solid ${ac}35`, borderRadius: RAD.lg, backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", boxShadow: "0 2px 12px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.04)" }}>
                 {/* Progress bar */}
@@ -367,7 +404,7 @@ export default function Library({ setScreen, goBack, theme, initSec, initMed, cl
                   <div style={{ ...body(TYPE.base + 1), color: tx("var(--txt)", 0.82) }}>{sec.title}</div>
                 </div>
                 {sec.meds.map((med) => (
-                  <div key={med.n} onClick={() => setDet(med)} className="list-item press-card glass-card" style={{ display: "flex", alignItems: "flex-start", gap: SP.md, padding: `${SP.md + 1}px ${SP.md + 2}px`, background: `rgba(${T.ar},.04)`, border: `1px solid rgba(${T.ar},.1)`, borderRadius: RAD.lg, marginBottom: SP.sm, cursor: "pointer", position: "relative", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.04)", animationDelay: `${med.n * 0.05}s` }}>
+                  <div key={med.id || med.n} onClick={() => setDet(med)} className="list-item press-card glass-card" style={{ display: "flex", alignItems: "flex-start", gap: SP.md, padding: `${SP.md + 1}px ${SP.md + 2}px`, background: `rgba(${T.ar},.04)`, border: `1px solid rgba(${T.ar},.1)`, borderRadius: RAD.lg, marginBottom: SP.sm, cursor: "pointer", position: "relative", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.04)", animationDelay: `${med.n * 0.05}s` }}>
                     <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: `linear-gradient(to bottom,${sec.color},${sec.color}22)`, borderRadius: "3px 0 0 3px" }} />
                     <div style={{ fontFamily: FONT_SERIF, fontSize: TYPE.xl - 2, color: sec.color, width: 26, textAlign: "center", flexShrink: 0, lineHeight: 1, paddingTop: 2 }}>{med.n}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>

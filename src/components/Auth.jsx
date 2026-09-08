@@ -44,7 +44,7 @@ const FEATURES = [
   { icon: "✦", text: "Визуализация внутреннего мира и сценарии роста" },
 ];
 
-export function PasswordResetForm({ onDone }) {
+export function PasswordResetForm({ onDone, onCancel }) {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -56,10 +56,12 @@ export function PasswordResetForm({ onDone }) {
     if (password.length < 8) return setError("Пароль — минимум 8 символов");
     if (password !== confirm) return setError("Пароли не совпадают");
     setLoading(true);
-    const { error: e } = await supabase.auth.updateUser({ password });
-    setLoading(false);
-    if (e) setError(e.message);
-    else { localStorage.removeItem("lux_pw_reset"); setDone(true); setTimeout(onDone, 2000); }
+    try {
+      const { error: e } = await supabase.auth.updateUser({ password });
+      if (e) throw e;
+      localStorage.removeItem("lux_pw_reset"); setDone(true); setTimeout(onDone, 2000);
+    } catch (e) { setError(e.message || "Не удалось сохранить пароль"); }
+    finally { setLoading(false); }
   }
 
   return (
@@ -93,6 +95,7 @@ export function PasswordResetForm({ onDone }) {
             }}>
               {loading ? "•••" : "СОХРАНИТЬ ПАРОЛЬ"}
             </div>
+            {onCancel && <button onClick={async () => { try { await onCancel(); } catch (e) { setError(e.message); } }}>Вернуться ко входу</button>}
           </div>
         )}
       </div>
@@ -121,7 +124,7 @@ export default function Auth({ onAuth, startMode = "welcome" }) {
       const { error: e } = await signIn(email.trim(), password);
       setLoading(false);
       if (e) setError(e.message.includes("Invalid") ? "Неверный email или пароль" : e.message);
-      else onAuth();
+      else { localStorage.removeItem("lux_pw_reset"); onAuth(); }
     } else if (mode === "register") {
       if (!name.trim()) return setError("Введите ваше имя");
       if (!email.includes("@")) return setError("Введите корректный email");
@@ -139,7 +142,7 @@ export default function Auth({ onAuth, startMode = "welcome" }) {
       const { error: e } = await resetPassword(email.trim());
       setLoading(false);
       if (e) { setError(e.message); }
-      else { localStorage.setItem("lux_pw_reset", "1"); setSent(true); }
+      else { setSent(true); }
     }
   }
 

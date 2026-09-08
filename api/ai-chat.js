@@ -1,6 +1,7 @@
+import { authorizeAI } from "../server/ai-access.js";
 import Anthropic from "@anthropic-ai/sdk";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
 
 const SYSTEM = {
   ru: `Ты — Анастасия, ИИ-коуч приложения LuxMind. Ты создана на основе методологии магистра клинической психологии Анастасии Званок и специализируешься на женском психологическом капитале.
@@ -28,16 +29,17 @@ If the user is in crisis — gently recommend seeing a specialist.`,
 };
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).end();
+  if (!await authorizeAI(req, res)) return;
 
   const { messages = [], context = {}, lang = "ru" } = req.body || {};
-  if (!messages.length) return res.status(400).json({ error: "No messages" });
+  if (!Array.isArray(messages) || !messages.length || messages.length > 50 || messages.some(m => !m || !["user", "assistant"].includes(m.role) || typeof m.content !== "string")) return res.status(400).json({ error: "No messages" });
 
-  const contextNote = context.capitalScore != null
+  const contextNote = context?.capitalScore != null
     ? `\n[Текущий уровень капитала пользователя: ${context.capitalScore}/100. Последняя активность: ${context.lastActivity || "нет данных"}]`
     : "";
 
   try {
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 20000, maxRetries: 0 });
     const response = await client.messages.create({
       model: "claude-opus-4-5",
       max_tokens: 600,

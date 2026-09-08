@@ -1,3 +1,4 @@
+import { userStorage as localStorage } from "../lib/userStorage.js";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { MED_GUIDES, getMedGuides } from "../data/medGuides";

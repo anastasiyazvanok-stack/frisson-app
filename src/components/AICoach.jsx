@@ -1,3 +1,4 @@
+import { aiFetch } from "../lib/ai.js";
 import { useState, useRef, useEffect } from "react";
 import { TYPE, SP, RAD, EASE, FONT_SERIF, FONT_SANS, label } from "../utils/design";
 import { getOverallScore } from "../data/psycap";
@@ -35,12 +36,12 @@ export default function AICoach({ goBack, lang = "ru" }) {
     try {
       const capitalScore = getOverallScore();
       const activity = getActivity();
-      const res = await fetch("/api/ai-chat", {
+      const res = await aiFetch("/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: newMessages,
-          context: { capitalScore, lastActivity: activity?.lastDate },
+          context: { capitalScore, lastActivity: activity?.lastDay },
           lang,
         }),
       });
