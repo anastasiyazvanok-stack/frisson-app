@@ -16,7 +16,7 @@ export default function SubPage({ setScreen, goBack, theme, THEMES, lang = "ru" 
       </div>
       <div style={{ padding: `${SP.page}px ${SP.xl}px 0`, textAlign: "center", position: "relative", zIndex: 1 }}>
         <div style={{ ...label(9), color: T.accent, letterSpacing: ".25em", marginBottom: SP.md - 2 }}>{L("sub_full_access")}</div>
-        <div style={{ fontFamily: FONT_SERIF, fontSize: 34, fontWeight: 300, lineHeight: 1.15, color: tx("var(--txt)", OP.primary + 0.03), marginBottom: SP.sm }}>LuxMind Premium</div>
+        <div style={{ fontFamily: FONT_SERIF, fontSize: 34, fontWeight: 300, lineHeight: 1.15, color: tx("var(--txt)", OP.primary + 0.03), marginBottom: SP.sm }}>NECTAR Premium</div>
         <div style={{ ...body(15), color: tx("var(--txt)", 0.45), maxWidth: 280, margin: `0 auto ${SP.xl}px` }}>{L("sub_tagline")}</div>
       </div>
       <div style={{ padding: `0 ${SP.xl}px`, position: "relative", zIndex: 1 }}>
@@ -49,10 +49,22 @@ export default function SubPage({ setScreen, goBack, theme, THEMES, lang = "ru" 
 
         <div style={{ ...label(9), letterSpacing: ".22em", color: tx("var(--txt)", OP.tertiary + 0.08), marginBottom: SP.md + 2 }}>{L("sub_whats_included")}</div>
         <div className="glass-card" style={{ background: `rgba(${T.ar},.04)`, border: `1px solid rgba(${T.ar},.1)`, borderRadius: RAD.lg, overflow: "hidden", marginBottom: SP.xl - 2 }}>
-          {[[L("sub_meds"), L("sub_meds_desc")], [L("sub_journal"), L("sub_journal_desc")]].map((row, i, arr) => (
-            <div key={i} style={{ padding: `15px ${SP.lg + 2}px`, borderBottom: i < arr.length - 1 ? `1px solid rgba(${T.ar},.08)` : "none", display: "flex", alignItems: "center", gap: SP.md }}>
-              <div style={{ width: 80, ...label(9), letterSpacing: ".1em", color: tx("var(--txt)", OP.tertiary + 0.03), flexShrink: 0 }}>{row[0]}</div>
-              <div style={{ ...body(13), color: tx("var(--txt)", 0.85) }}>{row[1]}</div>
+          {[
+            [L("sub_meds"), L("sub_meds_desc")],
+            [L("sub_orbit"), L("sub_orbit_desc")],
+            [L("sub_journal"), L("sub_journal_desc")],
+            [L("sub_coach"), L("sub_coach_desc")],
+            [L("sub_navigator"), L("sub_navigator_desc")],
+            [L("sub_capital"), L("sub_capital_desc")],
+            [L("sub_insights"), L("sub_insights_desc")],
+            [L("sub_tracker"), L("sub_tracker_desc")],
+          ].map((row, i, arr) => (
+            <div key={i} style={{ padding: `13px ${SP.lg}px`, borderBottom: i < arr.length - 1 ? `1px solid rgba(${T.ar},.08)` : "none", display: "flex", alignItems: "flex-start", gap: SP.md }}>
+              <div style={{ width: 4, height: 4, borderRadius: "50%", background: T.accent, flexShrink: 0, marginTop: 7 }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ ...label(9), letterSpacing: ".12em", color: T.accent, marginBottom: 3 }}>{row[0]}</div>
+                <div style={{ fontFamily: FONT_SANS, fontSize: 13, color: tx("var(--txt)", 0.65), lineHeight: 1.5 }}>{row[1]}</div>
+              </div>
             </div>
           ))}
         </div>

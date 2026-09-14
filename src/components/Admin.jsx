@@ -4,16 +4,25 @@ import { SP, RAD, TYPE, EASE, FONT_SANS, FONT_SERIF } from "../utils/design";
 
 const ADMIN_EMAIL = "anastasiyazvanok@gmail.com";
 
+// Proper MIME types for common audio formats — extension alone (`audio/${ext}`) produces
+// invalid types like "audio/m4a" or "audio/wma" that some players/CDNs reject.
+const EXT_MIME = {
+  mp3: "audio/mpeg", wav: "audio/wav", m4a: "audio/mp4", aac: "audio/aac",
+  ogg: "audio/ogg", oga: "audio/ogg", opus: "audio/opus", flac: "audio/flac",
+  wma: "audio/x-ms-wma", aiff: "audio/aiff", aif: "audio/aiff",
+  webm: "audio/webm", caf: "audio/x-caf", "3gp": "audio/3gpp",
+};
+
 const S = {
-  bg:      "#07040e",
+  bg:      "#0E0810",
   surface: "rgba(255,255,255,.04)",
   border:  "rgba(255,255,255,.1)",
-  accent:  "rgba(230,77,168,1)",
-  accentD: "rgba(230,77,168,.18)",
-  text:    "rgba(240,230,240,.9)",
-  sub:     "rgba(200,185,210,.5)",
-  danger:  "rgba(240,80,80,.85)",
-  success: "rgba(80,200,120,.85)",
+  accent:  "rgba(227,154,60,1)",
+  accentD: "rgba(227,154,60,.18)",
+  text:    "rgba(247,239,230,.9)",
+  sub:     "rgba(201,175,166,.5)",
+  danger:  "rgba(194,90,102,.85)",
+  success: "rgba(127,167,134,.85)",
 };
 
 const inp = {
@@ -26,14 +35,14 @@ const inp = {
 };
 
 function Btn({ children, onClick, danger, secondary, small, disabled, loading }) {
-  const bg = danger ? "rgba(240,80,80,.75)"
+  const bg = danger ? "rgba(194,90,102,.75)"
     : secondary ? "rgba(255,255,255,.07)"
-    : "linear-gradient(135deg, rgba(210,55,140,.75), rgba(220,100,40,.6))";
+    : "linear-gradient(135deg, rgba(178,70,31,.75), rgba(208,86,42,.6))";
   return (
     <button onClick={onClick} disabled={disabled || loading}
       style={{
         padding: small ? "6px 14px" : "10px 20px", borderRadius: 10,
-        background: bg, border: `1px solid ${danger ? "rgba(240,80,80,.4)" : secondary ? "rgba(255,255,255,.1)" : "rgba(220,100,40,.5)"}`,
+        background: bg, border: `1px solid ${danger ? "rgba(194,90,102,.4)" : secondary ? "rgba(255,255,255,.1)" : "rgba(208,86,42,.5)"}`,
         color: S.text, fontFamily: FONT_SANS, fontSize: small ? 12 : 13, fontWeight: 500,
         cursor: disabled || loading ? "default" : "pointer", letterSpacing: ".06em",
         opacity: disabled || loading ? 0.45 : 1, transition: EASE.normal,
@@ -46,7 +55,7 @@ function Btn({ children, onClick, danger, secondary, small, disabled, loading })
 function Modal({ title, onClose, children }) {
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(0,0,0,.75)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "20px 16px", overflowY: "auto", backdropFilter: "blur(4px)" }}>
-      <div style={{ width: "100%", maxWidth: 560, background: "#0f0a1a", border: `1px solid ${S.border}`, borderRadius: 16, padding: 24, position: "relative" }}>
+      <div style={{ width: "100%", maxWidth: 560, background: "#1D1015", border: `1px solid ${S.border}`, borderRadius: 16, padding: 24, position: "relative" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div style={{ fontFamily: FONT_SANS, fontSize: 16, fontWeight: 600, color: S.text }}>{title}</div>
           <div onClick={onClose} style={{ cursor: "pointer", color: S.sub, fontSize: 20, lineHeight: 1 }}>×</div>
@@ -79,9 +88,14 @@ function MedForm({ initial, sections, onSave, onClose }) {
 
   async function uploadAudio(file) {
     setUploading(true);
-    const ext = file.name.split(".").pop();
+    const ext = file.name.split(".").pop().toLowerCase();
     const path = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
-    const { data, error } = await supabase.storage.from("audio").upload(path, file, { contentType: `audio/${ext}` });
+    // Prefer the browser's own MIME detection (usually correct); fall back to a proper
+    // extension → MIME map for formats some OS file pickers misreport (m4a, wma, etc.)
+    // instead of the previous naive `audio/${ext}`, which produced invalid types like
+    // "audio/m4a" or "audio/wma".
+    const contentType = file.type?.startsWith("audio/") ? file.type : (EXT_MIME[ext] || `audio/${ext}`);
+    const { data, error } = await supabase.storage.from("audio").upload(path, file, { contentType });
     setUploading(false);
     if (error) { setErr("Ошибка загрузки: " + error.message); return; }
     const { data: { publicUrl } } = supabase.storage.from("audio").getPublicUrl(path);
@@ -140,7 +154,10 @@ function MedForm({ initial, sections, onSave, onClose }) {
       <Field label="Аудио URL">
         <div style={{ display: "flex", gap: 8 }}>
           <input style={{ ...inp }} value={form.audio_url} onChange={(e) => set("audio_url", e.target.value)} placeholder="https://... или загрузите файл →" />
-          <input ref={fileRef} type="file" accept="audio/*" style={{ display: "none" }} onChange={(e) => e.target.files[0] && uploadAudio(e.target.files[0])} />
+          {/* accept lists explicit extensions alongside the wildcard — on some OS/browser
+              combos "audio/*" alone hides files like .m4a/.wma/.wav whose type the file
+              picker misdetects as a video/movie container */}
+          <input ref={fileRef} type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.oga,.opus,.flac,.wma,.aiff,.aif,.webm,.caf,.3gp" style={{ display: "none" }} onChange={(e) => e.target.files[0] && uploadAudio(e.target.files[0])} />
           <Btn small loading={uploading} onClick={() => fileRef.current?.click()}>📁 Загрузить</Btn>
         </div>
         {form.audio_url && <div style={{ marginTop: 6, fontSize: 11, color: S.success }}>✓ {form.audio_url.slice(0, 60)}…</div>}
@@ -164,7 +181,7 @@ function MedForm({ initial, sections, onSave, onClose }) {
 
 // ─── Section form ───
 function SecForm({ initial, onSave, onClose }) {
-  const blank = { name: "", color: "#e04da8", sort_order: 0, active: true };
+  const blank = { name: "", color: "#E39A3C", sort_order: 0, active: true };
   const [form, setForm] = useState(initial || blank);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
@@ -194,7 +211,7 @@ function SecForm({ initial, onSave, onClose }) {
         <Field label="Цвет">
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <input type="color" value={form.color} onChange={(e) => set("color", e.target.value)} style={{ width: 44, height: 36, borderRadius: 8, border: "1px solid rgba(255,255,255,.15)", background: "none", cursor: "pointer" }} />
-            <input style={{ ...inp }} value={form.color} onChange={(e) => set("color", e.target.value)} placeholder="#e04da8" />
+            <input style={{ ...inp }} value={form.color} onChange={(e) => set("color", e.target.value)} placeholder="#E39A3C" />
           </div>
         </Field>
         <Field label="Порядок">
@@ -275,7 +292,7 @@ export default function Admin({ userEmail, onClose }) {
       {/* Header */}
       <div style={{ padding: "16px 24px", borderBottom: `1px solid ${S.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: S.bg, zIndex: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <div style={{ fontFamily: FONT_SERIF, fontSize: 22, color: S.text }}>LuxMind</div>
+          <div style={{ fontFamily: FONT_SERIF, fontSize: 22, color: S.text }}>NECTAR</div>
           <div style={{ fontSize: 11, color: S.sub, letterSpacing: ".1em", textTransform: "uppercase" }}>Admin</div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -285,7 +302,7 @@ export default function Admin({ userEmail, onClose }) {
       </div>
 
       {opError && (
-        <div style={{ margin: "12px 24px 0", padding: "10px 16px", background: "rgba(220,50,50,.1)", border: "1px solid rgba(220,50,50,.3)", borderRadius: 8, fontSize: 13, color: "#e05555" }}>
+        <div style={{ margin: "12px 24px 0", padding: "10px 16px", background: "rgba(194,90,102,.1)", border: "1px solid rgba(194,90,102,.3)", borderRadius: 8, fontSize: 13, color: "#C25A66" }}>
           {opError} <span onClick={() => setOpError("")} style={{ cursor: "pointer", marginLeft: 8, opacity: .6 }}>✕</span>
         </div>
       )}
@@ -295,7 +312,7 @@ export default function Admin({ userEmail, onClose }) {
         {[["meditations", "🎧 Медитации"], ["sections", "📂 Разделы"]].map(([id, label]) => (
           <div key={id} onClick={() => setTab(id)} style={{
             padding: "8px 18px", borderRadius: "10px 10px 0 0", cursor: "pointer",
-            background: tab === id ? "rgba(230,77,168,.15)" : "transparent",
+            background: tab === id ? "rgba(227,154,60,.15)" : "transparent",
             borderBottom: tab === id ? `2px solid ${S.accent}` : "2px solid transparent",
             fontSize: 13, fontWeight: tab === id ? 600 : 400,
             color: tab === id ? S.accent : S.sub, transition: EASE.normal,
@@ -324,7 +341,7 @@ export default function Admin({ userEmail, onClose }) {
                     <div style={{ fontSize: 14, fontWeight: 500, color: S.text, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.title}</div>
                     <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                       {m.sections && <div style={{ fontSize: 11, color: m.sections.color, background: m.sections.color + "22", padding: "2px 8px", borderRadius: 6 }}>{m.sections.name}</div>}
-                      {m.audio_url ? <div style={{ fontSize: 11, color: S.success }}>🎵 аудио</div> : <div style={{ fontSize: 11, color: "rgba(240,180,80,.7)" }}>⚠️ нет аудио</div>}
+                      {m.audio_url ? <div style={{ fontSize: 11, color: S.success }}>🎵 аудио</div> : <div style={{ fontSize: 11, color: "rgba(227,154,60,.7)" }}>⚠️ нет аудио</div>}
                       <div style={{ fontSize: 11, color: S.sub }}>#{m.sort_order}</div>
                     </div>
                   </div>

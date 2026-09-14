@@ -1,5 +1,5 @@
-const CACHE_NAME = 'frisson-v5.5.1';
-const BASE = '/frisson/';
+const CACHE_NAME = 'nectar-v5.8.1'; // bumped: app icon changed (Seasonal texture) — force a fresh cache
+const BASE = '/';
 
 // Aggressive: on install, wipe ALL caches and take over immediately
 self.addEventListener('install', (e) => {

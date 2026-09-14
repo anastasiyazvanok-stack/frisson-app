@@ -9,11 +9,15 @@ create table if not exists public.user_data (
 
 alter table public.user_data enable row level security;
 
--- Each user can only read/write their own row
+-- Each user can only read/write/delete their own row
 drop policy if exists "own_read"   on public.user_data;
 drop policy if exists "own_insert" on public.user_data;
 drop policy if exists "own_update" on public.user_data;
+drop policy if exists "own_delete" on public.user_data;
 
 create policy "own_read"   on public.user_data for select using (auth.uid() = id);
 create policy "own_insert" on public.user_data for insert with check (auth.uid() = id);
 create policy "own_update" on public.user_data for update using (auth.uid() = id);
+-- Required for GDPR Art. 17 (right to erasure) — without this, a signed-in user has
+-- no way to delete their own cloud row even via a future "delete my data" button.
+create policy "own_delete" on public.user_data for delete using (auth.uid() = id);

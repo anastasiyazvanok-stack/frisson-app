@@ -9,7 +9,7 @@ function load() {
 }
 
 function defaults() {
-  return { streak: 0, lastDay: null, todayDone: false, totalMeds: 0, totalMinutes: 0, achievements: [], name: "" };
+  return { streak: 0, lastDay: null, todayDone: false, totalMeds: 0, totalMinutes: 0, totalMedMinutes: 0, totalPractices: 0, achievements: [], name: "" };
 }
 
 function save(data) { localStorage.setItem(KEY, JSON.stringify(data)); }
@@ -31,7 +31,7 @@ export function getActivity() {
   return d;
 }
 
-export function markPractice(minutes = 0) {
+export function markPractice(minutes = 0, type = "other") {
   const d = load();
   const t = today();
   if (!d.todayDone) {
@@ -45,10 +45,23 @@ export function markPractice(minutes = 0) {
     d.todayDone = true;
     d.lastDay = t;
   }
-  d.totalMeds += 1;
+  if (type === "meditation") {
+    d.totalMeds = (d.totalMeds || 0) + 1;
+    d.totalMedMinutes = (d.totalMedMinutes || 0) + minutes;
+  }
+  d.totalPractices = (d.totalPractices || 0) + 1;
   d.totalMinutes += minutes;
   // Check achievements
   d.achievements = checkAchievements(d);
+  save(d);
+  return d;
+}
+
+// Reset only meditation counters (keeps streak, achievements, etc.)
+export function resetMedStats() {
+  const d = load();
+  d.totalMeds = 0;
+  d.totalMedMinutes = 0;
   save(d);
   return d;
 }

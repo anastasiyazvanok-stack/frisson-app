@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { requireUser } from "./_lib/auth.js";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -30,12 +31,15 @@ No extra text, only JSON.`,
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
+  const user = await requireUser(req);
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
   const { text, lang = "ru" } = req.body || {};
   if (!text?.trim()) return res.status(400).json({ error: "No text" });
 
   try {
     const response = await client.messages.create({
-      model: "claude-opus-4-5",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 400,
       system: SYSTEM[lang] || SYSTEM.ru,
       messages: [{ role: "user", content: text.trim().slice(0, 2000) }],

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { getThemes } from "./data/themes";
 import { getActivity, markPractice, getName, setName as saveName } from "./data/activity";
 import { supabase, fetchMeditations, fetchSections, getSession, signOut, syncToCloud, loadFromCloud, applyCloudData, collectLocalData, getIsRecoveryMode } from "./lib/supabase";
-import { TYPE, SP, RAD, OP, EASE, FONT_SERIF, FONT_SANS, tx, label, heading } from "./utils/design";
+import { TYPE, SP, RAD, OP, EASE, FONT_SERIF, FONT_SANS, tx, label } from "./utils/design";
 import { useLangState, t as tr } from "./utils/i18n";
 import GlobalStyles from "./components/GlobalStyles";
 import Auth, { PasswordResetForm } from "./components/Auth";
@@ -18,6 +18,7 @@ import SubPage from "./components/SubPage";
 import Orbit from "./components/Orbit";
 import Nav from "./components/Nav";
 import AICoach from "./components/AICoach";
+import { LogoLockup } from "./components/Brand";
 
 export const VERSION = "5.8.0";
 
@@ -187,7 +188,7 @@ export default function App() {
   const [userName, setUserName] = useState(getName);
   const [showNameInput, setShowNameInput] = useState(() => !getName());
   const [nameVal, setNameVal] = useState("");
-  const doMarkPractice = (minutes) => { const a = markPractice(minutes); setActivity({ ...a }); queueSync(userId); };
+  const doMarkPractice = (minutes, type) => { const a = markPractice(minutes, type); setActivity({ ...a }); queueSync(userId); };
   const doSetName = (n) => { saveName(n); setUserName(n); setShowNameInput(false); queueSync(userId); };
 
   const scrollRef = useRef(null);
@@ -207,8 +208,8 @@ export default function App() {
 
   if (!authChecked) return (
     <><GlobalStyles />
-    <div style={{ width: "100%", height: "100dvh", background: "#06030a", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(230,77,168,.6)", boxShadow: "0 0 20px rgba(230,77,168,.5)", animation: "breathe 1.8s ease-in-out infinite" }} />
+    <div style={{ width: "100%", height: "100dvh", background: "#0e0810", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(227,154,60,.6)", boxShadow: "0 0 20px rgba(227,154,60,.5)", animation: "breathe 1.8s ease-in-out infinite" }} />
     </div></>
   );
   // Non-logged-in users always see onboarding (unless they just finished it)
@@ -228,20 +229,19 @@ export default function App() {
 
   if (showNameInput) return (
     <><GlobalStyles />
-    <div style={{ width: "100%", height: "100dvh", background: "linear-gradient(165deg, #1a0418 0%, #2a1408 50%, #0c0820 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: `0 ${SP.xxl}px`, position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "absolute", width: "70%", height: "70%", top: "-15%", left: "-15%", borderRadius: "50%", background: "radial-gradient(circle,rgba(230,77,168,.6),rgba(159,123,216,.4) 55%,transparent 72%)", filter: "blur(55px)", animation: "breathe 18s ease-in-out infinite" }} />
-      <div style={{ position: "absolute", width: "55%", height: "55%", bottom: "-10%", right: "-8%", borderRadius: "50%", background: "radial-gradient(circle,rgba(240,136,56,.5),rgba(208,128,176,.4) 55%,transparent 72%)", filter: "blur(50px)", animation: "breathe 22s 4s ease-in-out infinite" }} />
+    <div style={{ width: "100%", height: "100dvh", background: "linear-gradient(165deg,#150A15 0%,#5C1C2E 50%,#0E0810 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: `0 ${SP.xxl}px`, position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", width: "70%", height: "70%", top: "-15%", left: "-15%", borderRadius: "50%", background: "radial-gradient(circle,rgba(92,28,46,.75),rgba(59,21,51,.5) 55%,transparent 72%)", filter: "blur(55px)", animation: "breathe 18s ease-in-out infinite" }} />
+      <div style={{ position: "absolute", width: "55%", height: "55%", bottom: "-10%", right: "-8%", borderRadius: "50%", background: "radial-gradient(circle,rgba(208,86,42,.65),rgba(178,70,31,.5) 55%,transparent 72%)", filter: "blur(50px)", animation: "breathe 22s 4s ease-in-out infinite" }} />
       <div style={{ position: "relative", zIndex: 1, width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <img src="./brand/ornament-white.png" alt="" style={{ width: 56, height: "auto", opacity: 0.7, filter: "drop-shadow(0 0 20px rgba(230,77,168,.4))", marginBottom: SP.lg }} />
-        <div style={{ ...heading(40), color: "#fff", textAlign: "center", textShadow: "0 0 40px rgba(230,77,168,.5)", marginBottom: SP.sm }}>LuxMind</div>
-        <div style={{ ...label(TYPE.xs), color: "rgba(180,150,165,.5)", letterSpacing: ".3em", marginBottom: 40 }}>{L("ask_name")}</div>
+        <LogoLockup mark={56} size={38} style={{ marginBottom: SP.sm }} />
+        <div style={{ ...label(TYPE.xs), color: "rgba(201,175,166,.5)", letterSpacing: ".3em", marginBottom: 40 }}>{L("ask_name")}</div>
         <input
           autoFocus
           placeholder={L("your_name")}
           value={nameVal}
           onChange={(e) => setNameVal(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && nameVal.trim()) doSetName(nameVal.trim()); }}
-          style={{ width: "100%", maxWidth: 260, padding: `${SP.lg}px ${SP.page}px`, borderRadius: RAD.lg, background: "rgba(0,0,0,.25)", border: "1px solid rgba(200,160,180,.3)", outline: "none", fontFamily: FONT_SERIF, fontSize: TYPE.xl, color: "#fff", textAlign: "center", caretColor: "rgba(230,77,168,.8)", backdropFilter: "blur(12px)" }}
+          style={{ width: "100%", maxWidth: 260, padding: `${SP.lg}px ${SP.page}px`, borderRadius: RAD.lg, background: "rgba(0,0,0,.25)", border: "1px solid rgba(201,175,166,.3)", outline: "none", fontFamily: FONT_SERIF, fontSize: TYPE.xl, color: "#fff", textAlign: "center", caretColor: "rgba(227,154,60,.8)", backdropFilter: "blur(12px)" }}
         />
         <button
           type="button"
@@ -249,11 +249,11 @@ export default function App() {
           style={{
             marginTop: SP.xl, width: "100%", maxWidth: 260, padding: SP.lg, borderRadius: RAD.lg,
             textAlign: "center", cursor: nameVal.trim() ? "pointer" : "default",
-            background: nameVal.trim() ? "linear-gradient(135deg, rgba(230,77,168,.6), rgba(240,136,56,.5))" : "rgba(255,255,255,.03)",
-            border: `1.5px solid ${nameVal.trim() ? "rgba(240,136,56,.7)" : "rgba(255,255,255,.07)"}`,
-            boxShadow: nameVal.trim() ? "0 0 32px rgba(230,77,168,.4)" : "none",
+            background: nameVal.trim() ? "linear-gradient(135deg, rgba(227,154,60,.6), rgba(227,154,60,.5))" : "rgba(255,255,255,.03)",
+            border: `1.5px solid ${nameVal.trim() ? "rgba(227,154,60,.7)" : "rgba(255,255,255,.07)"}`,
+            boxShadow: nameVal.trim() ? "0 0 32px rgba(227,154,60,.4)" : "none",
             ...label(TYPE.xs), fontWeight: 400, letterSpacing: ".25em",
-            color: nameVal.trim() ? "rgba(245,228,233,.96)" : "rgba(230,218,225,.2)",
+            color: nameVal.trim() ? "rgba(247,239,230,.96)" : "rgba(247,239,230,.2)",
             opacity: nameVal.trim() ? 1 : 0.4, transition: EASE.normal,
             touchAction: "manipulation", WebkitAppearance: "none",
           }}
@@ -263,7 +263,7 @@ export default function App() {
   );
 
   const screens = {
-    home: <Home setScreen={setScreen} theme={theme} setTheme={setThemePersisted} eScore={eScore} pLog={pLog} setLibSec={setLibSec} THEMES={THEMES} activity={activity} userName={userName} doMarkPractice={doMarkPractice} lang={lang} goToMed={goToMed} />,
+    home: <Home setScreen={setScreen} theme={theme} setTheme={setThemePersisted} eScore={eScore} setEScore={setEScore} eHist={eHist} setEHist={setEHist} pLog={pLog} setLibSec={setLibSec} THEMES={THEMES} activity={activity} userName={userName} doMarkPractice={doMarkPractice} lang={lang} goToMed={goToMed} />,
     library: <Library setScreen={setScreen} goBack={goBack} theme={theme} initSec={libSec} initMed={openMed} clearMed={() => setOpenMed(null)} medFrom={medFrom} clearMedFrom={() => setMedFrom(null)} THEMES={THEMES} doMarkPractice={doMarkPractice} addGems={addGems} remoteMeds={remoteMeds} remoteSections={remoteSections} lang={lang} />,
     orbit: <Orbit setScreen={setScreen} goBack={goBack} addGems={addGems} doMarkPractice={doMarkPractice} initScenario={openScenario} clearInitScenario={() => setOpenScenario(null)} lang={lang} eScore={eScore} theme={theme} THEMES={THEMES} activity={activity} userName={userName} />,
     journal: <Journal theme={theme} addGems={addGems} THEMES={THEMES} doMarkPractice={doMarkPractice} lang={lang} />,
@@ -276,8 +276,8 @@ export default function App() {
   return (
     <>
       <GlobalStyles />
-      <div style={{ width: "100%", height: "100dvh", background: "#040208", display: "flex", alignItems: "flex-start", justifyContent: "center", overflow: "hidden" }}>
-        <div style={{ width: "100%", maxWidth: 430, height: "100dvh", display: "flex", flexDirection: "column", background: T.bg, transition: EASE.slow, boxShadow: "0 0 60px rgba(6,2,8,.8)", position: "relative", "--txt": T.tr || "242,232,226" }}>
+      <div style={{ width: "100%", height: "100dvh", background: "#0e0810", display: "flex", alignItems: "flex-start", justifyContent: "center", overflow: "hidden" }}>
+        <div style={{ width: "100%", maxWidth: 430, height: "100dvh", display: "flex", flexDirection: "column", background: T.bg, transition: EASE.slow, boxShadow: "0 0 60px rgba(14,8,16,.8)", position: "relative", "--txt": T.tr || "247,239,230" }}>
           {screen !== "orbit" && (
             <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden", zIndex: 0 }}>
               {Array.from({ length: 14 }, (_, i) => {
@@ -288,9 +288,9 @@ export default function App() {
                     position: "absolute",
                     left: `${(i * 53 + 13) % 100}%`,
                     top: `${(i * 37 + 7) % 100}%`,
-                    width: useAlt ? 2.5 : 1.5, height: useAlt ? 2.5 : 1.5, borderRadius: RAD.full,
-                    background: `rgba(${col},.${2 + (i % 3)})`,
-                    boxShadow: `0 0 ${useAlt ? 5 : 3}px rgba(${col},.4)`,
+                    width: useAlt ? 3 : 2, height: useAlt ? 3 : 2, borderRadius: RAD.full,
+                    background: `rgba(${col},.${3 + (i % 3)})`,
+                    boxShadow: `0 0 ${useAlt ? 7 : 4}px rgba(${col},.55)`,
                     animationDelay: `${(i * 0.5) % 8}s`,
                     animationDuration: `${8 + (i % 4)}s`,
                   }} />

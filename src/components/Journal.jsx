@@ -6,6 +6,7 @@ import {
 } from "../utils/design";
 import { logDiary, detectDiaryAxes } from "../data/psycap";
 import { t as tr, MONTHS_SHORT } from "../utils/i18n";
+import { authHeader } from "../lib/supabase";
 import Orb from "./Orb";
 
 const STORAGE_KEY = "frisson_journal";
@@ -38,11 +39,13 @@ function todayStr(lang) {
   return `${day} ${mon} ${d.getFullYear()}`;
 }
 
+// Journal is the lavender surface (brandbook role) — tabs stay in its cool register,
+// with gratitude as the one warm note.
 const TAB_COLORS = {
-  intent:  { hex: "#C8A8F0", rgb: "200,168,240" },
-  grat:    { hex: "#F0C8A8", rgb: "240,200,168" },
-  goals:   { hex: "#A8D8C8", rgb: "168,216,200" },
-  reflect: { hex: "#A8C0F0", rgb: "168,192,240" },
+  intent:  { hex: "#B9A9DA", rgb: "185,169,218" },
+  grat:    { hex: "#E39A3C", rgb: "227,154,60" },
+  goals:   { hex: "#8E76B8", rgb: "142,118,184" },
+  reflect: { hex: "#DCD2EC", rgb: "220,210,236" },
 };
 
 const TAB_EMPTY = {
@@ -79,7 +82,7 @@ export default function Journal({ theme, addGems, THEMES, lang = "ru", doMarkPra
     try {
       const res = await fetch("/api/ai-diary", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(await authHeader()) },
         body: JSON.stringify({ text: entryText, lang }),
       });
       if (res.ok) {
@@ -236,8 +239,8 @@ export default function Journal({ theme, addGems, THEMES, lang = "ru", doMarkPra
 
       {/* AI reply card */}
       {(aiLoading || aiReply) && (
-        <div style={{ position: "fixed", bottom: 90, left: "50%", transform: "translateX(-50%)", zIndex: 200, width: "calc(100% - 48px)", maxWidth: 380, animation: "fadeUp .4s ease both" }}>
-          <div style={{ background: "rgba(10,5,18,.92)", border: `1px solid rgba(${tc.rgb},.3)`, borderRadius: RAD.lg + 4, padding: `${SP.lg}px ${SP.xl}px`, backdropFilter: "blur(20px)", boxShadow: `0 8px 40px rgba(0,0,0,.5), 0 0 0 1px rgba(${tc.rgb},.1) inset` }}>
+        <div style={{ position: "fixed", bottom: 90, left: 24, right: 24, zIndex: 200, maxWidth: 382, margin: "0 auto", animation: "fadeUp .4s ease both" }}>
+          <div style={{ background: "rgba(14,8,16,.92)", border: `1px solid rgba(${tc.rgb},.3)`, borderRadius: RAD.lg + 4, padding: `${SP.lg}px ${SP.xl}px`, backdropFilter: "blur(20px)", boxShadow: `0 8px 40px rgba(0,0,0,.5), 0 0 0 1px rgba(${tc.rgb},.1) inset` }}>
             {aiLoading ? (
               <div style={{ display: "flex", alignItems: "center", gap: SP.md }}>
                 <div style={{ width: 6, height: 6, borderRadius: "50%", background: tc.hex, animation: "breathe 1.2s ease-in-out infinite" }} />
@@ -250,7 +253,7 @@ export default function Journal({ theme, addGems, THEMES, lang = "ru", doMarkPra
                 <div style={{ ...label(TYPE.xs - 1), color: tc.hex, letterSpacing: ".2em", marginBottom: SP.sm }}>
                   ✦ {lang === "ru" ? "Анастасия" : "Anastasia"}
                 </div>
-                <div style={{ fontFamily: FONT_SANS, fontSize: TYPE.sm + 1, fontWeight: 300, lineHeight: 1.7, color: "rgba(245,235,230,.88)" }}>
+                <div style={{ fontFamily: FONT_SANS, fontSize: TYPE.sm + 1, fontWeight: 300, lineHeight: 1.7, color: "rgba(247,239,230,.88)" }}>
                   {aiReply?.message}
                 </div>
                 <div onClick={() => setAiReply(null)} style={{ marginTop: SP.sm, ...label(TYPE.xs - 1), color: `rgba(${tc.rgb},.4)`, cursor: "pointer", textAlign: "right" }}>
@@ -265,7 +268,7 @@ export default function Journal({ theme, addGems, THEMES, lang = "ru", doMarkPra
       {/* Crystal burst animations */}
       {crystals.map((cr) => (
         <div key={cr.id} style={{ position: "fixed", bottom: 140, left: `${cr.x}%`, zIndex: 999, pointerEvents: "none", animation: "gemBurst 2s ease forwards", textAlign: "center" }}>
-          <div style={{ fontSize: TYPE.xxl, color: "#F0D060", animation: "gemGlow .8s ease-in-out 2" }}>+1 ⟡</div>
+          <div style={{ fontSize: TYPE.xxl, color: "#f3ce72", animation: "gemGlow .8s ease-in-out 2" }}>+1 ⟡</div>
         </div>
       ))}
 

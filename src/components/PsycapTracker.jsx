@@ -61,7 +61,7 @@ function Overview({ T, data, score, delta, rec, goToScenario, setScreen, expande
           </div>
         </div>
         {delta !== 0 && (
-          <div style={{ fontFamily: FONT_SANS, fontSize: TYPE.sm - 1, marginTop: SP.sm + 2, color: delta > 0 ? "#4FAE92" : "#D4453C" }}>
+          <div style={{ fontFamily: FONT_SANS, fontSize: TYPE.sm - 1, marginTop: SP.sm + 2, color: delta > 0 ? "#7FA786" : "#C25A66" }}>
             {delta > 0 ? "+" : ""}{delta} {L("pc_per_month")}
           </div>
         )}
@@ -84,13 +84,13 @@ function Overview({ T, data, score, delta, rec, goToScenario, setScreen, expande
               <div onClick={() => setExpandedAxis(isExpanded ? null : a.id)} style={{ cursor: "pointer" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 3 }}>
                   <span style={{ ...body(TYPE.base), color: "rgba(var(--txt),.88)" }}>{a.label}</span>
-                  <span style={{ fontFamily: FONT_SANS, fontSize: TYPE.sm, color: isMastered ? "#FFD77A" : a.hex, fontWeight: 500, transition: `opacity .4s ${barDelay}`, opacity: mounted ? 1 : 0 }}>
+                  <span style={{ fontFamily: FONT_SANS, fontSize: TYPE.sm, color: isMastered ? "#F3CE72" : a.hex, fontWeight: 500, transition: `opacity .4s ${barDelay}`, opacity: mounted ? 1 : 0 }}>
                     {isMastered ? "✦ 100" : displayVal}
                   </span>
                 </div>
                 <div style={{ ...body(TYPE.xs + 0.5), color: `rgba(var(--txt),.45)`, lineHeight: 1.4, marginBottom: 7, fontStyle: "italic" }}>{a.desc}</div>
-                <div style={{ height: 6, borderRadius: SP.xs, background: "rgba(var(--txt),.05)", overflow: "hidden", boxShadow: isMastered ? `0 0 8px #FFD77A55` : "none" }}>
-                  <div style={{ height: "100%", width: mounted ? `${Math.min(100, value)}%` : "0%", background: isMastered ? "linear-gradient(90deg, #FFB83088, #FFD77A)" : `linear-gradient(90deg, ${a.hex}77, ${a.hex})`, borderRadius: SP.xs, transition: `width 1s cubic-bezier(.25,.46,.45,.94) ${barDelay}`, boxShadow: isMastered ? `0 0 14px #FFD77Acc` : `0 0 10px ${a.hex}55` }} />
+                <div style={{ height: 6, borderRadius: SP.xs, background: "rgba(var(--txt),.05)", overflow: "hidden", boxShadow: isMastered ? `0 0 8px #F3CE7255` : "none" }}>
+                  <div style={{ height: "100%", width: mounted ? `${Math.min(100, value)}%` : "0%", background: isMastered ? "linear-gradient(90deg,#B2461F,#E39A3C 70%,#F3CE72)" : `linear-gradient(90deg, ${a.hex}77, ${a.hex})`, borderRadius: SP.xs, transition: `width 1s cubic-bezier(.25,.46,.45,.94) ${barDelay}`, boxShadow: isMastered ? `0 0 14px #F3CE72cc` : `0 0 10px ${a.hex}55` }} />
                 </div>
               </div>
               {isExpanded && (
@@ -176,7 +176,7 @@ function Growth({ T, lang, L, EVENT_LABELS }) {
             </>
           )}
           {history.length < 2 && (
-            <text x={W / 2} y={H / 2} textAnchor="middle" fill="rgba(200,175,158,.4)" fontSize={TYPE.sm} fontFamily={FONT_SERIF}>{L("pc_no_data")}</text>
+            <text x={W / 2} y={H / 2} textAnchor="middle" fill="rgba(201,175,166,.4)" fontSize={TYPE.sm} fontFamily={FONT_SERIF}>{L("pc_no_data")}</text>
           )}
         </svg>
       </div>
@@ -249,8 +249,8 @@ function WeeklyCheckin({ T, onClose, L, AXES }) {
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(6,2,8,.88)", backdropFilter: "blur(16px)", display: "flex", alignItems: "center", justifyContent: "center", padding: SP.xl }}>
-      <div style={{ width: "100%", maxWidth: 380, background: "#14102a", border: `1px solid ${T.border}`, borderRadius: RAD.lg, padding: SP.xl }}>
+    <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(14,8,16,.88)", backdropFilter: "blur(16px)", display: "flex", alignItems: "center", justifyContent: "center", padding: SP.xl }}>
+      <div style={{ width: "100%", maxWidth: 380, background: "#1D1015", border: `1px solid ${T.border}`, borderRadius: RAD.lg, padding: SP.xl }}>
         <div style={{ ...label(TYPE.xs - 1), color: T.accent, letterSpacing: "2px", marginBottom: 6, textAlign: "center" }}>{L("pc_weekly_checkin")}</div>
         <div style={{ ...heading(TYPE.xl - 2), color: `rgba(var(--txt),${OP.primary})`, marginBottom: 6, textAlign: "center" }}>{L("pc_how_now")}</div>
         <div style={{ ...body(TYPE.sm), color: `rgba(var(--txt),${OP.secondary})`, marginBottom: SP.xl, textAlign: "center", fontStyle: "italic" }}>{L("pc_30sec")}</div>
@@ -279,7 +279,7 @@ function WeeklyCheckin({ T, onClose, L, AXES }) {
 }
 
 // ── MAIN COMPONENT ──────────────────────────────────────────────────────
-export default function PsycapTracker({ T, setScreen, goToScenario, lang = "ru" }) {
+export default function PsycapTracker({ T, setScreen, goToScenario, lang = "ru", embedded = false }) {
   const L = (k, ...a) => tr(lang, k, ...a);
   const AXES = getAxes(lang);
   const EVENT_LABELS = EVENT_LABELS_DICT[lang] || EVENT_LABELS_DICT.ru;
@@ -302,14 +302,16 @@ export default function PsycapTracker({ T, setScreen, goToScenario, lang = "ru" 
   const rec = getRecommendation(lang);
 
   return (
-    <div style={{ margin: `0 ${SP.xl}px ${SP.lg + 2}px`, padding: `${SP.page}px ${SP.lg + 2}px`, background: T.card, border: `1px solid ${T.border}`, borderRadius: RAD.lg, position: "relative", zIndex: 1 }}>
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: SP.md + 2 }}>
-        <div style={{ ...label(TYPE.xs - 1), color: `rgba(var(--txt),${OP.tertiary + 0.08})`, letterSpacing: ".22em" }}>{L("pc_header")}</div>
-        {checkinDue && (
-          <div onClick={() => setShowCheckin(true)} style={{ ...label(TYPE.xs - 1), letterSpacing: ".1em", color: T.accent, cursor: "pointer", padding: `${SP.xs}px ${SP.sm + 2}px`, borderRadius: SP.sm + 2, background: `${T.accent}18`, border: `1px solid ${T.accent}33` }}>{L("pc_checkin_cta")}</div>
-        )}
-      </div>
+    <div style={embedded ? { position: "relative" } : { margin: `0 ${SP.xl}px ${SP.lg + 2}px`, padding: `${SP.page}px ${SP.lg + 2}px`, background: T.card, border: `1px solid ${T.border}`, borderRadius: RAD.lg, position: "relative", zIndex: 1 }}>
+      {/* Header — the title is already shown by the collapsible wrapper when embedded */}
+      {(!embedded || checkinDue) && (
+        <div style={{ display: "flex", justifyContent: embedded ? "flex-end" : "space-between", alignItems: "baseline", marginBottom: SP.md + 2 }}>
+          {!embedded && <div style={{ ...label(TYPE.xs - 1), color: `rgba(var(--txt),${OP.tertiary + 0.08})`, letterSpacing: ".22em" }}>{L("pc_header")}</div>}
+          {checkinDue && (
+            <div onClick={() => setShowCheckin(true)} style={{ ...label(TYPE.xs - 1), letterSpacing: ".1em", color: T.accent, cursor: "pointer", padding: `${SP.xs}px ${SP.sm + 2}px`, borderRadius: SP.sm + 2, background: `${T.accent}18`, border: `1px solid ${T.accent}33` }}>{L("pc_checkin_cta")}</div>
+          )}
+        </div>
+      )}
 
       {/* Tabs */}
       <div style={{ display: "flex", background: "rgba(var(--txt),.04)", border: `1px solid ${T.border}`, borderRadius: RAD.sm + 4, padding: 3, marginBottom: SP.lg + 2 }}>

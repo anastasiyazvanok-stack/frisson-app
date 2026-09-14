@@ -1,9 +1,9 @@
-// ─── FRISSON DESIGN SYSTEM ───
+// ─── NECTAR DESIGN SYSTEM ───
 // Single source of truth for all visual tokens.
 // Import { DS } everywhere instead of magic numbers.
 
-export const FONT_SERIF = "'Cormorant','Cormorant Garamond',Georgia,serif";
-export const FONT_SANS  = "'Plus Jakarta Sans',system-ui,sans-serif";
+export const FONT_SERIF = "'Cormorant Garamond',Georgia,serif";
+export const FONT_SANS  = "'Manrope',system-ui,sans-serif";
 
 // ─── TYPE SCALE (px) ───
 // 6 steps: xs, sm, base, lg, xl, xxl — nothing else.
@@ -29,11 +29,12 @@ export const SP = {
 };
 
 // ─── BORDER RADIUS ───
+// Brandbook: 4 / 12 / 20 / 999 only.
 export const RAD = {
-  sm:   8,    // pills, small chips, icons
-  md:  14,    // cards, inputs, buttons
+  sm:   4,    // pills, small chips, icons
+  md:  12,    // cards, inputs, buttons
   lg:  20,    // modals, overlays, hero cards
-  full: 9999, // circles
+  full: 999,  // circles
 };
 
 // ─── OPACITY LEVELS ───
@@ -53,7 +54,7 @@ export const OP = {
 export const LS = {
   tight:  "0.02em",  // body serif
   normal: "0.06em",  // body sans
-  wide:   "0.14em",  // uppercase labels
+  wide:   "0.16em",  // uppercase labels (brandbook Label: 11/600/.16em)
 };
 
 // ─── TRANSITIONS ───
@@ -72,10 +73,86 @@ export const LH = {
 };
 
 // ─── SEMANTIC COLORS (theme-independent) ───
+// Nectar brandbook palette. Semantic roles (brandbook §Design tokens):
+//   ember    — действие / основной CTA
+//   amber    — прогресс и психологический капитал
+//   lavender — состояния, дневник, вечерние практики
+//   bordeaux — глубина, разбор трудного
+//   iris     — ИИ-коуч
 export const COLOR = {
-  positive: "#3BA88A",
-  negative: "#C44040",
-  gold:     "#D4A840",
+  positive: "#4E7A55",
+  negative: "#C25A66",
+  // Lightened success tint — brandbook success (#4E7A55) sits under 4.5:1 as text on obsidian,
+  // so fills/borders use `positive`, text uses this.
+  positiveSoft: "#7FA786",
+  gold:     "#F3CE72",
+  // Nectar brandbook palette
+  obsidian: "#0E0810",
+  wingBlack:"#1D1015",
+  plum:     "#3B1533",
+  bordeaux: "#5C1C2E",
+  rust:     "#B2461F",
+  ember:    "#D0562A",
+  amber:    "#E39A3C",
+  honeyGold:"#F3CE72",
+  iris:     "#8E76B8",
+  lavender: "#B9A9DA",
+  mist:     "#DCD2EC",
+  cream:    "#F7EFE6",
+  shell:    "#EFE3D8",
+  ink:      "#24131A",
+  muted:    "#C9AFA6",
+  mutedLight:"#5C4048",
+};
+
+// RGB triplets for the same palette — for `rgba(${RGB.ember},.2)` fills.
+export const RGB = {
+  obsidian: "14,8,16",
+  wingBlack:"29,16,21",
+  plum:     "59,21,51",
+  bordeaux: "92,28,46",
+  rust:     "178,70,31",
+  ember:    "208,86,42",
+  amber:    "227,154,60",
+  gold:     "243,206,114",
+  iris:     "142,118,184",
+  lavender: "185,169,218",
+  mist:     "220,210,236",
+  cream:    "247,239,230",
+  ink:      "36,19,26",
+};
+
+export const HAIRLINE = "rgba(185,169,218,.16)";
+
+// ─── BRAND GRADIENTS (brandbook §Gradients — exact values) ───
+// Max three stops in new gradients; gold and lavender never share a gradient;
+// a gradient is never the background of a whole app screen.
+export const GRAD = {
+  // Обложки, крупные плоскости
+  nectarFlow: "linear-gradient(150deg,#150A15,#3B1533 22%,#5C1C2E 48%,#B2461F 76%,#E39A3C 94%,#F3CE72)",
+  // Дневник, вечерние практики
+  duskWing:   "radial-gradient(75% 70% at 30% 20%,#B9A9DA,#8E76B8 28%,#3B1533 62%,#0E0810)",
+  // Психологический капитал
+  emberGlow:  "radial-gradient(60% 60% at 50% 65%,#E39A3C,#B2461F 32%,#2A0D18 72%,#0E0810)",
+  // Иконка, аватары, фавикон
+  iconDeep:   "radial-gradient(115% 110% at 30% 12%,#7A3226,#52202B 36%,#2B1020 70%,#150A15)",
+  // Primary button fill
+  btnPrimary: "linear-gradient(120deg,#B2461F,#D0562A 55%,#E39A3C)",
+  // Capital / progress bar fill
+  progress:   "linear-gradient(90deg,#B2461F,#E39A3C 70%,#F3CE72)",
+};
+
+// ─── SCREEN BASES ───
+// Every screen starts from a dark base; light arrives as one spot (brandbook §Screens).
+export const BG = {
+  // App shell / loaders / doc overlays — flat obsidian
+  deep:  "#0E0810",
+  // Entry screens (auth, onboarding): obsidian → plum → obsidian
+  entry: "linear-gradient(160deg,#150A15 0%,#3B1533 46%,#0E0810 100%)",
+  // AI coach (iris role)
+  coach: "linear-gradient(160deg,#120B18 0%,#2A1A3A 48%,#0E0810 100%)",
+  // Raised surfaces (modals, sheets)
+  surface: "#1D1015",
 };
 
 // ─── HELPERS ───
@@ -119,5 +196,5 @@ export const section = (mb = SP.lg) => ({
   zIndex: 1,
 });
 
-const DS = { FONT_SERIF, FONT_SANS, TYPE, SP, RAD, OP, LS, EASE, LH, COLOR, tx, label, body, heading, card, section };
+const DS = { FONT_SERIF, FONT_SANS, TYPE, SP, RAD, OP, LS, EASE, LH, COLOR, RGB, HAIRLINE, GRAD, BG, tx, label, body, heading, card, section };
 export default DS;

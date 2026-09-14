@@ -7,7 +7,7 @@ export default function PsycapAnalytics({ T, setScreen, eScore, goToScenario }) 
   const [showHow, setShowHow] = useState(false);
   const { dims, avg, weeklyGrowth, strongest, weakest, recommendation, sessionsThisWeek, totalSessions, topPractices } = stats;
   const trendIcon = weeklyGrowth > 0 ? "↑" : weeklyGrowth < 0 ? "↓" : "→";
-  const trendColor = weeklyGrowth > 0 ? "#4FAE92" : weeklyGrowth < 0 ? "#D4453C" : `rgba(var(--txt),.4)`;
+  const trendColor = weeklyGrowth > 0 ? "#7FA786" : weeklyGrowth < 0 ? "#C25A66" : `rgba(var(--txt),.4)`;
 
   return (
     <div style={{ margin: `0 ${SP.xl}px ${SP.lg + 2}px`, padding: `${SP.page}px ${SP.lg + 2}px`, background: T.card, border: `1px solid ${T.border}`, borderRadius: RAD.lg, position: "relative", zIndex: 1 }}>

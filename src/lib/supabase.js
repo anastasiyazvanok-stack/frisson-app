@@ -44,6 +44,13 @@ export async function getSession() {
   return data?.session || null;
 }
 
+// Bearer header for the AI proxy endpoints (api/ai-*.js) — they require a signed-in
+// session so the Anthropic API key behind them can't be hit by anonymous requests.
+export async function authHeader() {
+  const session = await getSession();
+  return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
+}
+
 // ─── User data sync ───
 
 const SYNC_KEYS = [
@@ -82,7 +89,7 @@ export async function syncToCloud(userId) {
       .from("user_data")
       .upsert({ id: userId, data, updated_at: new Date().toISOString() });
   } catch (e) {
-    console.warn("[frisson] sync failed:", e);
+    console.warn("[nectar] sync failed:", e);
   }
 }
 

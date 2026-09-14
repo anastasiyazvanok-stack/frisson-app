@@ -1,22 +1,25 @@
 import { useState, useEffect } from "react";
 
 const MOON = {
-  ru: ["Новолуние", "Растущий серп", "Первая четверть", "Растущая луна", "Полнолуние", "Убывающая луна", "Последняя четверть", "Убывающий серп"],
-  en: ["New moon", "Waxing crescent", "First quarter", "Waxing gibbous", "Full moon", "Waning gibbous", "Last quarter", "Waning crescent"],
+  ru: ["Новолуние", "Растущая луна", "Первая четверть", "Растущая луна", "Полнолуние", "Убывающая луна", "Последняя четверть", "Убывающая луна"],
+  en: ["New moon", "Waxing moon", "First quarter", "Waxing moon", "Full moon", "Waning moon", "Last quarter", "Waning moon"],
 };
 
-export function getMoon(lang = "ru") {
-  const d = new Date() - new Date(2000, 0, 6, 18, 14, 0);
-  const p = ((d / 86400000 % 29.53) + 29.53) % 29.53;
+const MOON_EMOJI = ["🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"];
+
+// Reference new moon: 2000-01-06 18:14 UTC (must be UTC — a local-time epoch
+// shifts every phase by the viewer's offset).
+const NEW_MOON_EPOCH = Date.UTC(2000, 0, 6, 18, 14, 0);
+const SYNODIC = 29.530588853; // mean synodic month, days
+
+export function getMoon(lang = "ru", now = new Date()) {
+  const days = (now - NEW_MOON_EPOCH) / 86400000;
+  const age = ((days % SYNODIC) + SYNODIC) % SYNODIC; // days since new moon
+  // Eight equal windows centred on each phase point, so the window around the
+  // new moon wraps across the end of the cycle instead of reading as "waning".
+  const i = Math.round((age / SYNODIC) * 8) % 8;
   const names = MOON[lang] || MOON.ru;
-  if (p < 1.85) return { e: "🌑", n: names[0] };
-  if (p < 7.38) return { e: "🌒", n: names[1] };
-  if (p < 9.22) return { e: "🌓", n: names[2] };
-  if (p < 14.77) return { e: "🌔", n: names[3] };
-  if (p < 16.61) return { e: "🌕", n: names[4] };
-  if (p < 22.15) return { e: "🌖", n: names[5] };
-  if (p < 23.99) return { e: "🌗", n: names[6] };
-  return { e: "🌘", n: names[7] };
+  return { e: MOON_EMOJI[i], n: names[i] };
 }
 
 export function useGreeting(lang = "ru") {
@@ -36,5 +39,5 @@ export function useGreeting(lang = "ru") {
   return v;
 }
 
-export const FONT_SERIF = "'Cormorant','Cormorant Garamond',Georgia,serif";
-export const FONT_SANS = "'Plus Jakarta Sans',system-ui,sans-serif";
+export const FONT_SERIF = "'Cormorant Garamond',Georgia,serif";
+export const FONT_SANS  = "'Manrope',system-ui,sans-serif";
