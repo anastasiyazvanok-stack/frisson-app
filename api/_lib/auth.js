@@ -21,9 +21,11 @@ export async function requireUser(req) {
   if (!token || !url || !anon) return null;
 
   try {
-    const client = createClient(url, anon, { auth: { persistSession: false } });
+    const client = createClient(url, anon, { auth: { persistSession: false, autoRefreshToken: false }, global: { headers: { Authorization: `Bearer ${token}` }, fetch: (url, init) => fetch(url, { ...init, signal: AbortSignal.timeout(10000) }) } });
     const { data, error } = await client.auth.getUser(token);
     if (error || !data?.user) return null;
+    const access = await client.rpc('get_member_access');
+    if (access.error || access.data?.active !== true) return null;
     return data.user;
   } catch {
     return null;

@@ -20,6 +20,9 @@ import Nav from "./components/Nav";
 import AICoach from "./components/AICoach";
 import { LogoLockup } from "./components/Brand";
 
+import { useMemberAccess } from "./lib/memberAccess";
+import AccessPanel from "./components/AccessPanel";
+
 export const VERSION = "5.8.0";
 
 export default function App() {
@@ -36,6 +39,7 @@ export default function App() {
   const [authChecked, setAuthChecked] = useState(false);
   const [userId, setUserId] = useState(null);
   const syncTimer = useRef(null);
+  const membership = useMemberAccess(userId);
 
   const queueSync = (uid) => {
     if (!uid) return;
@@ -298,7 +302,7 @@ export default function App() {
               })}
             </div>
           )}
-          <div ref={scrollRef} key={screen} className="screen-in" style={{ flex: 1, overflowY: screen === "orbit" ? "hidden" : "auto", overflowX: "hidden", position: "relative", zIndex: 1, display: "flex", flexDirection: "column" }}>{screens[screen]}</div>
+          <div ref={scrollRef} key={screen} className="screen-in" style={{ flex: 1, overflowY: screen === "orbit" ? "hidden" : "auto", overflowX: "hidden", position: "relative", zIndex: 1, display: "flex", flexDirection: "column" }}>{membership.active || screen === "journal" || screen === "profile" ? screens[screen] : <AccessPanel membership={membership} lang={lang} />}</div>
           {/* Edge-swipe back gesture (left edge swipe-right) */}
           {screen !== "orbit" && screen !== "home" && (
             <div
