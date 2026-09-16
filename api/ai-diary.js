@@ -1,9 +1,10 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { requireUser } from "./_lib/auth.js";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const SYSTEM = {
-  ru: `Ты — голос приложения LuxMind, созданного магистром клинической психологии Анастасией Званок. Твоя задача — отвечать на дневниковые записи женщин тепло, точно и поддерживающе. Ты эксперт по женскому психологическому капиталу.
+  ru: `Ты — голос приложения Nectar, созданного магистром клинической психологии Анастасией Званок. Твоя задача — отвечать на дневниковые записи женщин тепло, точно и поддерживающе. Ты эксперт по женскому психологическому капиталу.
 
 Когда получаешь дневниковую запись:
 1. Прочитай её внимательно
@@ -14,7 +15,7 @@ const SYSTEM = {
 {"axes": ["worth", "authentic"], "message": "твой отклик здесь"}
 
 Без лишнего текста, только JSON.`,
-  en: `You are the voice of LuxMind app, created by clinical psychology master Anastasia Zvanok. Your task is to respond to women's diary entries warmly, accurately and supportively. You are an expert in women's psychological capital.
+  en: `You are the voice of Nectar app, created by clinical psychology master Anastasia Zvanok. Your task is to respond to women's diary entries warmly, accurately and supportively. You are an expert in women's psychological capital.
 
 When you receive a diary entry:
 1. Read it carefully
@@ -30,12 +31,15 @@ No extra text, only JSON.`,
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
+  const user = await requireUser(req);
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
   const { text, lang = "ru" } = req.body || {};
   if (!text?.trim()) return res.status(400).json({ error: "No text" });
 
   try {
     const response = await client.messages.create({
-      model: "claude-opus-4-5",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 400,
       system: SYSTEM[lang] || SYSTEM.ru,
       messages: [{ role: "user", content: text.trim().slice(0, 2000) }],

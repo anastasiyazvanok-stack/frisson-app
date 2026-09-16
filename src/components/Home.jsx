@@ -1,19 +1,24 @@
+import { userStorage as localStorage } from "../lib/userStorage.js";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { getEnergyLevel, themeLabel } from "../data/themes";
 import { getSections, getRecommendations, getMoodMessages } from "../data/content";
 import { getMoon, useGreeting } from "../utils/helpers";
-import { t as tr } from "../utils/i18n";
+import { t as tr, MONTHS_SHORT } from "../utils/i18n";
+import { logEnergyTest } from "../data/psycap";
+import EnergyTest from "./EnergyTest";
 import { TYPE, SP, RAD, OP, LS, EASE, LH, FONT_SERIF, FONT_SANS, tx, label, body, heading, card as cardStyle, section } from "../utils/design";
 import { AUDIO_URLS } from "../data/audioUrls";
 import Orb from "./Orb";
+import { LensMark } from "./Brand";
 import { VERSION } from "../App";
 
-export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibSec, THEMES, activity, userName, doMarkPractice, lang = "ru", goToMed }) {
+export default function Home({ setScreen, theme, setTheme, eScore, setEScore, setEHist, pLog, setLibSec, THEMES, activity, userName, doMarkPractice, lang = "ru", goToMed }) {
   const T = THEMES[theme] || THEMES.full;
   const L = (k, ...a) => tr(lang, k, ...a);
   const moon = getMoon(lang);
   const gr = useGreeting(lang);
   const lv = eScore !== null ? getEnergyLevel(eScore, lang) : null;
+  const [showTest, setShowTest] = useState(false);
   const MOOD_MESSAGES = getMoodMessages(lang);
   const SECTIONS = getSections(lang);
   const RECOMMENDATIONS = getRecommendations(lang);
@@ -29,6 +34,19 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
   const [miniProg, setMiniProg] = useState(0);
   const [miniTime, setMiniTime] = useState(0);
   const [miniDur, setMiniDur] = useState(0);
+
+  // ─── Today's journal entry preview ───────────────────────────────────────
+  const todayJournal = (() => {
+    try {
+      const d = JSON.parse(localStorage.getItem("frisson_journal")) || {};
+      const today = new Date().toDateString();
+      const all = [...(d.intent || []), ...(d.grat || []), ...(d.reflect || [])];
+      const todayEntries = all.filter(e => e.ts && new Date(e.ts).toDateString() === today);
+      if (!todayEntries.length) return null;
+      todayEntries.sort((a, b) => b.ts - a.ts);
+      return todayEntries[0].text?.slice(0, 60) || null;
+    } catch { return null; }
+  })();
 
   useEffect(() => {
     const a = miniRef.current;
@@ -72,14 +90,25 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
   }, [theme, lang]);
 
   const cards = [
-    { sub: L("card_sub_resource"), title: L("card_title_fill"), sec: "resource", bg: "#180804", blobs: [{ x: "55%", y: "20%", w: 175, h: 145, c: "rgba(240,120,40,.95)", b: 22 }, { x: "10%", y: "60%", w: 140, h: 115, c: "rgba(160,140,200,.7)", b: 18 }, { x: "74%", y: "68%", w: 110, h: 88, c: "rgba(255,150,80,.8)", b: 16 }] },
-    { sub: L("card_sub_feminine"), title: L("card_title_fem"), sec: "feminine", bg: "#1a041c", blobs: [{ x: "50%", y: "25%", w: 170, h: 155, c: "rgba(230,77,168,.95)", b: 22 }, { x: "12%", y: "62%", w: 140, h: 115, c: "rgba(160,80,220,.75)", b: 18 }, { x: "72%", y: "66%", w: 115, h: 92, c: "rgba(255,140,180,.7)", b: 16 }] },
-    { sub: L("card_sub_receiving"), title: L("card_title_receive"), sec: "receiving", bg: "#1c0a04", blobs: [{ x: "48%", y: "22%", w: 165, h: 135, c: "rgba(255,175,50,.95)", b: 22 }, { x: "12%", y: "60%", w: 140, h: 110, c: "rgba(220,90,40,.8)", b: 18 }, { x: "74%", y: "66%", w: 112, h: 88, c: "rgba(180,60,120,.6)", b: 16 }] },
-    { sub: L("card_sub_newlevel"), title: L("card_title_grow"), sec: "newlevel", bg: "#0c0820", blobs: [{ x: "44%", y: "24%", w: 170, h: 140, c: "rgba(159,123,216,.95)", b: 22 }, { x: "10%", y: "58%", w: 142, h: 114, c: "rgba(200,140,180,.75)", b: 18 }, { x: "72%", y: "66%", w: 112, h: 88, c: "rgba(120,80,200,.7)", b: 16 }] },
+    // One warm/cool family per card — brandbook: gold and lavender never share a gradient.
+    { sub: L("card_sub_resource"), title: L("card_title_fill"), sec: "resource", bg: "#1D1015", blobs: [{ x: "55%", y: "20%", w: 175, h: 145, c: "rgba(178,70,31,.98)", b: 22 }, { x: "10%", y: "60%", w: 140, h: 115, c: "rgba(208,86,42,.85)", b: 18 }, { x: "74%", y: "68%", w: 110, h: 88, c: "rgba(227,154,60,.92)", b: 16 }] },
+    { sub: L("card_sub_feminine"), title: L("card_title_fem"), sec: "feminine", bg: "#1A0A18", blobs: [{ x: "50%", y: "25%", w: 170, h: 155, c: "rgba(92,28,46,.98)", b: 22 }, { x: "12%", y: "62%", w: 140, h: 115, c: "rgba(59,21,51,.9)", b: 18 }, { x: "72%", y: "66%", w: 115, h: 92, c: "rgba(142,118,184,.82)", b: 16 }] },
+    { sub: L("card_sub_receiving"), title: L("card_title_receive"), sec: "receiving", bg: "#1C0E06", blobs: [{ x: "48%", y: "22%", w: 165, h: 135, c: "rgba(243,206,114,.98)", b: 22 }, { x: "12%", y: "60%", w: 140, h: 110, c: "rgba(178,70,31,.92)", b: 18 }, { x: "74%", y: "66%", w: 112, h: 88, c: "rgba(227,154,60,.86)", b: 16 }] },
+    { sub: L("card_sub_newlevel"), title: L("card_title_grow"), sec: "newlevel", bg: "#14101E", blobs: [{ x: "44%", y: "24%", w: 170, h: 140, c: "rgba(142,118,184,.98)", b: 22 }, { x: "10%", y: "58%", w: 142, h: 114, c: "rgba(185,169,218,.86)", b: 18 }, { x: "72%", y: "66%", w: 112, h: 88, c: "rgba(59,21,51,.9)", b: 16 }] },
   ];
 
   const streak = activity?.streak || 0;
   const circ = 2 * Math.PI * 38;
+
+  const completeTest = (sc) => {
+    setEScore(sc);
+    logEnergyTest(sc);
+    const months = MONTHS_SHORT[lang] || MONTHS_SHORT.ru;
+    setEHist((h) => [...h, { score: sc, date: new Date().getDate() + " " + months[new Date().getMonth()] }].slice(-6));
+    setShowTest(false);
+  };
+
+  if (showTest) return <EnergyTest T={T} lang={lang} onComplete={completeTest} onCancel={() => setShowTest(false)} />;
 
   return (
     <div style={{ minHeight: "100%", background: T.bg, paddingBottom: 100, position: "relative", transition: EASE.slow }}>
@@ -87,7 +116,7 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
 
       {/* ─── Mini player ─── */}
       {miniDet && (
-        <div style={{ position: "fixed", bottom: 80, left: 10, right: 10, zIndex: 120, borderRadius: RAD.lg, background: "rgba(6,2,14,.93)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: `1px solid ${miniDet.color}44`, boxShadow: `0 8px 32px rgba(0,0,0,.55), 0 0 20px ${miniDet.color}18`, overflow: "hidden" }}>
+        <div style={{ position: "fixed", bottom: 80, left: 10, right: 10, zIndex: 120, borderRadius: RAD.lg, background: "rgba(14,8,16,.93)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: `1px solid ${miniDet.color}44`, boxShadow: `0 8px 32px rgba(0,0,0,.55), 0 0 20px ${miniDet.color}18`, overflow: "hidden" }}>
           {/* Progress */}
           <div style={{ height: 2, background: "rgba(255,255,255,.08)" }}
             onClick={(e) => { const a = miniRef.current; if (!a?.duration) return; const r = e.currentTarget.getBoundingClientRect(); a.currentTime = ((e.clientX - r.left) / r.width) * a.duration; }}>
@@ -116,17 +145,17 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
 
       {/* ─── Info overlay ─── */}
       {showInfo && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(4,2,8,.96)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+        <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(14,8,16,.96)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
           <div style={{ minHeight: "100%", display: "flex", flexDirection: "column", alignItems: "center", padding: `50px ${SP.xl}px 60px` }}>
             <div style={{ width: "100%", maxWidth: 340 }}>
               <button type="button" onClick={() => setShowInfo(false)} style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", padding: `0 0 ${SP.xl}px`, touchAction: "manipulation", WebkitAppearance: "none" }}>
                 <span style={{ fontSize: TYPE.base, color: `rgba(${T.ar},.5)` }}>←</span>
                 <span style={{ ...label(TYPE.xs), color: `rgba(${T.ar},.5)`, letterSpacing: ".15em" }}>{lang === "ru" ? "Назад" : "Back"}</span>
               </button>
-              <div style={{ ...label(TYPE.xs), letterSpacing: ".3em", color: T.accent, marginBottom: SP.sm, textAlign: "center" }}>✦ LuxMind ✦</div>
+              <div style={{ ...label(TYPE.xs), letterSpacing: ".3em", color: T.accent, marginBottom: SP.sm, textAlign: "center" }}>✦ NECTAR ✦</div>
               <div style={{ ...heading(TYPE.xxl + 2), color: T.text, marginBottom: SP.xl, textAlign: "center", whiteSpace: "pre-line" }}>{lang === "ru" ? "Твоё пространство\nвнутреннего капитала" : "Your space of\ninner capital"}</div>
               {[
-                { title: lang === "ru" ? "Что это?" : "What is it?", text: lang === "ru" ? "LuxMind — это приложение для работы с твоим внутренним ресурсом. Медитации, практики, дневник и трекер состояния помогают укреплять женственность, уходить из тревоги и наполняться каждый день." : "LuxMind is an app for working with your inner resource. Meditations, practices, journal and state tracker help strengthen femininity, release anxiety and fill up every day." },
+                { title: lang === "ru" ? "Что это?" : "What is it?", text: lang === "ru" ? "NECTAR — это приложение для работы с твоим внутренним ресурсом. Медитации, практики, дневник и трекер состояния помогают укреплять женственность, уходить из тревоги и наполняться каждый день." : "NECTAR is an app for working with your inner resource. Meditations, practices, journal and state tracker help strengthen femininity, release anxiety and fill up every day." },
                 { title: lang === "ru" ? "Как пользоваться?" : "How to use?", text: lang === "ru" ? "1. Выбери настроение вверху — медитации подберутся под тебя\n2. Перейди в Библиотеку — слушай медитации\n3. Открой Орбиту — выбери сценарий и начни практику\n4. Веди Дневник — записывай состояния\n5. В Профиле отслеживай свою динамику" : "1. Choose your mood above — meditations will be tailored for you\n2. Go to Library — listen to meditations\n3. Open Orbit — choose a scenario and start practice\n4. Keep a Journal — record your states\n5. In Profile track your dynamics" },
                 { title: lang === "ru" ? "Тест на ресурс" : "Resource test", text: lang === "ru" ? "Каждый день в Профиле проходи тест на психологическую энергию. Он сбрасывается каждое утро — так ты видишь свою динамику в реальном времени." : "Each day in Profile take the psychological energy test. It resets every morning — so you see your dynamics in real time." },
               ].map((item, i) => (
@@ -146,19 +175,19 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
         <div style={{ position: "absolute", top: SP.xl, right: SP.page }}>
           <button type="button" onClick={() => setShowInfo(true)} style={{ width: 30, height: 30, borderRadius: "50%", border: `1px solid rgba(${T.ar},.2)`, background: `rgba(${T.ar},.06)`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontFamily: FONT_SERIF, fontSize: 14, color: `rgba(${T.ar},.5)`, touchAction: "manipulation", WebkitAppearance: "none", padding: 0 }}>i</button>
         </div>
-        <img src="./brand/ornament-white.png" alt="" style={{ width: 28, height: "auto", opacity: 0.2, marginBottom: SP.md, filter: `drop-shadow(0 0 12px rgba(${T.ar},.3))` }} />
+        <LensMark size={28} color={`rgb(${T.ar})`} opacity={0.35} style={{ marginBottom: SP.md }} />
         <div style={{ ...label(TYPE.xs), color: tx("var(--txt)", OP.tertiary - 0.04), letterSpacing: ".3em", marginBottom: SP.sm }}>{moon.n}</div>
         <div style={{ position: "relative", display: "inline-block", margin: `${SP.xs}px 0 ${SP.md}px` }}>
           <div className="moon-halo" style={{ position: "absolute", inset: -18, borderRadius: RAD.full, background: `radial-gradient(circle, rgba(${T.ar},.45), transparent 65%)`, filter: "blur(16px)", pointerEvents: "none" }} />
           <div style={{ fontSize: 44, lineHeight: 1, position: "relative", filter: `drop-shadow(0 0 8px rgba(${T.ar},.4))` }}>{moon.e}</div>
         </div>
-        <div style={{ ...heading(30), color: T.text, marginBottom: SP.sm, letterSpacing: "0.01em" }}>{gr},<br/><span style={{ color: T.accent, filter: `drop-shadow(0 0 16px ${T.accent}44)` }}>{userName || "LuxMind"}</span></div>
+        <div style={{ ...heading(30), color: T.text, marginBottom: SP.sm, letterSpacing: "0.01em" }}>{gr},<br/><span style={{ color: T.accent, filter: `drop-shadow(0 0 16px ${T.accent}44)` }}>{userName || "NECTAR"}</span></div>
         <div style={{ fontFamily: FONT_SERIF, fontSize: 15, fontStyle: "italic", fontWeight: 300, lineHeight: 1.65, color: `rgba(${T.ar},.55)`, transition: EASE.slow, maxWidth: 300, margin: "0 auto", letterSpacing: "0.02em" }}>{msg}</div>
-        <div style={{ ...label(TYPE.xs), color: `rgba(${T.ar},.14)`, marginTop: SP.md, letterSpacing: ".25em" }}>LuxMind v{VERSION}</div>
+        <div style={{ ...label(TYPE.xs), color: `rgba(${T.ar},.14)`, marginTop: SP.md, letterSpacing: ".25em" }}>NECTAR v{VERSION}</div>
       </div>
 
       {/* ─── Energy Card ─── */}
-      <div className="fu1 press-card glass-card" onClick={() => setScreen("profile")} style={{
+      <div className="fu1 press-card glass-card" onClick={() => (lv ? setScreen("profile") : setShowTest(true))} style={{
         ...section(SP.lg), padding: `${SP.lg + 2}px ${SP.lg}px`,
         background: `rgba(${T.ar},.05)`, border: `1px solid rgba(${T.ar},.12)`,
         borderRadius: RAD.lg, display: "flex", alignItems: "center", gap: SP.lg, cursor: "pointer",
@@ -180,7 +209,7 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
         )}
         <div style={{ flex: 1 }}>
           <div style={{ ...label(TYPE.xs), color: tx("var(--txt)", OP.tertiary), marginBottom: SP.xs }}>{L("psych_energy")}</div>
-          <div style={{ ...body(TYPE.lg), color: T.text }}>{lv ? lv.l : L("take_test_profile")}</div>
+          <div style={{ ...body(TYPE.lg), color: T.text }}>{lv ? lv.l : L("take_test")}</div>
           {lv && <div style={{ height: 3, background: `rgba(255,255,255,.05)`, borderRadius: 2, marginTop: SP.sm, overflow: "hidden" }}>
             <div className="pulse-glow" style={{ height: "100%", borderRadius: 2, background: `linear-gradient(90deg, ${T.accent}88, ${T.accent})`, width: `${eScore}%`, transition: "width 1.2s ease", "--glow-color": `${T.accent}55` }} />
           </div>}
@@ -194,18 +223,24 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
         <div style={{ display: "flex", gap: 8 }}>
           {Object.entries(THEMES).map(([k, m]) => {
             const on = theme === k;
+            // Themes with a second accent (currently only "full") get a richer two-tone
+            // treatment on their chip instead of one flat wash — warm amber→gold instead of
+            // a single muted fill.
+            const rich = on && m.ar2;
             return (
               <div key={k} onClick={() => setTheme(k)} className="pc" style={{
                 flex: 1, padding: `${SP.md + 2}px ${SP.xs}px ${SP.md}px`, borderRadius: RAD.lg - 2, textAlign: "center", cursor: "pointer",
-                background: on ? `rgba(${m.ar},.14)` : `rgba(255,255,255,.02)`,
-                border: `1.5px solid ${on ? m.accent + "66" : "rgba(255,255,255,.06)"}`,
-                boxShadow: on ? `0 0 20px rgba(${m.ar},.25), inset 0 0 12px rgba(${m.ar},.08)` : "none",
+                background: rich ? `linear-gradient(135deg, rgba(${m.ar},.42), rgba(${m.ar2},.32))` : on ? `rgba(${m.ar},.14)` : `rgba(255,255,255,.02)`,
+                border: `1.5px solid ${rich ? m.accent2 + "CC" : on ? m.accent + "66" : "rgba(255,255,255,.06)"}`,
+                boxShadow: rich
+                  ? `0 0 34px rgba(${m.ar},.55), 0 0 18px rgba(${m.ar2},.45), inset 0 0 16px rgba(${m.ar2},.22)`
+                  : on ? `0 0 20px rgba(${m.ar},.25), inset 0 0 12px rgba(${m.ar},.08)` : "none",
                 transition: "all .3s cubic-bezier(.34,1.56,.64,1)",
                 position: "relative", overflow: "hidden",
               }}>
-                {on && <div style={{ position: "absolute", top: -6, left: "50%", transform: "translateX(-50%)", width: 20, height: 2, borderRadius: 2, background: m.accent, boxShadow: `0 0 6px ${m.accent}` }} />}
-                <div style={{ fontSize: 24, marginBottom: SP.xs, transition: "transform .3s cubic-bezier(.34,1.56,.64,1)", transform: on ? "scale(1.15)" : "scale(1)", filter: on ? `drop-shadow(0 0 6px rgba(${m.ar},.5))` : "none" }}>{m.e}</div>
-                <div style={{ ...label(TYPE.xs), fontSize: 9, color: on ? m.accent : tx("var(--txt)", OP.tertiary), transition: "color .3s ease" }}>{themeLabel(k, lang)}</div>
+                {on && <div style={{ position: "absolute", top: -6, left: "50%", transform: "translateX(-50%)", width: 20, height: 2, borderRadius: 2, background: rich ? m.accent2 : m.accent, boxShadow: `0 0 6px ${rich ? m.accent2 : m.accent}` }} />}
+                <div style={{ fontSize: 24, marginBottom: SP.xs, transition: "transform .3s cubic-bezier(.34,1.56,.64,1)", transform: on ? "scale(1.15)" : "scale(1)", filter: rich ? `drop-shadow(0 0 10px rgba(${m.ar2},.85))` : on ? `drop-shadow(0 0 6px rgba(${m.ar},.5))` : "none" }}>{m.e}</div>
+                <div style={{ ...label(TYPE.xs), fontSize: 9, color: rich ? m.accent2 : on ? m.accent : tx("var(--txt)", OP.tertiary), transition: "color .3s ease" }}>{themeLabel(k, lang)}</div>
               </div>
             );
           })}
@@ -220,7 +255,7 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
         </div>
         {(RECOMMENDATIONS[theme] || RECOMMENDATIONS.full).map((r, ri) => {
           const sec = SECTIONS.find((s) => s.id === r.sec);
-          const lc = r.free ? "rgba(160,130,50,.8)" : (sec?.color || T.accent);
+          const lc = r.free ? "rgba(243,206,114,.8)" : (sec?.color || T.accent);
           const isActive = miniDet?.title === r.t;
           const hasAudio = !!AUDIO_URLS[r.t];
           return (
@@ -325,18 +360,20 @@ export default function Home({ setScreen, theme, setTheme, eScore, pLog, setLibS
       {/* ─── Journal CTA ─── */}
       <div className="fu5 press-card glass-card" onClick={() => setScreen("journal")} style={{
         ...section(SP.xl), padding: `${SP.lg + 4}px ${SP.page}px`,
-        background: "linear-gradient(135deg,rgba(160,130,50,.06),rgba(125,23,54,.04))",
-        border: "1px solid rgba(160,138,65,.14)",
+        background: "linear-gradient(135deg,rgba(243,206,114,.06),rgba(92,28,46,.04))",
+        border: "1px solid rgba(243,206,114,.14)",
         borderRadius: RAD.lg, display: "flex", alignItems: "center", gap: SP.md, cursor: "pointer",
         position: "relative", overflow: "hidden",
       }}>
-        <div style={{ position: "absolute", right: -20, top: -20, width: 60, height: 60, borderRadius: "50%", background: "radial-gradient(circle, rgba(160,138,65,.12), transparent 70%)", filter: "blur(12px)", pointerEvents: "none" }} />
-        <div style={{ width: 36, height: 36, borderRadius: RAD.md, background: "rgba(160,138,65,.08)", border: "1px solid rgba(160,138,65,.18)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FONT_SERIF, fontSize: 16, color: "rgba(160,138,65,.6)", flexShrink: 0 }}>✎</div>
+        <div style={{ position: "absolute", right: -20, top: -20, width: 60, height: 60, borderRadius: "50%", background: "radial-gradient(circle, rgba(243,206,114,.12), transparent 70%)", filter: "blur(12px)", pointerEvents: "none" }} />
+        <div style={{ width: 36, height: 36, borderRadius: RAD.md, background: "rgba(243,206,114,.08)", border: "1px solid rgba(243,206,114,.18)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FONT_SERIF, fontSize: 16, color: "rgba(243,206,114,.6)", flexShrink: 0 }}>✎</div>
         <div style={{ flex: 1 }}>
           <div style={{ ...body(TYPE.lg), color: T.text, marginBottom: SP.xs }}>{L("journal")}</div>
-          <div style={{ ...label(TYPE.xs), color: tx("var(--txt)", OP.tertiary), textTransform: "none", letterSpacing: LS.normal }}>{L("no_entry_today")}</div>
+          <div style={{ ...label(TYPE.xs), color: tx("var(--txt)", todayJournal ? OP.secondary : OP.tertiary), textTransform: "none", letterSpacing: LS.normal }}>
+            {todayJournal ? `${todayJournal}${todayJournal.length >= 60 ? "…" : ""}` : L("no_entry_today")}
+          </div>
         </div>
-        <div style={{ width: 28, height: 28, borderRadius: RAD.full, background: "rgba(160,138,65,.06)", border: "1px solid rgba(160,138,65,.14)", display: "flex", alignItems: "center", justifyContent: "center", ...body(TYPE.sm), color: "rgba(160,138,65,.4)", flexShrink: 0 }}>→</div>
+        <div style={{ width: 28, height: 28, borderRadius: RAD.full, background: "rgba(243,206,114,.06)", border: "1px solid rgba(243,206,114,.14)", display: "flex", alignItems: "center", justifyContent: "center", ...body(TYPE.sm), color: "rgba(243,206,114,.4)", flexShrink: 0 }}>→</div>
       </div>
     </div>
   );

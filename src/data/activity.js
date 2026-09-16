@@ -1,7 +1,9 @@
+import { userStorage as localStorage } from "../lib/userStorage.js";
+import { localDay, previousDay } from "../utils/dates.js";
 // Activity tracking: streaks, daily practice, achievements
 const KEY = "frisson_activity";
 
-function today() { return new Date().toISOString().slice(0, 10); }
+const today = localDay;
 
 function load() {
   try { return JSON.parse(localStorage.getItem(KEY)) || defaults(); }
@@ -9,7 +11,7 @@ function load() {
 }
 
 function defaults() {
-  return { streak: 0, lastDay: null, todayDone: false, totalMeds: 0, totalMinutes: 0, achievements: [], name: "" };
+  return { streak: 0, lastDay: null, todayDone: false, totalMeds: 0, totalMinutes: 0, totalMedMinutes: 0, totalPractices: 0, achievements: [], name: "" };
 }
 
 function save(data) { localStorage.setItem(KEY, JSON.stringify(data)); }
@@ -20,8 +22,8 @@ export function getActivity() {
   // Reset todayDone if day changed
   if (d.lastDay && d.lastDay !== t) {
     // Check if yesterday — streak continues. Otherwise streak breaks.
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-    if (d.lastDay !== yesterday && d.todayDone) {
+    const yesterday = previousDay();
+    if (d.lastDay !== yesterday) {
       // last activity was NOT yesterday — streak resets
       d.streak = 0;
     }
@@ -31,12 +33,12 @@ export function getActivity() {
   return d;
 }
 
-export function markPractice(minutes = 0) {
-  const d = load();
+export function markPractice(minutes = 0, type = "other") {
+  const d = getActivity();
   const t = today();
   if (!d.todayDone) {
     // First practice today
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    const yesterday = previousDay();
     if (d.lastDay === yesterday || d.lastDay === t) {
       d.streak += d.lastDay === t ? 0 : 1;
     } else {
@@ -45,10 +47,24 @@ export function markPractice(minutes = 0) {
     d.todayDone = true;
     d.lastDay = t;
   }
-  d.totalMeds += 1;
-  d.totalMinutes += minutes;
+  if (type === "meditation") {
+    d.totalMeds = (d.totalMeds || 0) + 1;
+    d.totalMedMinutes = (d.totalMedMinutes || 0) + minutes;
+  }
+  d.totalPractices = (d.totalPractices || 0) + 1;
+  d.totalMinutes = (d.totalMinutes || 0) + minutes;
+  d.dailyPractices = { ...d.dailyPractices, [t]: (d.dailyPractices?.[t] || 0) + 1 };
   // Check achievements
   d.achievements = checkAchievements(d);
+  save(d);
+  return d;
+}
+
+// Reset only meditation counters (keeps streak, achievements, etc.)
+export function resetMedStats() {
+  const d = load();
+  d.totalMeds = 0;
+  d.totalMedMinutes = 0;
   save(d);
   return d;
 }
@@ -90,3 +106,12 @@ export function getAchievements(lang = "ru") {
 }
 
 export { ACHIEVEMENTS };
+
+export function getWeekPractices(activity, date = new Date()) {
+  const monday = new Date(date);
+  monday.setDate(monday.getDate() - (monday.getDay() + 6) % 7);
+  return Array.from({ length: 7 }, (_, i) => {
+    const day = new Date(monday); day.setDate(day.getDate() + i);
+    return activity?.dailyPractices?.[localDay(day)] || 0;
+  });
+}

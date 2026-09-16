@@ -1,79 +1,82 @@
-// Night themes — juicy dopamine palette
-// Each mood = unique combo of complementary jewel tones
+// Night themes — Nectar brandbook palette
+// Base: Obsidian #0E0810 · Warm: Rust/Ember/Amber/Gold · Cool: Iris/Lavender · Text: Cream #F7EFE6
 const NIGHT = {
-  // Пустота — Iris Milk: deep violet iris + creamy lavender mist + ethereal bloom
+  // Пустота — Iris/soul: void obsidian + cool iris glow (emptiness, stillness, soul)
   empty: {
-    e: "🌑", l: "Пустота", bg: "linear-gradient(165deg, #0c0620 0%, #16103a 50%, #1a0c30 100%)",
-    card: "rgba(91,58,140,.2)", border: "rgba(120,80,180,.3)",
-    accent: "#8B68C8", ar: "139,104,200",
-    dim: "rgba(100,70,160,.22)", o1: "rgba(91,58,140,.75)", o2: "rgba(180,140,220,.5)",
-    nav: "rgba(100,70,160,.3)", text: "#e8daf8", tr: "232,218,248",
-    gF: "#1a1040", gT: "#0c0620"
+    e: "🌑", l: "Пустота", bg: "linear-gradient(165deg, #0A0610 0%, #0E0810 50%, #0A0610 100%)",
+    card: "rgba(142,118,184,.10)", border: "rgba(185,169,218,.18)",
+    accent: "#8E76B8", ar: "142,118,184",
+    dim: "rgba(142,118,184,.14)", o1: "rgba(92,28,46,.65)", o2: "rgba(142,118,184,.28)",
+    nav: "rgba(142,118,184,.12)", text: "#F7EFE6", tr: "247,239,230",
+    gF: "#1D1015", gT: "#0A0610"
   },
-  // Тихо — Midnight Plum: deep berry + muted violet + soft mist
+  // Тихо — Lavender/night: plum depth + lavender accent (states, night practices, stillness)
   quiet: {
-    e: "🌒", l: "Тихо", bg: "linear-gradient(165deg, #130418 0%, #220830 50%, #180620 100%)",
-    card: "rgba(120,36,100,.18)", border: "rgba(150,50,130,.28)",
-    accent: "#9B3878", ar: "155,56,120",
-    dim: "rgba(120,36,100,.2)", o1: "rgba(110,28,90,.75)", o2: "rgba(180,90,180,.5)",
-    nav: "rgba(130,40,110,.3)", text: "#f0d8f0", tr: "240,216,240",
-    gF: "#280A30", gT: "#130418"
+    e: "🌒", l: "Тихо", bg: "linear-gradient(165deg, #150A18 0%, #1D1015 50%, #0E0810 100%)",
+    card: "rgba(185,169,218,.10)", border: "rgba(185,169,218,.22)",
+    accent: "#B9A9DA", ar: "185,169,218",
+    dim: "rgba(185,169,218,.14)", o1: "rgba(59,21,51,.72)", o2: "rgba(185,169,218,.28)",
+    nav: "rgba(185,169,218,.12)", text: "#F7EFE6", tr: "247,239,230",
+    gF: "#3B1533", gT: "#150A18"
   },
-  // Наполнена — Ember & Amethyst: dark orange heat + deep violet depth
+  // Наполнена — Amber/nectar flow: warm ember-brown depth + brighter amber/gold glow
   full: {
-    e: "🌕", l: "Наполнена", bg: "linear-gradient(165deg, #160808 0%, #280E08 40%, #1A0A1E 100%)",
-    card: "rgba(200,90,30,.16)", border: "rgba(220,110,40,.26)",
-    accent: "#D4682A", ar: "212,104,42",
-    accent2: "#9060C8", ar2: "144,96,200",
-    dim: "rgba(200,90,30,.2)", o1: "rgba(200,80,30,.75)", o2: "rgba(120,70,200,.5)",
-    nav: "rgba(200,90,30,.3)", text: "#F5E8DC", tr: "245,232,220",
-    gF: "#2A1008", gT: "#160808"
+    e: "🌕", l: "Наполнена", bg: "linear-gradient(165deg, #180B08 0%, #5C2A12 35%, #2A0D18 68%, #150A0C 100%)",
+    card: "rgba(227,154,60,.16)", border: "rgba(227,154,60,.34)",
+    accent: "#E39A3C", ar: "227,154,60",
+    accent2: "#F3CE72", ar2: "243,206,114",
+    dim: "rgba(208,86,42,.26)", o1: "rgba(208,86,42,.85)", o2: "rgba(243,206,114,.5)",
+    nav: "rgba(227,154,60,.2)", text: "#FFF6EA", tr: "255,246,234",
+    gF: "#3B1533", gT: "#150A0C"
   },
-  // В силе — Crimson Fire: pure red heat + ember glow + fierce energy
+  // В силе — Ember/action: dark burnt base + ember accent (energy, power, action)
   power: {
-    e: "🔥", l: "В силе", bg: "linear-gradient(165deg, #1C0404 0%, #340808 50%, #200606 100%)",
-    card: "rgba(200,30,40,.18)", border: "rgba(220,50,55,.28)",
-    accent: "#CC2434", ar: "204,36,52",
-    accent2: "#F08060", ar2: "240,128,96",
-    dim: "rgba(200,30,40,.22)", o1: "rgba(200,24,36,.8)", o2: "rgba(240,128,96,.45)",
-    nav: "rgba(200,36,48,.32)", text: "#FFE4E0", tr: "255,228,224",
-    gF: "#380A08", gT: "#1C0404"
+    e: "🔥", l: "В силе", bg: "linear-gradient(165deg, #100804 0%, #1E0C06 50%, #100804 100%)",
+    card: "rgba(208,86,42,.10)", border: "rgba(208,86,42,.22)",
+    accent: "#D0562A", ar: "208,86,42",
+    dim: "rgba(178,70,31,.16)", o1: "rgba(92,28,46,.75)", o2: "rgba(208,86,42,.32)",
+    nav: "rgba(208,86,42,.12)", text: "#FFF6EA", tr: "255,246,234",
+    gF: "#2A1008", gT: "#100804"
   },
 };
 
-// Day themes — Cloud Dancer base with rich jewel gradients
+// Day themes — Nectar light side: Cream #F7EFE6 / Shell #EFE3D8 base, Ink #24131A text.
+// NOTE: currently unused — Orbit hardcodes `isDay = false` and nothing imports DAY.
+// Accents here are the contrast-safe (deep/warm) palette members rather than the dark-theme
+// role colors: amber/gold/iris are unreadable as text on cream, so they only carry the orbs.
 const DAY = {
   empty: {
-    e: "🌑", l: "Пустота", bg: "linear-gradient(165deg, #EDE8F2 0%, #F0EDE8 40%, #E8E4F0 100%)",
-    card: "rgba(80,60,140,.08)", border: "rgba(80,60,140,.18)",
-    accent: "#6048B0", ar: "96,72,176",
-    dim: "rgba(80,60,140,.1)", o1: "rgba(100,60,180,.25)", o2: "rgba(60,30,150,.15)",
-    nav: "rgba(80,60,140,.08)", text: "#2a2040",
-    gF: "#E0DCF0", gT: "#EDE8F2"
+    e: "🌑", l: "Пустота", bg: "linear-gradient(165deg, #F7EFE6 0%, #F1EAF2 45%, #EFE3D8 100%)",
+    card: "rgba(59,21,51,.06)", border: "rgba(59,21,51,.14)",
+    accent: "#3B1533", ar: "59,21,51",
+    dim: "rgba(59,21,51,.09)", o1: "rgba(142,118,184,.26)", o2: "rgba(220,210,236,.4)",
+    nav: "rgba(59,21,51,.07)", text: "#24131A", tr: "36,19,26",
+    gF: "#EDE4F0", gT: "#F7EFE6"
   },
   quiet: {
-    e: "🌒", l: "Тихо", bg: "linear-gradient(165deg, #F0E4EC 0%, #EDE9E4 40%, #E8DEE8 100%)",
-    card: "rgba(140,40,90,.08)", border: "rgba(140,40,90,.16)",
-    accent: "#9B2868", ar: "155,40,104",
-    dim: "rgba(140,40,90,.1)", o1: "rgba(160,30,110,.22)", o2: "rgba(220,140,60,.12)",
-    nav: "rgba(140,40,90,.08)", text: "#3a1028",
-    gF: "#E8D8E4", gT: "#F0E4EC"
+    e: "🌒", l: "Тихо", bg: "linear-gradient(165deg, #F7EFE6 0%, #F0E8F0 45%, #EFE3D8 100%)",
+    card: "rgba(92,28,46,.06)", border: "rgba(92,28,46,.14)",
+    accent: "#5C1C2E", ar: "92,28,46",
+    dim: "rgba(92,28,46,.09)", o1: "rgba(185,169,218,.3)", o2: "rgba(142,118,184,.16)",
+    nav: "rgba(92,28,46,.07)", text: "#24131A", tr: "36,19,26",
+    gF: "#EBDFEA", gT: "#F7EFE6"
   },
   full: {
-    e: "🌕", l: "Наполнена", bg: "linear-gradient(165deg, #F2E4EE 0%, #F0EAE8 40%, #EEE0F0 100%)",
-    card: "rgba(180,20,110,.08)", border: "rgba(180,20,110,.16)",
-    accent: "#B81878", ar: "184,24,120",
-    dim: "rgba(180,20,110,.1)", o1: "rgba(200,30,140,.22)", o2: "rgba(120,40,180,.12)",
-    nav: "rgba(180,20,110,.08)", text: "#380620",
-    gF: "#EAD8E8", gT: "#F2E4EE"
+    e: "🌕", l: "Наполнена", bg: "linear-gradient(165deg, #F7EFE6 0%, #F4E8DA 45%, #EFE3D8 100%)",
+    card: "rgba(92,28,46,.06)", border: "rgba(227,154,60,.22)",
+    accent: "#5C1C2E", ar: "92,28,46",
+    accent2: "#B2461F", ar2: "178,70,31",
+    dim: "rgba(227,154,60,.12)", o1: "rgba(227,154,60,.32)", o2: "rgba(243,206,114,.24)",
+    nav: "rgba(227,154,60,.1)", text: "#24131A", tr: "36,19,26",
+    gF: "#F2E2CE", gT: "#F7EFE6"
   },
   power: {
-    e: "🔥", l: "В силе", bg: "linear-gradient(165deg, #F4ECE0 0%, #F0ECE4 40%, #F0E4D8 100%)",
-    card: "rgba(210,100,20,.08)", border: "rgba(210,100,20,.16)",
-    accent: "#D07018", ar: "208,112,24",
-    dim: "rgba(210,100,20,.1)", o1: "rgba(220,100,20,.22)", o2: "rgba(140,40,100,.12)",
-    nav: "rgba(210,100,20,.08)", text: "#381808",
-    gF: "#EAE0D0", gT: "#F4ECE0"
+    e: "🔥", l: "В силе", bg: "linear-gradient(165deg, #F7EFE6 0%, #F4E4D6 45%, #EFE3D8 100%)",
+    card: "rgba(178,70,31,.07)", border: "rgba(178,70,31,.18)",
+    accent: "#B2461F", ar: "178,70,31",
+    dim: "rgba(178,70,31,.1)", o1: "rgba(208,86,42,.28)", o2: "rgba(92,28,46,.16)",
+    nav: "rgba(178,70,31,.08)", text: "#24131A", tr: "36,19,26",
+    gF: "#F1DFCD", gT: "#F7EFE6"
   },
 };
 

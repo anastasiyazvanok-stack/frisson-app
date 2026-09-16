@@ -1,3 +1,4 @@
+import { userStorage as localStorage } from "../lib/userStorage.js";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { MED_GUIDES, getMedGuides } from "../data/medGuides";
@@ -102,25 +103,22 @@ const orbScenarioByLayer = (sc, layerId, lang) => lang === "en" ? (EN_BY_LAYER[s
 const orbSoundLabel = (id, original, lang) => lang === "en" ? (EN_SOUND_LABEL[id] || original) : original;
 const orbSoundDesc = (id, original, lang) => lang === "en" ? (EN_SOUND_DESC[id] || original) : original;
 
-// Sound profiles: each scenario has therapeutic frequencies
-// Neutral: 528 Hz (Solfeggio love/repair) + 8 Hz binaural → alpha
-// Musical meditation profiles — warm pads + chord progressions
-// Frequencies in Hz for chord notes (C major pentatonic, etc.)
-// Each profile = root drone + chord pad + scale for random chimes
+// Sound profiles — therapeutic frequencies, scientifically grounded
+// Each profile: root drone (physical grounding) + chord pad (harmonic resonance) + bell scale (attentional anchors)
 const SOUND_PROFILES = {
-  neutral:  { label: "Тёплая тишина",   root: 130.81, chord: [261.63, 329.63, 392.00, 523.25], scale: [523.25, 587.33, 659.25, 783.99, 880.00], desc: "Тёплый пад в тональности C-мажор — мягкий фон для любого состояния. Редкие колокольчики создают ощущение тишины и простора." },
-  anxiety:  { label: "Успокоение",      root: 110.00, chord: [220.00, 261.63, 329.63, 440.00], scale: [440.00, 493.88, 523.25, 587.33, 659.25], desc: "Глубокий медленный пад в A-миноре — тональность мягкости и восстановления. Очень тихо, без резких тонов. Нервная система постепенно замедляется." },
-  love:     { label: "Открытое сердце", root: 146.83, chord: [293.66, 369.99, 440.00, 587.33], scale: [587.33, 659.25, 739.99, 880.00, 987.77], desc: "Тёплая гармония D-мажора с мягкими колокольчиками — резонанс сердечной чакры. Наполненность и нежность." },
-  power:    { label: "Внутренний огонь",root: 164.81, chord: [329.63, 415.30, 493.88, 659.25], scale: [659.25, 739.99, 830.61, 987.77, 1108.73], desc: "Уверенный E-мажорный пад с лёгкими восходящими колокольчиками — поддерживает решимость без напряжения." },
-  conflict: { label: "Центрирование",   root: 123.47, chord: [246.94, 311.13, 369.99, 493.88], scale: [493.88, 554.37, 622.25, 739.99, 830.61], desc: "Мягкий пад между мажором и минором — помогает найти центр посреди противоречий. Успокаивающая неопределённость." },
-  fear:     { label: "Безопасное место",root: 98.00,  chord: [196.00, 246.94, 293.66, 392.00], scale: [392.00, 440.00, 493.88, 587.33, 659.25], desc: "Глубокий низкий пад в G-миноре — как тёплые объятия. Нервной системе сигнал: безопасно, можно расслабиться." },
-  abundance:{ label: "Поток",           root: 174.61, chord: [349.23, 440.00, 523.25, 698.46], scale: [698.46, 783.99, 880.00, 1046.50, 1174.66], desc: "Светлый F-мажорный пад с частыми колокольчиками — ощущение открытости и щедрого потока." },
-  feminine: { label: "Текучесть",       root: 220.00, chord: [277.18, 329.63, 440.00, 554.37], scale: [554.37, 622.25, 739.99, 880.00, 987.77], desc: "Плавный женственный пад в C#-миноре — мягкие тона колокольчиков создают ощущение танца и текучести." },
-  capital:  { label: "Устойчивость",    root: 130.81, chord: [261.63, 329.63, 392.00, 523.25], scale: [523.25, 659.25, 783.99, 987.77, 1174.66], desc: "Устойчивый C-мажорный пад с редкими ясными колокольчиками — основа для фокусированной уверенности." },
+  neutral:  { label: "Тёплая тишина",    root: 130.81, chord: [261.63, 329.63, 392.00, 523.25],  scale: [523.25, 587.33, 659.25, 783.99, 880.00],    desc: "Тихий тёплый гул, как огонь в камине в соседней комнате. Редкие колокольчики падают в тишину и растворяются, не нарушая её. Ничего лишнего — просто ровное присутствие." },
+  anxiety:  { label: "Успокоение",       root: 110.00, chord: [220.00, 261.63, 329.63, 440.00],  scale: [396.00, 440.00, 493.88, 523.25, 587.33],    desc: "Низкий бархатный гул обволакивает снизу — как тёплые ладони, которые держат плечи. Нервная система слышит: выдохни, здесь безопасно. Изредка — тихий звон, как капля воды в тишине." },
+  love:     { label: "Открытое сердце",  root: 146.83, chord: [293.66, 369.99, 440.00, 587.33],  scale: [528.00, 587.33, 659.25, 739.99, 880.00],    desc: "Тёплые гармонии раскрываются медленно, как утренний свет сквозь занавески. Среди них — особый тихий звон на 528 Гц, который ни на что не похож: просто становится очень хорошо." },
+  power:    { label: "Внутренний огонь", root: 82.41,  chord: [329.63, 415.30, 493.88, 659.25],  scale: [659.25, 739.99, 830.61, 987.77, 1108.73],   desc: "Глубокий бас ощущается в груди раньше, чем осознаётся ушами. Он не давит — он держит. Поверх него поднимаются ясные, уверенные обертона — как дыхание перед решительным шагом." },
+  conflict: { label: "Центрирование",    root: 123.47, chord: [246.94, 293.66, 369.99, 493.88],  scale: [493.88, 587.33, 659.25, 739.99, 880.00],    desc: "Мягкая, чуть задумчивая гармония — не грустная, а тихо сосредоточенная. Будто сидишь у окна и смотришь внутрь. Много воздуха, никакой спешки, пространство для наблюдения." },
+  fear:     { label: "Безопасное место", root: 98.00,  chord: [196.00, 246.94, 293.66, 392.00],  scale: [392.00, 440.00, 493.88, 587.33, 659.25],    desc: "Большой, тихий, тёплый звук — как оказаться внутри чего-то огромного и доброго. Никакой остроты, никакого напряжения. Просто: можно дышать. Всё в порядке." },
+  abundance:{ label: "Поток",            root: 174.61, chord: [349.23, 440.00, 523.25, 698.46],  scale: [528.00, 698.46, 783.99, 880.00, 1046.50],   desc: "Светлый, открытый пад — как выйти на воздух после долгого времени в закрытом помещении. Частые высокие колокольчики сыплются как солнечные блики на воде. Ощущение простора и щедрости." },
+  feminine: { label: "Текучесть",        root: 110.00, chord: [220.00, 277.18, 329.63, 440.00],  scale: [440.00, 554.37, 659.25, 880.00, 987.77],    desc: "Тёплые, льющиеся гармонии — ничего острого, всё мягко перетекает. Высокие колокольчики через частые промежутки — как украшения, которые тихо звенят при лёгком движении." },
+  capital:  { label: "Устойчивость",     root: 196.00, chord: [392.00, 493.88, 587.33, 783.99],  scale: [783.99, 880.00, 987.77, 1174.66, 1318.51],  desc: "Высокий, ясный аккорд — много воздуха вокруг него. Не торжественно, а просто уверенно. Редкие колокольчики — как точки опоры в открытом пространстве. Устойчивость без тяжести." },
 };
 
 const SCENARIOS = [
-  { id: "anxiety", name: "Тревога", hex: "#D4453C", speedMul: 2.4, chaos: 0.0035, pulseAmp: 0.0018, pulseFreq: 4.5, contract: 0.001, tint: 0xFF5040,
+  { id: "anxiety", name: "Тревога", hex: "#D0562A", speedMul: 2.4, chaos: 0.0035, pulseAmp: 0.0018, pulseFreq: 4.5, contract: 0.001, tint: 0xE8845E,
     byLayer: {
       1: "Глубина теряет опору: старые страхи оживают и дёргают ядро изнутри. Нейроны дрожат быстро и мелко — как будто ищут, за что ухватиться, но не находят.",
       2: "Подлинность отодвигается на задний план. Сеть сжимается и вибрирует — вместо своего голоса слышно только фоновый шум.",
@@ -130,7 +128,7 @@ const SCENARIOS = [
       6: "Поведение становится суетливым. Внешний контур дёргается, теряет плавность — действия опережают решения.",
     },
   },
-  { id: "love", name: "Любовь · Наполненность", hex: "#E88FC6", speedMul: 0.75, chaos: 0, pulseAmp: 0.0012, pulseFreq: 0.6, contract: -0.0003, tint: 0xF0A0D0,
+  { id: "love", name: "Любовь · Наполненность", hex: "#C57A8A", speedMul: 0.75, chaos: 0, pulseAmp: 0.0012, pulseFreq: 0.6, contract: -0.0003, tint: 0xD99AA6,
     byLayer: {
       1: "Глубина дышит спокойно. Старые раны отпускаются — нейроны движутся мягко и ровно, центр становится тёплым и безопасным.",
       2: "Подлинность раскрывается без усилий. Сеть расширяется, становится прозрачной — ты чувствуешь себя собой, без масок.",
@@ -140,7 +138,7 @@ const SCENARIOS = [
       6: "Поведение становится естественным. Внешний контур движется органично — ты притягиваешь, просто оставаясь собой.",
     },
   },
-  { id: "power", name: "Сила · Внутренний огонь", hex: "#E8A04C", speedMul: 2.0, chaos: 0, pulseAmp: 0.0018, pulseFreq: 1.6, contract: -0.0008, tint: 0xFFB040,
+  { id: "power", name: "Сила · Внутренний огонь", hex: "#E39A3C", speedMul: 2.0, chaos: 0, pulseAmp: 0.0018, pulseFreq: 1.6, contract: -0.0008, tint: 0xF3CE72,
     byLayer: {
       1: "Глубина собирает энергию. Нейроны движутся с силой из центра наружу — в ядре просыпается импульс, готовый стать действием.",
       2: "Подлинность ярко проявлена. Сеть излучает, расширяется с импульсом — ты знаешь, кто ты, и это видно.",
@@ -150,7 +148,7 @@ const SCENARIOS = [
       6: "Поведение уверенное и мощное. Внешний контур движется вперёд без колебаний — ты создаёшь реальность, а не реагируешь на неё.",
     },
   },
-  { id: "conflict", name: "Внутренний конфликт", hex: "#9E6BC4", speedMul: 1.5, chaos: 0.0022, pulseAmp: 0, pulseFreq: 0, contract: 0, tint: 0xA070C8, split: true,
+  { id: "conflict", name: "Внутренний конфликт", hex: "#B2461F", speedMul: 1.5, chaos: 0.0022, pulseAmp: 0, pulseFreq: 0, contract: 0, tint: 0xD07A55, split: true,
     byLayer: {
       1: "Глубина разрывается между противоположными желаниями. Нейроны тянутся в разные стороны — в ядре две правды, и каждая претендует на первую.",
       2: "Подлинность размыта. Сеть не может собраться в одно целое — часть тебя хочет одного, другая часть — противоположного.",
@@ -160,7 +158,7 @@ const SCENARIOS = [
       6: "Поведение непоследовательно. Внешний контур теряет единое направление — действия противоречат словам, слова противоречат желаниям.",
     },
   },
-  { id: "fear", name: "Страх", hex: "#4A7AB8", speedMul: 0.45, chaos: 0.0008, pulseAmp: 0.0025, pulseFreq: 0.35, contract: 0.0022, tint: 0x5080C0, jolt: true,
+  { id: "fear", name: "Страх", hex: "#8E76B8", speedMul: 0.45, chaos: 0.0008, pulseAmp: 0.0025, pulseFreq: 0.35, contract: 0.0022, tint: 0xB7A5DC, jolt: true,
     byLayer: {
       1: "Глубина сжимается в защиту. Нейроны стягиваются в плотный узел — ядро готовится к угрозе, даже если её нет.",
       2: "Самость прячется. Сеть становится маленькой и почти неподвижной — лучше не высовываться, чем быть замеченной.",
@@ -170,7 +168,7 @@ const SCENARIOS = [
       6: "Поведение уходит в избегание. Внешний контур закрывается, защищается — ты делаешь меньше, чтобы рисковать меньше.",
     },
   },
-  { id: "abundance", name: "Изобилие · Получение благ", hex: "#D4A74A", speedMul: 0.9, chaos: 0, pulseAmp: 0.0024, pulseFreq: 0.45, contract: -0.0006, tint: 0xE8C060, radiate: 0.0012,
+  { id: "abundance", name: "Изобилие · Получение благ", hex: "#F3CE72", speedMul: 0.9, chaos: 0, pulseAmp: 0.0024, pulseFreq: 0.45, contract: -0.0006, tint: 0xF7E2A8, radiate: 0.0012,
     byLayer: {
       1: "Глубина раскрывается и отпускает сжатие. Нейроны расширяются изнутри наружу волнами вдоха-выдоха — ядро разрешает себе получать, не заслуживая.",
       2: "Подлинность занимает своё место без стыда. Сеть расширяется плавно и щедро — ты не просишь, ты просто есть, и этого достаточно для мира.",
@@ -180,7 +178,7 @@ const SCENARIOS = [
       6: "Поведение становится открытым и щедрым. Внешний контур расширяется, принимает и отдаёт — ты берёшь, что тебе даётся, без вины.",
     },
   },
-  { id: "feminine", name: "Женственность · Текучесть", hex: "#E89CB8", speedMul: 1.0, chaos: 0, pulseAmp: 0.0008, pulseFreq: 0.4, contract: 0, tint: 0xF0B0C8, swirl: 0.0018,
+  { id: "feminine", name: "Женственность · Текучесть", hex: "#B9A9DA", speedMul: 1.0, chaos: 0, pulseAmp: 0.0008, pulseFreq: 0.4, contract: 0, tint: 0xDCD2EC, swirl: 0.0018,
     byLayer: {
       1: "Глубина течёт как вода. Нейроны движутся плавно по спирали вокруг ядра — женское помнит свою мягкую природу и не спешит.",
       2: "Самость раскрывается в своей красоте. Сеть танцует — не демонстрирует, не играет, а просто живёт изнутри.",
@@ -190,7 +188,7 @@ const SCENARIOS = [
       6: "Поведение становится чувственным и магнетичным. Внешний контур движется плавно — притяжение рождается изнутри, без усилия.",
     },
   },
-  { id: "capital", name: "Психологический капитал", hex: "#4FAE92", speedMul: 1.15, chaos: 0, pulseAmp: 0.0009, pulseFreq: 0.3, contract: -0.0002, tint: 0x60C0A4, radiate: 0.0006, structured: true,
+  { id: "capital", name: "Психологический капитал", hex: "#7FA786", speedMul: 1.15, chaos: 0, pulseAmp: 0.0009, pulseFreq: 0.3, contract: -0.0002, tint: 0x9FC0A6, radiate: 0.0006, structured: true,
     byLayer: {
       1: "Глубина знает, что справится. Нейроны движутся устойчиво и уверенно — внутренняя опора держит даже в шторм, потому что есть надежда.",
       2: "Самость уверена в своей ценности. Сеть стоит прямо и излучает ровный свет — ты веришь в свою способность быть собой в любых условиях.",
@@ -203,17 +201,17 @@ const SCENARIOS = [
 ];
 
 const LAYERS = [
-  { id:1, name:"Бессознательное", sub:"центр · самый глубокий", hex:"#8B1A3A", col:0x8B1A3A, lc:0x6B0F2A, radius:22, speed:0.18, bright:0.82, sz:0.42, lineAmt:0.6, desc:"Здесь хранится всё, что накопилось до того, как ты начала осознавать — детские программы, родительские предписания, старая боль и нерастраченная любовь." },
-  { id:2, name:"Самость / Подлинность", sub:"уровень 2", hex:"#C44B88", col:0xC44B88, lc:0x9B3A6B, radius:26, speed:0.28, bright:0.75, sz:0.40, lineAmt:0.45, desc:"То, кем ты являешься до всех масок и ролей. Когда ты в контакте с подлинностью, исчезает усталость от притворства, приходят «свои» люди." },
-  { id:3, name:"Сознательное", sub:"уровень 3", hex:"#2A9D8F", col:0x2A9D8F, lc:0x1A7A6E, radius:20, speed:0.45, bright:0.78, sz:0.34, lineAmt:0.95, desc:"Взрослая часть, которая умеет выбирать осознанно. Именно она переписывает старые установки и выбирает доверие вместо тревоги." },
-  { id:4, name:"Чувства", sub:"уровень 4", hex:"#264653", col:0x3A7CA5, lc:0x2B5F7E, radius:24, speed:0.22, bright:0.70, sz:0.44, lineAmt:0.75, desc:"Язык души, который говорит медленно и глубоко. Непрожитые чувства превращаются в тревогу. Прожитые — освобождают и открывают место для нового." },
-  { id:5, name:"Эмоции", sub:"уровень 5", hex:"#E76F51", col:0xE76F51, lc:0xBB5A40, radius:18, speed:0.55, bright:0.72, sz:0.38, lineAmt:0.55, desc:"Быстрая энергия в ответ на ситуацию. Подавленные эмоции блокируют творчество. Разрешить себе эмоции — значит открыть поток жизненной силы." },
-  { id:6, name:"Поведение", sub:"внешний слой", hex:"#C8960A", col:0xC8960A, lc:0xA07808, radius:30, speed:0.15, bright:0.60, sz:0.46, lineAmt:0.3, desc:"То, что видит мир. Когда бессознательное исцелено, а сознательное выбрало новое, поведение меняется органично, без насилия над собой." },
+  { id:1, name:"Бессознательное", sub:"центр · самый глубокий", hex:"#5C1C2E", col:0x5C1C2E, lc:0x3B1533, radius:22, speed:0.18, bright:0.82, sz:0.42, lineAmt:0.6, desc:"Здесь хранится всё, что накопилось до того, как ты начала осознавать — детские программы, родительские предписания, старая боль и нерастраченная любовь." },
+  { id:2, name:"Самость / Подлинность", sub:"уровень 2", hex:"#C57A8A", col:0xC57A8A, lc:0x9A4759, radius:26, speed:0.28, bright:0.75, sz:0.40, lineAmt:0.45, desc:"То, кем ты являешься до всех масок и ролей. Когда ты в контакте с подлинностью, исчезает усталость от притворства, приходят «свои» люди." },
+  { id:3, name:"Сознательное", sub:"уровень 3", hex:"#8E76B8", col:0x8E76B8, lc:0x6B5694, radius:20, speed:0.45, bright:0.78, sz:0.34, lineAmt:0.95, desc:"Взрослая часть, которая умеет выбирать осознанно. Именно она переписывает старые установки и выбирает доверие вместо тревоги." },
+  { id:4, name:"Чувства", sub:"уровень 4", hex:"#B9A9DA", col:0xB9A9DA, lc:0x8E76B8, radius:24, speed:0.22, bright:0.70, sz:0.44, lineAmt:0.75, desc:"Язык души, который говорит медленно и глубоко. Непрожитые чувства превращаются в тревогу. Прожитые — освобождают и открывают место для нового." },
+  { id:5, name:"Эмоции", sub:"уровень 5", hex:"#D0562A", col:0xD0562A, lc:0xA03E1C, radius:18, speed:0.55, bright:0.72, sz:0.38, lineAmt:0.55, desc:"Быстрая энергия в ответ на ситуацию. Подавленные эмоции блокируют творчество. Разрешить себе эмоции — значит открыть поток жизненной силы." },
+  { id:6, name:"Поведение", sub:"внешний слой", hex:"#E39A3C", col:0xE39A3C, lc:0xB87A22, radius:30, speed:0.15, bright:0.60, sz:0.46, lineAmt:0.3, desc:"То, что видит мир. Когда бессознательное исцелено, а сознательное выбрало новое, поведение меняется органично, без насилия над собой." },
 ];
 
 export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, initScenario, clearInitScenario, lang = "ru", eScore = null, theme = "full", THEMES = {}, activity = null, userName = "" }) {
   const L = (k, ...a) => tr(lang, k, ...a);
-  const T = THEMES[theme] || { accent: "#D4682A", ar: "212,104,42", text: "#F5E8DC" };
+  const T = THEMES[theme] || { accent: "#D0562A", ar: "208,86,42", text: "#F7EFE6" };
   const isDay = false;
   const canvasRef = useRef(null);
   const touchRef = useRef(null);
@@ -444,7 +442,7 @@ export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, init
   function awardCrystals(seconds) {
     const earned = Math.max(1, Math.round(seconds / 60));
     try { if (addGems) addGems(earned); } catch (e) {}
-    try { if (doMarkPractice) doMarkPractice(Math.round(seconds / 60)); } catch (e) {}
+    try { if (doMarkPractice) doMarkPractice(Math.round(seconds / 60), "meditation"); } catch (e) {}
     try {
       const curLayer = LAYERS[activeId - 1];
       if (curLayer) logOrbitSession(activeId, curLayer.name, activeScenario?.name, activeScenario?.id);
@@ -575,7 +573,7 @@ export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, init
     const initW = canvas.clientWidth || canvas.parentElement?.clientWidth || window.innerWidth;
     const initH = canvas.clientHeight || canvas.parentElement?.clientHeight || window.innerHeight;
     renderer.setSize(initW, initH);
-    renderer.setClearColor(isDay ? 0xEDE8E4 : 0x060208, 1);
+    renderer.setClearColor(isDay ? 0xF7EFE6 : 0x0E0810, 1);
 
     // Soft circular sprite for particles (prevents white square artifacts)
     const spriteCanvas = document.createElement("canvas");
@@ -619,7 +617,7 @@ export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, init
     const elGeo = new THREE.BufferGeometry();
     elGeo.setAttribute("position", new THREE.BufferAttribute(EPA, 3));
     elGeo.setDrawRange(0, 0);
-    const elMat = new THREE.PointsMaterial({ color: isDay ? 0x4030a0 : 0xffddcc, size: 2.2, map: sprite, transparent: true, opacity: 1, sizeAttenuation: true, blending: blendMode, depthWrite: false });
+    const elMat = new THREE.PointsMaterial({ color: isDay ? 0x3B1533 : 0xF7EFE6, size: 2.2, map: sprite, transparent: true, opacity: 1, sizeAttenuation: true, blending: blendMode, depthWrite: false });
     const electrons = new THREE.Points(elGeo, elMat); scene.add(electrons);
 
     const state = {
@@ -777,7 +775,7 @@ export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, init
       let targetCol = sc ? new THREE.Color(sc.tint) : baseCol;
       let targetLc = sc ? new THREE.Color(sc.tint).multiplyScalar(0.6) : baseColDim;
       if (hp > 0 && isNegative) {
-        const healCol = new THREE.Color(0xF0A0D0); // warm pink = healed state
+        const healCol = new THREE.Color(0xD99AA6); // warm pink = healed state
         targetCol = new THREE.Color(sc.tint).lerp(healCol, hp * 0.7);
         targetLc = targetCol.clone().multiplyScalar(0.5);
       } else if (hp > 0 && isPositive) {
@@ -925,24 +923,24 @@ export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, init
   const hideUI = meditating ? 0 : 1;
 
   return (
-    <div style={{ position: "relative", width: "100%", flex: 1, minHeight: 0, background: isDay ? "#EDE8E4" : "#060208", overflow: "hidden" }}>
+    <div style={{ position: "relative", width: "100%", flex: 1, minHeight: 0, background: isDay ? "#F7EFE6" : "#0e0810", overflow: "hidden" }}>
       <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }} />
       <div ref={touchRef} style={{ position: "absolute", inset: 0, zIndex: 5, touchAction: "none", pointerEvents: showTimerPicker || meditating ? "none" : "auto" }} />
 
       {/* Top bar — partially hides during meditation */}
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", padding: `0 ${SP.lg}px`, background: meditating ? "transparent" : "linear-gradient(180deg, rgba(6,2,8,.86), transparent)", zIndex: 30, pointerEvents: "none", transition: "background .8s" }}>
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", padding: `0 ${SP.lg}px`, background: meditating ? "transparent" : "linear-gradient(180deg, rgba(14,8,16,.86), transparent)", zIndex: 30, pointerEvents: "none", transition: "background .8s" }}>
         <div style={{ display: "flex", alignItems: "center", gap: SP.md, opacity: hideUI, transition: "opacity .8s" }}>
           <div onClick={() => { if (meditating) return; goBack ? goBack() : setScreen("home"); }} style={{ pointerEvents: meditating ? "none" : "all", cursor: "pointer", fontSize: 15, color: `rgba(${T.ar},.45)`, padding: `${SP.xs}px ${SP.sm}px` }}>←</div>
           <div onClick={() => { if (!meditating) setShowIntro(true); }} style={{ pointerEvents: meditating ? "none" : "all", cursor: "pointer" }}>
-            <div style={{ fontSize: 8, letterSpacing: 4, textTransform: "uppercase", color: `rgba(${T.ar},.35)`, ...ss }}>Frisson</div>
+            <div style={{ fontSize: 8, letterSpacing: 4, textTransform: "uppercase", color: `rgba(${T.ar},.35)`, ...ss }}>NECTAR</div>
             <div style={{ fontSize: TYPE.sm, fontStyle: "italic", color: `rgba(${T.ar},.75)`, marginTop: 2, ...ss }}>{lang === "ru" ? "Мой внутренний мир" : "My inner world"}</div>
           </div>
         </div>
         {meditating ? (
-          <button onClick={toggleSound} style={{ pointerEvents: "all", cursor: "pointer", background: "rgba(140,30,60,.3)", border: "1px solid rgba(200,130,90,.4)", borderRadius: SP.lg, padding: "5px 11px", fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: "rgba(240,210,178,.85)", ...ss }}>{L("orb_stop")}</button>
+          <button onClick={toggleSound} style={{ pointerEvents: "all", cursor: "pointer", background: "rgba(92,28,46,.3)", border: "1px solid rgba(227,154,60,.4)", borderRadius: SP.lg, padding: "5px 11px", fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: "rgba(201,175,166,.85)", ...ss }}>{L("orb_stop")}</button>
         ) : (
-          <div style={{ textAlign: "right", opacity: hideUI, transition: "opacity .8s", pointerEvents: "none", background: "rgba(4,2,8,.5)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", borderRadius: RAD.md, padding: `${SP.xs}px ${SP.sm + 2}px` }}>
-            <div style={{ ...heading(TYPE.lg), color: tx("var(--txt)", OP.primary), textShadow: "0 1px 12px rgba(0,0,0,.9)" }}>{userName || "Frisson"}</div>
+          <div style={{ textAlign: "right", opacity: hideUI, transition: "opacity .8s", pointerEvents: "none", background: "rgba(14,8,16,.5)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", borderRadius: RAD.md, padding: `${SP.xs}px ${SP.sm + 2}px` }}>
+            <div style={{ ...heading(TYPE.lg), color: tx("var(--txt)", OP.primary), textShadow: "0 1px 12px rgba(0,0,0,.9)" }}>{userName || "NECTAR"}</div>
             <div style={{ ...label(TYPE.xs), color: T.accent, marginTop: 2, textTransform: "none", letterSpacing: LS.normal }}>{T.e} {T.l || (lang === "ru" ? "Наполнена" : "Full")}</div>
           </div>
         )}
@@ -951,12 +949,12 @@ export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, init
       {/* Meditation: guide text + timer */}
       {meditating && (() => {
         const breathEl = guideText?.breath && (
-          <div style={{ fontSize: 10, letterSpacing: 3, textTransform: "uppercase", color: guideText.breath === "in" ? "rgba(190,230,245,.95)" : guideText.breath === "hold" ? "rgba(250,220,120,.9)" : "rgba(230,185,205,.95)", marginBottom: SP.xs, ...ss }}>
+          <div style={{ fontSize: 10, letterSpacing: 3, textTransform: "uppercase", color: guideText.breath === "in" ? "rgba(220,210,236,.95)" : guideText.breath === "hold" ? "rgba(243,206,114,.9)" : "rgba(201,175,166,.95)", marginBottom: SP.xs, ...ss }}>
             {guideText.breath === "in" ? L("orb_breath_in") : guideText.breath === "hold" ? L("orb_breath_hold") : L("orb_breath_out")}
           </div>
         );
         const textEl = guideText && (
-          <div style={{ fontSize: 15, fontStyle: "italic", lineHeight: 1.55, color: "rgba(255,248,240,.96)", ...ss }}>{guideText.text}</div>
+          <div style={{ fontSize: 15, fontStyle: "italic", lineHeight: 1.55, color: "rgba(247,239,230,.96)", ...ss }}>{guideText.text}</div>
         );
         return (
           <>
@@ -965,7 +963,7 @@ export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, init
               <div key={guideText.text} style={{ position: "absolute", left: SP.lg, right: SP.lg, top: 80, zIndex: 27, pointerEvents: "none", display: "flex", justifyContent: "center", animation: "fadeUp .6s ease both" }}>
                 <div style={{
                   maxWidth: 380, padding: `${SP.md}px ${SP.lg}px`,
-                  background: "rgba(6,2,8,.72)",
+                  background: "rgba(14,8,16,.72)",
                   backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
                   borderRadius: RAD.lg,
                   border: `1px solid ${acHex}28`,
@@ -980,7 +978,7 @@ export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, init
 
             {/* Bottom block: timer only (text moved to top) */}
             <div style={{ position: "absolute", left: 0, right: 0, bottom: 10, zIndex: 28, display: "flex", flexDirection: "column", alignItems: "center", pointerEvents: "none" }}>{false && (<div />)}
-              <div style={{ background: "rgba(6,2,8,.75)", backdropFilter: "blur(12px)", borderRadius: RAD.lg, padding: `10px ${SP.lg}px`, display: "flex", alignItems: "center", gap: SP.md, border: `1px solid ${acHex}22` }}>
+              <div style={{ background: "rgba(14,8,16,.75)", backdropFilter: "blur(12px)", borderRadius: RAD.lg, padding: `10px ${SP.lg}px`, display: "flex", alignItems: "center", gap: SP.md, border: `1px solid ${acHex}22` }}>
                 <div style={{ fontSize: TYPE.xl, fontWeight: 200, color: `${acHex}cc`, letterSpacing: 2, minWidth: 56, textAlign: "center", ...ss }}>{fmtTimer(medTime)}</div>
                 <div style={{ width: 1, height: SP.xl, background: `${acHex}22` }} />
                 <button type="button" onClick={isPaused ? resumeMeditation : pauseMeditation} style={{ pointerEvents: "all", cursor: "pointer", padding: `6px ${SP.md}px`, borderRadius: RAD.md, background: `${acHex}28`, border: `1px solid ${acHex}55`, fontSize: 9, letterSpacing: 1.5, textTransform: "uppercase", color: "#fff", touchAction: "manipulation", WebkitAppearance: "none", ...ss }}>{isPaused ? L("orb_resume") : L("orb_pause")}</button>
@@ -997,26 +995,26 @@ export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, init
       {/* Crystal reward popup — large and celebratory */}
       {gemPop && (
         <div key={gemPop.id} style={{ position: "absolute", inset: 0, zIndex: 40, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 50% 50%, rgba(240,208,96,.12) 0%, transparent 60%)", animation: "breathe 2s ease-in-out" }} />
+          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 50% 50%, rgba(243,206,114,.12) 0%, transparent 60%)", animation: "breathe 2s ease-in-out" }} />
           <div style={{ textAlign: "center", animation: "gemBurst 3.5s ease forwards" }}>
-            <div style={{ fontSize: 56, color: "#F0D060", animation: "gemGlow 1.2s ease-in-out 3", lineHeight: 1 }}>+{gemPop.amount}</div>
-            <div style={{ fontSize: 32, color: "#F0D060", marginTop: 4, animation: "gemGlow 1.2s ease-in-out 3" }}>⟡</div>
-            <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: "rgba(240,208,96,.7)", marginTop: SP.md, ...ss }}>{L("orb_gems_received")}</div>
+            <div style={{ fontSize: 56, color: "#f3ce72", animation: "gemGlow 1.2s ease-in-out 3", lineHeight: 1 }}>+{gemPop.amount}</div>
+            <div style={{ fontSize: 32, color: "#f3ce72", marginTop: 4, animation: "gemGlow 1.2s ease-in-out 3" }}>⟡</div>
+            <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: "rgba(243,206,114,.7)", marginTop: SP.md, ...ss }}>{L("orb_gems_received")}</div>
           </div>
         </div>
       )}
 
       {/* ─── First-visit intro overlay ─── */}
       {showIntro && !showTimerPicker && !meditating && (
-        <div style={{ position: "absolute", inset: 0, zIndex: 55, background: "rgba(4,2,8,.97)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", pointerEvents: "auto", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+        <div style={{ position: "absolute", inset: 0, zIndex: 55, background: "rgba(14,8,16,.97)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", pointerEvents: "auto", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
           <div style={{ minHeight: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", padding: `52px ${SP.xl}px 48px` }}>
             <div style={{ maxWidth: 340, width: "100%" }}>
               <div style={{ textAlign: "center", marginBottom: SP.xl }}>
-                <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase", color: `rgba(${T.ar},.45)`, fontFamily: FONT_SANS, marginBottom: SP.md }}>✦ Frisson ✦</div>
+                <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase", color: `rgba(${T.ar},.45)`, fontFamily: FONT_SANS, marginBottom: SP.md }}>✦ NECTAR ✦</div>
                 <div style={{ fontFamily: FONT_SERIF, fontSize: 28, fontWeight: 300, color: "#fff", lineHeight: 1.2, marginBottom: SP.md }}>
                   {lang === "ru" ? "Мой внутренний мир" : "My Inner World"}
                 </div>
-                <div style={{ fontFamily: FONT_SERIF, fontSize: TYPE.base, fontStyle: "italic", color: "rgba(220,200,185,.6)", lineHeight: 1.65 }}>
+                <div style={{ fontFamily: FONT_SERIF, fontSize: TYPE.base, fontStyle: "italic", color: "rgba(201,175,166,.6)", lineHeight: 1.65 }}>
                   {lang === "ru"
                     ? "Это живая визуализация твоего психологического состояния — здесь видно то, что обычно скрыто внутри"
                     : "A living visualization of your psychological state — here you can see what's usually hidden inside"}
@@ -1051,7 +1049,7 @@ export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, init
                     <div style={{ fontSize: 18, color: T.accent }}>{card.icon}</div>
                     <div style={{ ...label(TYPE.xs), color: T.accent }}>{card.title}</div>
                   </div>
-                  <div style={{ ...body(TYPE.sm), lineHeight: LH.loose, color: `rgba(220,200,185,.72)` }}>{card.text}</div>
+                  <div style={{ ...body(TYPE.sm), lineHeight: LH.loose, color: `rgba(201,175,166,.72)` }}>{card.text}</div>
                 </div>
               ))}
 
@@ -1074,20 +1072,26 @@ export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, init
 
       {/* Timer picker overlay */}
       {showTimerPicker && (
-        <div style={{ position: "absolute", inset: 0, zIndex: 50, background: "rgba(6,2,8,.85)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, pointerEvents: "auto", padding: SP.xl }}>
+        <div style={{ position: "absolute", inset: 0, zIndex: 50, background: "rgba(14,8,16,.85)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, pointerEvents: "auto", padding: SP.xl }}>
           <div style={{ fontSize: TYPE.xs, letterSpacing: 3, textTransform: "uppercase", color: `${acHex}cc`, marginBottom: 6, ...ss }}>{L("orb_time_medit")}</div>
-          <div style={{ fontSize: 13, color: `rgba(220,200,180,.7)`, marginBottom: SP.page, textAlign: "center", maxWidth: 280, lineHeight: 1.6, ...ss }}>{L("orb_watch_listen")}</div>
+          {(() => { const p = SOUND_PROFILES[activeScenario?.id] || SOUND_PROFILES.neutral; return (
+            <div style={{ marginBottom: SP.lg, textAlign: "center", maxWidth: 300 }}>
+              <div style={{ fontSize: 11, letterSpacing: 2, textTransform: "uppercase", color: `${acHex}99`, marginBottom: SP.sm, ...ss }}>{p.label}</div>
+              <div style={{ fontFamily: FONT_SERIF, fontSize: 14, fontStyle: "italic", color: `rgba(201,175,166,.72)`, lineHeight: 1.65, ...ss }}>{p.desc}</div>
+            </div>
+          ); })()}
+          <div style={{ fontSize: 13, color: `rgba(201,175,166,.45)`, marginBottom: SP.page, textAlign: "center", maxWidth: 280, lineHeight: 1.6, ...ss }}>{L("orb_watch_listen")}</div>
           {[{ label: L("orb_3min"), sec: 180 }, { label: L("orb_5min"), sec: 300 }, { label: L("orb_10min"), sec: 600 }, { label: L("orb_15min"), sec: 900 }].map((opt) => (
             <button key={opt.sec} type="button" onClick={(e) => { e.stopPropagation(); startMeditation(opt.sec); }} style={{ cursor: "pointer", width: 220, padding: `${SP.lg}px 0`, borderRadius: SP.lg, textAlign: "center", background: `${acHex}33`, border: `1.5px solid ${acHex}`, fontSize: 15, color: "#fff", fontWeight: 400, touchAction: "manipulation", WebkitAppearance: "none", margin: 0, ...ss }}>{opt.label}</button>
           ))}
-          <button type="button" onClick={(e) => { e.stopPropagation(); setShowTimerPicker(false); }} style={{ cursor: "pointer", marginTop: SP.md, padding: `10px ${SP.page}px`, background: "transparent", border: "none", fontSize: 11, letterSpacing: 2, textTransform: "uppercase", color: `rgba(220,200,180,${OP.secondary})`, touchAction: "manipulation", WebkitAppearance: "none", ...ss }}>{L("cancel")}</button>
+          <button type="button" onClick={(e) => { e.stopPropagation(); setShowTimerPicker(false); }} style={{ cursor: "pointer", marginTop: SP.md, padding: `10px ${SP.page}px`, background: "transparent", border: "none", fontSize: 11, letterSpacing: 2, textTransform: "uppercase", color: `rgba(201,175,166,${OP.secondary})`, touchAction: "manipulation", WebkitAppearance: "none", ...ss }}>{L("cancel")}</button>
         </div>
       )}
 
 
       {/* ─── Bottom personal dashboard ─── */}
       {!meditating && (
-        <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 25, background: "linear-gradient(0deg, rgba(4,2,8,.97) 0%, rgba(4,2,8,.88) 50%, transparent 100%)", padding: `${SP.xl}px ${SP.lg}px ${SP.lg}px`, opacity: showTimerPicker ? 0 : hideUI, transition: "opacity .5s", pointerEvents: showTimerPicker ? "none" : "auto" }}>
+        <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 25, background: "linear-gradient(0deg, rgba(14,8,16,.97) 0%, rgba(14,8,16,.88) 50%, transparent 100%)", padding: `${SP.xl}px ${SP.lg}px ${SP.lg}px`, opacity: showTimerPicker ? 0 : hideUI, transition: "opacity .5s", pointerEvents: showTimerPicker ? "none" : "auto" }}>
           {/* Scenario chips */}
           <div style={{ marginBottom: SP.md }}>
             <div style={{ fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: `rgba(${T.ar},.35)`, fontFamily: FONT_SANS, marginBottom: SP.sm }}>{lang === "ru" ? "Сценарий" : "Scenario"}</div>
@@ -1097,7 +1101,7 @@ export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, init
                 background: !activeScenario ? `rgba(${T.ar},.22)` : "rgba(255,255,255,.04)",
                 border: `1px solid ${!activeScenario ? `rgba(${T.ar},.5)` : "rgba(255,255,255,.08)"}`,
                 fontSize: 8, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: FONT_SANS,
-                color: !activeScenario ? T.accent : "rgba(200,180,170,.4)", whiteSpace: "nowrap",
+                color: !activeScenario ? T.accent : "rgba(201,175,166,.4)", whiteSpace: "nowrap",
               }}>{lang === "ru" ? "Нейтрально" : "Neutral"}</div>
               {SCENARIOS.map((sc) => (
                 <div key={sc.id} onClick={() => setScenario(activeScenario?.id === sc.id ? null : sc)} style={{
@@ -1105,7 +1109,7 @@ export default function Orbit({ setScreen, goBack, addGems, doMarkPractice, init
                   background: activeScenario?.id === sc.id ? `${sc.hex}28` : "rgba(255,255,255,.04)",
                   border: `1px solid ${activeScenario?.id === sc.id ? sc.hex : "rgba(255,255,255,.08)"}`,
                   fontSize: 8, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: FONT_SANS,
-                  color: activeScenario?.id === sc.id ? sc.hex : "rgba(200,180,170,.4)", whiteSpace: "nowrap",
+                  color: activeScenario?.id === sc.id ? sc.hex : "rgba(201,175,166,.4)", whiteSpace: "nowrap",
                 }}>{orbScenarioName(sc, lang)}</div>
               ))}
             </div>

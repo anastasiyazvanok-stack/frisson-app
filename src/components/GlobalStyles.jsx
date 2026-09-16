@@ -1,18 +1,34 @@
 export default function GlobalStyles() {
   return (
     <style>{`
-      @import url('https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Plus+Jakarta+Sans:wght@200;300;400;500&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Manrope:wght@300;400;500;600;700&display=swap');
 
       *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
       html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
-      body{background:#060208;overflow:hidden}
+      body{background:#0E0810;overflow:hidden}
       ::-webkit-scrollbar{display:none}
 
       :root{
         --vh:1dvh;
-        --txt:242,232,226;
-        --txt-inv:20,16,12;
-        --orb-bg:6,2,8;
+        --txt:247,239,230;
+        --txt-inv:36,19,26;
+        --orb-bg:14,8,16;
+        /* Nectar brandbook palette */
+        --n-obsidian:#0E0810;
+        --n-wing-black:#1D1015;
+        --n-plum:#3B1533;
+        --n-bordeaux:#5C1C2E;
+        --n-rust:#B2461F;
+        --n-ember:#D0562A;
+        --n-amber:#E39A3C;
+        --n-gold:#F3CE72;
+        --n-iris:#8E76B8;
+        --n-lavender:#B9A9DA;
+        --n-mist:#DCD2EC;
+        --n-cream:#F7EFE6;
+        --n-ink:#24131A;
+        --n-muted:#C9AFA6;
+        --n-hairline:rgba(185,169,218,.16);
       }
 
       /* ─── Core Animations ─── */
@@ -27,9 +43,9 @@ export default function GlobalStyles() {
       @keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-36px) scale(1.1)}}
       @keyframes gemGlow{0%,100%{text-shadow:0 0 6px currentColor}50%{text-shadow:0 0 14px currentColor,0 0 28px currentColor}}
       @keyframes moonHalo{0%,100%{transform:scale(1);opacity:.3}50%{transform:scale(1.25);opacity:.5}}
-      @keyframes pulseGlow{0%,100%{box-shadow:0 0 4px var(--glow-color,rgba(176,32,160,.25))}50%{box-shadow:0 0 12px var(--glow-color,rgba(176,32,160,.4))}}
+      @keyframes pulseGlow{0%,100%{box-shadow:0 0 4px var(--glow-color,rgba(59,21,51,.25))}50%{box-shadow:0 0 12px var(--glow-color,rgba(59,21,51,.4))}}
       @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-      @keyframes glowPulse{0%,100%{filter:drop-shadow(0 0 4px var(--glow-color,rgba(200,100,180,.3)))}50%{filter:drop-shadow(0 0 10px var(--glow-color,rgba(200,100,180,.5)))}}
+      @keyframes glowPulse{0%,100%{filter:drop-shadow(0 0 4px var(--glow-color,rgba(185,169,218,.3)))}50%{filter:drop-shadow(0 0 10px var(--glow-color,rgba(185,169,218,.5)))}}
       @keyframes gradientFlow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
       @keyframes fireFlicker{0%,100%{transform:scale(1);filter:brightness(1)}25%{transform:scale(1.12);filter:brightness(1.2)}50%{transform:scale(1.04);filter:brightness(1.08)}75%{transform:scale(1.14);filter:brightness(1.25)}}
 

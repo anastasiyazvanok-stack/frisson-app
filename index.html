@@ -2,26 +2,23 @@
 <html lang="ru" style="color-scheme: dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/frisson/favicon.svg" />
-    <link rel="apple-touch-icon" href="/frisson/icons/icon-192.png" />
-    <link rel="manifest" href="/frisson/manifest.json" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#06030a" />
+    <meta name="theme-color" content="#0E0810" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="LuxMind" />
+    <meta name="apple-mobile-web-app-title" content="Nectar" />
     <meta name="color-scheme" content="dark" />
-    <title>LuxMind — женский психологический капитал</title>
+    <meta name="description" content="Расцветать — это тоже работа с психикой." />
+    <!-- Same policy as vercel.json's CSP header — needed here too because the iOS app
+         (Capacitor) loads this bundle straight from disk, bypassing Vercel's HTTP headers. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; media-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; base-uri 'self'; form-action 'self'" />
+    <title>Nectar — женский психологический капитал</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/frisson/sw.js');
-        });
-      }
-    </script>
   </body>
 </html>

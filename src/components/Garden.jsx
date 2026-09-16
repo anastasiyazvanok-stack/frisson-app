@@ -3,16 +3,16 @@ import { useMemo } from "react";
 // Deterministic pseudo-random from seed
 const rng = (seed) => { let s = seed; return () => { s = (s * 16807 + 0) % 2147483647; return s / 2147483647; }; };
 
+// Eight families, each a tint / brand value / shade of one Nectar palette member.
 const FLOWER_TYPES = [
-  // petals, color families
-  { petals: 5, colors: ["#E88FC6", "#F0A0D0", "#D43878"] },  // rose/pink
-  { petals: 6, colors: ["#C44B88", "#A84878", "#8B1A3A"] },  // deep berry
-  { petals: 4, colors: ["#A0D4E4", "#7EC8DC", "#5CB8C8"] },  // blue
-  { petals: 8, colors: ["#E8A04C", "#D08040", "#C87840"] },  // amber
-  { petals: 5, colors: ["#E76F51", "#D4453C", "#BB5A40"] },  // coral
-  { petals: 7, colors: ["#9E6BC4", "#7B4090", "#5B3080"] },  // violet
-  { petals: 6, colors: ["#4FAE92", "#2A9D8F", "#1A7A6E"] },  // teal
-  { petals: 5, colors: ["#F0D060", "#D4A74A", "#C8960A"] },  // gold
+  { petals: 5, colors: ["#EDE6F6", "#DCD2EC", "#B9A9DA"] },  // mist
+  { petals: 6, colors: ["#9A4759", "#5C1C2E", "#3E1220"] },  // bordeaux
+  { petals: 4, colors: ["#B7A5DC", "#8E76B8", "#6B5694"] },  // iris
+  { petals: 8, colors: ["#F0C489", "#E39A3C", "#B87A22"] },  // amber
+  { petals: 5, colors: ["#E8845E", "#D0562A", "#A03E1C"] },  // ember
+  { petals: 7, colors: ["#7A4570", "#3B1533", "#250C20"] },  // plum
+  { petals: 6, colors: ["#D07A55", "#B2461F", "#7A3216"] },  // rust
+  { petals: 5, colors: ["#F7E2A8", "#F3CE72", "#D9A83E"] },  // gold
 ];
 
 function Flower({ x, type, growth, seed, height }) {
@@ -68,7 +68,7 @@ function Flower({ x, type, growth, seed, height }) {
             );
           })}
           {/* Center */}
-          <circle r={petalSize * 0.22} fill={`rgba(255,240,200,${0.6 + growth * 0.3})`} />
+          <circle r={petalSize * 0.22} fill={`rgba(243,206,114,${0.6 + growth * 0.3})`} />
           {/* Glow */}
           <circle r={petalSize * 0.6} fill="none" stroke={color} strokeWidth={0.3} opacity={0.3} />
         </g>
@@ -89,14 +89,14 @@ function Flower({ x, type, growth, seed, height }) {
 
 function Butterfly({ x, y, seed, t }) {
   const wingSpan = 5 + (seed % 3) * 2;
-  const colors = ["#E88FC6", "#A0D4E4", "#F0D060", "#9E6BC4", "#E76F51"];
+  const colors = ["#DCD2EC", "#B9A9DA", "#F3CE72", "#8E76B8", "#D0562A"];
   const color = colors[seed % colors.length];
   const flap = Math.sin(t * 4 + seed) * 20;
   return (
     <g transform={`translate(${x}, ${y})`}>
       <ellipse cx={-wingSpan * 0.4} cy={0} rx={wingSpan} ry={wingSpan * 0.6} fill={color} opacity={0.5} transform={`skewY(${flap})`} />
       <ellipse cx={wingSpan * 0.4} cy={0} rx={wingSpan} ry={wingSpan * 0.6} fill={color} opacity={0.5} transform={`skewY(${-flap})`} />
-      <ellipse cx={0} cy={0} rx={1} ry={2.5} fill="rgba(60,40,30,.6)" />
+      <ellipse cx={0} cy={0} rx={1} ry={2.5} fill="rgba(29,16,21,.6)" />
     </g>
   );
 }
@@ -135,7 +135,7 @@ export default function Garden({ gems = 0, theme }) {
         <defs>
           <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={`rgba(40,${60 + Math.floor(level * 40)},30,${0.2 + level * 0.3})`} />
-            <stop offset="100%" stopColor="rgba(10,8,6,.2)" />
+            <stop offset="100%" stopColor="rgba(14,8,16,.2)" />
           </linearGradient>
         </defs>
 
@@ -166,7 +166,7 @@ export default function Garden({ gems = 0, theme }) {
         {level > 0.7 && Array.from({ length: Math.floor((level - 0.7) * 15) }, (_, i) => {
           const sx = -70 + Math.sin(i * 13 + 5) * 140;
           const sy = -15 - Math.sin(i * 7 + 2) * 35;
-          return <circle key={`s${i}`} cx={sx} cy={sy} r={0.6} fill="#F0D060" opacity={0.2 + Math.sin(t * 2 + i * 3) * 0.2}>
+          return <circle key={`s${i}`} cx={sx} cy={sy} r={0.6} fill="#f3ce72" opacity={0.2 + Math.sin(t * 2 + i * 3) * 0.2}>
             <animate attributeName="opacity" values={`${0.1 + (i % 3) * 0.1};0.5;${0.1 + (i % 3) * 0.1}`} dur={`${2 + (i % 3)}s`} repeatCount="indefinite" />
           </circle>;
         })}
@@ -174,7 +174,7 @@ export default function Garden({ gems = 0, theme }) {
 
       {/* Label */}
       <div style={{ textAlign: "center", marginTop: 4 }}>
-        <div style={{ fontFamily: "Georgia, serif", fontSize: 11, color: "rgba(242,232,226,.5)", fontStyle: "italic" }}>
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 11, color: "rgba(247,239,230,.5)", fontStyle: "italic" }}>
           {level < 0.1 ? "Ваш сад ждёт первой практики..." :
            level < 0.3 ? "Первые ростки появляются..." :
            level < 0.5 ? "Сад начинает цвести..." :

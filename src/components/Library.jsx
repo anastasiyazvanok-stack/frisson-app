@@ -63,7 +63,7 @@ export default function Library({ setScreen, goBack, theme, initSec, initMed, cl
       if (!loggedRef.current && pct >= 80 && det) {
         loggedRef.current = true;
         logMeditation(det.title, "full");
-        if (doMarkPractice) doMarkPractice(parseInt(det.dur) || 20);
+        if (doMarkPractice) doMarkPractice(parseInt(det.dur) || 20, "meditation");
         if (addGems) addGems(Math.max(1, parseInt(det.dur) || 20));
       }
     };
@@ -140,7 +140,7 @@ export default function Library({ setScreen, goBack, theme, initSec, initMed, cl
     try {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: det.title,
-        artist: "LuxMind",
+        artist: "NECTAR",
         album: lang === "ru" ? "Медитации" : "Meditations",
       });
       navigator.mediaSession.setActionHandler("play", () => { audioRef.current?.play(); setPlay(true); });
@@ -164,12 +164,12 @@ export default function Library({ setScreen, goBack, theme, initSec, initMed, cl
 
   const filters = [
     { id: "all", l: L("lib_filter_all"), c: tx("var(--txt)", OP.secondary + 0.05) },
-    { id: "resource", l: L("lib_filter_resource"), c: "#F08838" },
-    { id: "feminine", l: L("lib_filter_feminine"), c: "#E64DA8" },
-    { id: "receiving", l: L("lib_filter_receiving"), c: "#FFAF32" },
-    { id: "newlevel", l: L("lib_filter_growth"), c: "#9F7BD8" },
-    { id: "self", l: L("lib_filter_self"), c: "#D080B0" },
-    { id: "tales", l: lang === "ru" ? "Сказки" : "Tales", c: "#C080D0" },
+    { id: "resource", l: L("lib_filter_resource"), c: "#E39A3C" },
+    { id: "feminine", l: L("lib_filter_feminine"), c: "#DCD2EC" },
+    { id: "receiving", l: L("lib_filter_receiving"), c: "#F3CE72" },
+    { id: "newlevel", l: L("lib_filter_growth"), c: "#8E76B8" },
+    { id: "self", l: L("lib_filter_self"), c: "#C9AFA6" },
+    { id: "tales", l: lang === "ru" ? "Сказки" : "Tales", c: "#B9A9DA" },
   ];
   const vis = (active === "all" || active === "tales") ? SECTIONS : SECTIONS.filter((s) => s.id === active);
 
@@ -312,7 +312,7 @@ export default function Library({ setScreen, goBack, theme, initSec, initMed, cl
             <div className="glass-card" style={{ margin: `0 ${SP.xl}px ${SP.xl}px`, padding: SP.page, background: `rgba(${T.ar},.05)`, border: `1px solid rgba(${T.ar},.12)`, borderRadius: RAD.lg, position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: `radial-gradient(circle, ${T.accent}15 0%, transparent 70%)`, pointerEvents: "none" }} />
               <div style={{ display: "flex", alignItems: "center", gap: 13, marginBottom: SP.lg }}>
-                <div style={{ width: 46, height: 46, borderRadius: "50%", background: "rgba(125,23,54,.35)", border: `1.5px solid ${T.accent}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🎓</div>
+                <div style={{ width: 46, height: 46, borderRadius: "50%", background: "rgba(92,28,46,.35)", border: `1.5px solid ${T.accent}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🎓</div>
                 <div>
                   <div style={{ fontFamily: FONT_SERIF, fontSize: 15, color: tx("var(--txt)", 0.92), marginBottom: 2 }}>{L("author_name")}</div>
                   <div style={{ ...label(TYPE.xs), letterSpacing: ".12em", color: T.accent }}>{L("author_role")}</div>
@@ -331,27 +331,27 @@ export default function Library({ setScreen, goBack, theme, initSec, initMed, cl
             {/* ─── Tales section ─── */}
             {active === "tales" && (
               <div>
-                <div style={{ marginBottom: SP.xl, padding: `${SP.lg}px ${SP.page}px`, background: "rgba(192,128,208,.06)", border: "1px solid rgba(192,128,208,.15)", borderRadius: RAD.lg }}>
+                <div style={{ marginBottom: SP.xl, padding: `${SP.lg}px ${SP.page}px`, background: "rgba(185,169,218,.06)", border: "1px solid rgba(185,169,218,.15)", borderRadius: RAD.lg }}>
                   <div style={{ fontFamily: FONT_SERIF, fontSize: TYPE.base + 1, lineHeight: 1.75, color: tx("var(--txt)", 0.65) }}>
                     {lang === "ru" ? "Терапевтические сказки помогают увидеть себя со стороны, прожить сложные переживания через метафору и найти внутренний ресурс." : "Therapeutic fairy tales help you see yourself from the outside, process difficult experiences through metaphor, and find inner resources."}
                   </div>
                 </div>
                 {TALES.map((tale) => (
-                  <div key={tale.id} onClick={() => setTaleDet(tale)} className="list-item press-card glass-card" style={{ display: "flex", alignItems: "flex-start", gap: SP.md, padding: `${SP.lg}px ${SP.md + 2}px`, background: `rgba(${T.ar},.04)`, border: `1px solid rgba(192,128,208,.18)`, borderRadius: RAD.lg, marginBottom: SP.md, cursor: "pointer", position: "relative", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.04)" }}>
-                    <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: "linear-gradient(to bottom,#C080D0,#C080D033)", borderRadius: "3px 0 0 3px" }} />
-                    <div style={{ fontFamily: FONT_SERIF, fontSize: TYPE.xl - 2, color: "#C080D0", width: 26, textAlign: "center", flexShrink: 0, lineHeight: 1, paddingTop: 2 }}>✦</div>
+                  <div key={tale.id} onClick={() => setTaleDet(tale)} className="list-item press-card glass-card" style={{ display: "flex", alignItems: "flex-start", gap: SP.md, padding: `${SP.lg}px ${SP.md + 2}px`, background: `rgba(${T.ar},.04)`, border: `1px solid rgba(185,169,218,.18)`, borderRadius: RAD.lg, marginBottom: SP.md, cursor: "pointer", position: "relative", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.04)" }}>
+                    <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: "linear-gradient(to bottom,#B9A9DA,#8E76B833)", borderRadius: "3px 0 0 3px" }} />
+                    <div style={{ fontFamily: FONT_SERIF, fontSize: TYPE.xl - 2, color: "#b9a9da", width: 26, textAlign: "center", flexShrink: 0, lineHeight: 1, paddingTop: 2 }}>✦</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ ...label(TYPE.xs - 0.5), letterSpacing: ".12em", color: "#C080D0", marginBottom: 4 }}>{tale.label}</div>
+                      <div style={{ ...label(TYPE.xs - 0.5), letterSpacing: ".12em", color: "#b9a9da", marginBottom: 4 }}>{tale.label}</div>
                       <div style={{ ...body(TYPE.base + 1), lineHeight: LH.tight + 0.1, color: tx("var(--txt)", OP.primary), marginBottom: 5 }}>{tale.title}</div>
                       <div style={{ ...body(TYPE.sm), color: tx("var(--txt)", OP.secondary - 0.1), lineHeight: 1.55 }}>{tale.short}</div>
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: SP.sm }}>
                         {tale.tags.map((tag) => (
-                          <div key={tag} style={{ padding: `3px ${SP.sm + 2}px`, borderRadius: RAD.full, background: "rgba(192,128,208,.1)", border: "1px solid rgba(192,128,208,.2)", ...label(TYPE.xs - 1), color: tx("var(--txt)", 0.5) }}>{tag}</div>
+                          <div key={tag} style={{ padding: `3px ${SP.sm + 2}px`, borderRadius: RAD.full, background: "rgba(185,169,218,.1)", border: "1px solid rgba(185,169,218,.2)", ...label(TYPE.xs - 1), color: tx("var(--txt)", 0.5) }}>{tag}</div>
                         ))}
                       </div>
                     </div>
                     <div style={{ flexShrink: 0, marginTop: SP.xs }}>
-                      <div style={{ width: 26, height: 26, borderRadius: RAD.full, background: "rgba(192,128,208,.2)", border: "1px solid rgba(192,128,208,.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: TYPE.sm, color: "#C080D0" }}>→</div>
+                      <div style={{ width: 26, height: 26, borderRadius: RAD.full, background: "rgba(185,169,218,.2)", border: "1px solid rgba(185,169,218,.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: TYPE.sm, color: "#b9a9da" }}>→</div>
                     </div>
                   </div>
                 ))}

@@ -1,26 +1,27 @@
 import { useState } from "react";
 import { signIn, signUp, resetPassword, supabase } from "../lib/supabase";
 import { TYPE, SP, RAD, EASE, FONT_SERIF, FONT_SANS, label, heading } from "../utils/design";
+import { LogoLockup } from "./Brand";
 
 const INPUT_STYLE = {
   width: "100%",
   padding: `${SP.md + 4}px ${SP.lg}px`,
   borderRadius: RAD.md,
   background: "rgba(0,0,0,.3)",
-  border: "1px solid rgba(200,160,180,.18)",
+  border: "1px solid rgba(201,175,166,.18)",
   outline: "none",
   fontFamily: FONT_SANS,
   fontSize: TYPE.sm + 2,
   fontWeight: 300,
-  color: "rgba(245,235,230,.9)",
-  caretColor: "rgba(230,77,168,.8)",
+  color: "rgba(247,239,230,.9)",
+  caretColor: "rgba(227,154,60,.8)",
   backdropFilter: "blur(12px)",
   transition: EASE.normal,
   boxSizing: "border-box",
   WebkitAppearance: "none",
 };
 
-function Orb({ style, color = "230,77,168", opacity = 0.3, w = 300, h = 300, delay = 0 }) {
+function Orb({ style, color = "92,28,46", opacity = 0.3, w = 300, h = 300, delay = 0 }) {
   return (
     <div style={{
       position: "absolute", borderRadius: "50%",
@@ -34,7 +35,7 @@ function Orb({ style, color = "230,77,168", opacity = 0.3, w = 300, h = 300, del
   );
 }
 
-const BG = "linear-gradient(160deg, #140a1c 0%, #1e0d0a 38%, #0e0620 70%, #07030d 100%)";
+const BG = "linear-gradient(160deg,#150A15 0%,#5C1C2E 46%,#0E0810 100%)";
 
 const FEATURES = [
   { icon: "✦", text: "Медитации, женские практики и терапевтические аудио" },
@@ -64,15 +65,15 @@ export function PasswordResetForm({ onDone }) {
 
   return (
     <div style={{ width: "100%", height: "100dvh", background: BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: `0 ${SP.xxl}px`, position: "relative", overflow: "hidden" }}>
-      <Orb style={{ top: -100, right: -80 }} color="230,77,168" opacity={0.28} w={380} h={380} />
-      <Orb style={{ bottom: -80, left: -60 }} color="220,100,40" opacity={0.24} w={320} h={320} delay={3} />
+      <Orb style={{ top: -100, right: -80 }} color="92,28,46" opacity={0.28} w={380} h={380} />
+      <Orb style={{ bottom: -80, left: -60 }} color="208,86,42" opacity={0.24} w={320} h={320} delay={3} />
       <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 360, animation: "fadeUp .5s ease both" }}>
         <div style={{ textAlign: "center", marginBottom: SP.xl + 4 }}>
-          <div style={{ fontFamily: FONT_SERIF, fontSize: 28, color: "rgba(245,235,230,.92)", marginBottom: 6 }}>Новый пароль</div>
-          <div style={{ ...label(TYPE.xs - 1), color: "rgba(180,150,165,.38)", letterSpacing: ".3em" }}>СБРОС ПАРОЛЯ</div>
+          <div style={{ fontFamily: FONT_SERIF, fontSize: 28, color: "rgba(247,239,230,.92)", marginBottom: 6 }}>Новый пароль</div>
+          <div style={{ ...label(TYPE.xs - 1), color: "rgba(201,175,166,.38)", letterSpacing: ".3em" }}>СБРОС ПАРОЛЯ</div>
         </div>
         {done ? (
-          <div style={{ textAlign: "center", fontFamily: FONT_SANS, fontSize: TYPE.sm + 1, color: "rgba(100,210,140,.85)", padding: `${SP.md}px 0` }}>
+          <div style={{ textAlign: "center", fontFamily: FONT_SANS, fontSize: TYPE.sm + 1, color: "rgba(127,167,134,.85)", padding: `${SP.md}px 0` }}>
             Пароль обновлён — входим в приложение...
           </div>
         ) : (
@@ -81,14 +82,14 @@ export function PasswordResetForm({ onDone }) {
               onKeyDown={(e) => e.key === "Enter" && submit()} style={INPUT_STYLE} autoComplete="new-password" />
             <input type="password" placeholder="Повторите пароль" value={confirm} onChange={(e) => setConfirm(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && submit()} style={INPUT_STYLE} autoComplete="new-password" />
-            {error && <div style={{ fontFamily: FONT_SANS, fontSize: TYPE.xs + 1, textAlign: "center", color: "rgba(240,100,100,.85)" }}>{error}</div>}
+            {error && <div style={{ fontFamily: FONT_SANS, fontSize: TYPE.xs + 1, textAlign: "center", color: "rgba(194,90,102,.85)" }}>{error}</div>}
             <div onClick={!loading ? submit : undefined} style={{
               width: "100%", padding: `${SP.lg + 2}px`, borderRadius: 28, textAlign: "center", cursor: loading ? "default" : "pointer",
-              background: "linear-gradient(135deg, rgba(210,55,140,.75), rgba(220,110,40,.6))",
-              border: "1.5px solid rgba(220,100,55,.55)", backdropFilter: "blur(20px)",
-              boxShadow: "0 0 40px rgba(210,55,140,.35), inset 0 1px 0 rgba(255,255,255,.08)",
+              background: "linear-gradient(135deg, rgba(178,70,31,.75), rgba(208,86,42,.6))",
+              border: "1.5px solid rgba(208,86,42,.55)", backdropFilter: "blur(20px)",
+              boxShadow: "0 0 40px rgba(178,70,31,.35), inset 0 1px 0 rgba(255,255,255,.08)",
               ...label(TYPE.xs), fontWeight: 400, letterSpacing: ".28em",
-              color: "rgba(252,240,248,.96)", opacity: loading ? 0.6 : 1, transition: EASE.normal,
+              color: "rgba(255,246,234,.96)", opacity: loading ? 0.6 : 1, transition: EASE.normal,
               marginTop: SP.xs, touchAction: "manipulation",
             }}>
               {loading ? "•••" : "СОХРАНИТЬ ПАРОЛЬ"}
@@ -150,29 +151,24 @@ export default function Auth({ onAuth, startMode = "welcome" }) {
       display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
       padding: `0 ${SP.xxl}px`, position: "relative", overflow: "hidden",
     }}>
-      <Orb style={{ top: -100, right: -80 }} color="230,77,168" opacity={0.28} w={380} h={380} />
-      <Orb style={{ bottom: -80, left: -60 }} color="220,100,40" opacity={0.24} w={320} h={320} delay={3} />
-      <Orb style={{ top: "42%", left: "50%", transform: "translateX(-50%)" }} color="159,110,220" opacity={0.1} w={440} h={440} delay={6} />
+      <Orb style={{ top: -100, right: -80 }} color="92,28,46" opacity={0.28} w={380} h={380} />
+      <Orb style={{ bottom: -80, left: -60 }} color="208,86,42" opacity={0.24} w={320} h={320} delay={3} />
+      <Orb style={{ top: "42%", left: "50%", transform: "translateX(-50%)" }} color="142,118,184" opacity={0.1} w={440} h={440} delay={6} />
 
       {/* ─── WELCOME SCREEN ─── */}
       {mode === "welcome" && (
         <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 360, display: "flex", flexDirection: "column", alignItems: "center", animation: "fadeUp .7s ease both" }}>
-          <img
-            src="./brand/logo-full-white.png"
-            alt="LuxMind"
-            style={{ width: "72%", maxWidth: 280, height: "auto", filter: "drop-shadow(0 0 40px rgba(230,77,168,.45)) drop-shadow(0 0 80px rgba(240,120,40,.25))", marginBottom: SP.xl + 4 }}
-            onError={(e) => { e.target.style.display = "none"; }}
-          />
+          <LogoLockup mark={60} size={38} style={{ marginBottom: SP.xl + 4 }} />
 
-          <div style={{ fontFamily: FONT_SERIF, fontSize: 20, fontWeight: 300, color: "rgba(240,228,236,.82)", textAlign: "center", lineHeight: 1.6, letterSpacing: ".01em", marginBottom: SP.xl, padding: `0 ${SP.xs}px` }}>
+          <div style={{ fontFamily: FONT_SERIF, fontSize: 20, fontWeight: 300, color: "rgba(247,239,230,.82)", textAlign: "center", lineHeight: 1.6, letterSpacing: ".01em", marginBottom: SP.xl, padding: `0 ${SP.xs}px` }}>
             Пространство трансформации через развитие внутреннего психологического капитала для женщин
           </div>
 
           <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SP.sm + 2, marginBottom: SP.xxl }}>
             {FEATURES.map((f) => (
-              <div key={f.text} style={{ display: "flex", alignItems: "flex-start", gap: SP.md, padding: `${SP.md}px ${SP.lg}px`, background: "rgba(230,77,168,.07)", border: "1px solid rgba(230,77,168,.16)", borderRadius: RAD.md }}>
-                <span style={{ fontFamily: FONT_SERIF, fontSize: 14, color: "rgba(230,77,168,.7)", flexShrink: 0, marginTop: 1 }}>{f.icon}</span>
-                <span style={{ fontFamily: FONT_SANS, fontSize: TYPE.sm + 1, fontWeight: 300, color: "rgba(228,215,228,.78)", lineHeight: 1.5 }}>{f.text}</span>
+              <div key={f.text} style={{ display: "flex", alignItems: "flex-start", gap: SP.md, padding: `${SP.md}px ${SP.lg}px`, background: "rgba(227,154,60,.07)", border: "1px solid rgba(227,154,60,.16)", borderRadius: RAD.md }}>
+                <span style={{ fontFamily: FONT_SERIF, fontSize: 14, color: "rgba(227,154,60,.7)", flexShrink: 0, marginTop: 1 }}>{f.icon}</span>
+                <span style={{ fontFamily: FONT_SANS, fontSize: TYPE.sm + 1, fontWeight: 300, color: "rgba(247,239,230,.78)", lineHeight: 1.5 }}>{f.text}</span>
               </div>
             ))}
           </div>
@@ -183,12 +179,12 @@ export default function Auth({ onAuth, startMode = "welcome" }) {
             style={{
               width: "100%", padding: `${SP.lg + 2}px`, borderRadius: 28,
               textAlign: "center", cursor: "pointer",
-              background: "linear-gradient(135deg, rgba(210,55,140,.75) 0%, rgba(230,77,168,.6) 45%, rgba(220,110,40,.6) 100%)",
-              border: "1.5px solid rgba(220,100,55,.55)",
+              background: "linear-gradient(135deg, rgba(178,70,31,.75) 0%, rgba(227,154,60,.6) 45%, rgba(208,86,42,.6) 100%)",
+              border: "1.5px solid rgba(208,86,42,.55)",
               backdropFilter: "blur(20px)",
-              boxShadow: "0 0 40px rgba(210,55,140,.38), 0 0 80px rgba(230,100,40,.18), inset 0 1px 0 rgba(255,255,255,.08)",
+              boxShadow: "0 0 40px rgba(178,70,31,.38), 0 0 80px rgba(208,86,42,.18), inset 0 1px 0 rgba(255,255,255,.08)",
               ...label(TYPE.xs), fontWeight: 400, letterSpacing: ".28em",
-              color: "rgba(252,240,248,.96)",
+              color: "rgba(255,246,234,.96)",
               transition: EASE.normal, marginBottom: SP.md,
               touchAction: "manipulation",
             }}
@@ -205,7 +201,7 @@ export default function Auth({ onAuth, startMode = "welcome" }) {
               background: "rgba(255,255,255,.04)",
               border: "1px solid rgba(255,255,255,.1)",
               ...label(TYPE.xs), fontWeight: 400, letterSpacing: ".2em",
-              color: "rgba(200,185,210,.55)",
+              color: "rgba(201,175,166,.55)",
               transition: EASE.normal,
               touchAction: "manipulation",
             }}
@@ -218,15 +214,15 @@ export default function Auth({ onAuth, startMode = "welcome" }) {
       {/* ─── VERIFY SCREEN ─── */}
       {mode === "verify" && (
         <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 360, animation: "fadeUp .5s ease both" }}>
-          <div style={{ textAlign: "center", padding: `${SP.xl + 4}px ${SP.lg}px`, background: "rgba(0,0,0,.25)", border: "1px solid rgba(200,160,180,.12)", borderRadius: RAD.lg }}>
+          <div style={{ textAlign: "center", padding: `${SP.xl + 4}px ${SP.lg}px`, background: "rgba(0,0,0,.25)", border: "1px solid rgba(201,175,166,.12)", borderRadius: RAD.lg }}>
             <div style={{ fontSize: 36, marginBottom: SP.lg }}>✉️</div>
-            <div style={{ fontFamily: FONT_SERIF, fontSize: 22, color: "rgba(245,235,230,.9)", marginBottom: SP.md }}>Проверьте почту</div>
-            <div style={{ fontFamily: FONT_SANS, fontSize: TYPE.sm + 1, color: "rgba(220,205,215,.7)", lineHeight: 1.7, fontWeight: 300 }}>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 22, color: "rgba(247,239,230,.9)", marginBottom: SP.md }}>Проверьте почту</div>
+            <div style={{ fontFamily: FONT_SANS, fontSize: TYPE.sm + 1, color: "rgba(201,175,166,.7)", lineHeight: 1.7, fontWeight: 300 }}>
               Письмо с подтверждением отправлено на{" "}
-              <span style={{ color: "rgba(230,77,168,.85)", fontWeight: 400 }}>{email}</span>.
+              <span style={{ color: "rgba(227,154,60,.85)", fontWeight: 400 }}>{email}</span>.
               Откройте его и нажмите на ссылку.
             </div>
-            <div onClick={() => switchTo("login")} style={{ marginTop: SP.xl, cursor: "pointer", ...label(TYPE.xs), color: "rgba(200,160,180,.5)", letterSpacing: ".2em" }}>← ВОЙТИ</div>
+            <div onClick={() => switchTo("login")} style={{ marginTop: SP.xl, cursor: "pointer", ...label(TYPE.xs), color: "rgba(201,175,166,.5)", letterSpacing: ".2em" }}>← ВОЙТИ</div>
           </div>
         </div>
       )}
@@ -238,14 +234,14 @@ export default function Auth({ onAuth, startMode = "welcome" }) {
           <div style={{ textAlign: "center", marginBottom: SP.xl + 4 }}>
             <div
               onClick={() => mode === "forgot" ? switchTo("login") : switchTo("welcome")}
-              style={{ position: "absolute", left: 0, top: 0, cursor: "pointer", fontFamily: FONT_SANS, fontSize: TYPE.sm, color: "rgba(200,160,180,.45)", padding: `${SP.xs}px 0` }}
+              style={{ position: "absolute", left: 0, top: 0, cursor: "pointer", fontFamily: FONT_SANS, fontSize: TYPE.sm, color: "rgba(201,175,166,.45)", padding: `${SP.xs}px 0` }}
             >
               ←
             </div>
-            <div style={{ fontFamily: FONT_SERIF, fontSize: 28, color: "rgba(245,235,230,.92)", marginBottom: 6 }}>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 28, color: "rgba(247,239,230,.92)", marginBottom: 6 }}>
               {mode === "register" ? "Создать аккаунт" : mode === "login" ? "Добро пожаловать" : "Сброс пароля"}
             </div>
-            <div style={{ ...label(TYPE.xs - 1), color: "rgba(180,150,165,.38)", letterSpacing: ".3em" }}>
+            <div style={{ ...label(TYPE.xs - 1), color: "rgba(201,175,166,.38)", letterSpacing: ".3em" }}>
               {mode === "register" ? "РЕГИСТРАЦИЯ" : mode === "login" ? "ВХОД" : "ЗАБЫЛИ ПАРОЛЬ"}
             </div>
           </div>
@@ -268,7 +264,7 @@ export default function Auth({ onAuth, startMode = "welcome" }) {
             )}
 
             {(error || sent) && (
-              <div style={{ fontFamily: FONT_SANS, fontSize: TYPE.xs + 1, textAlign: "center", padding: `${SP.sm}px 0`, color: error ? "rgba(240,100,100,.85)" : "rgba(100,210,140,.85)" }}>
+              <div style={{ fontFamily: FONT_SANS, fontSize: TYPE.xs + 1, textAlign: "center", padding: `${SP.sm}px 0`, color: error ? "rgba(194,90,102,.85)" : "rgba(127,167,134,.85)" }}>
                 {error || "Письмо отправлено — проверьте почту"}
               </div>
             )}
@@ -276,12 +272,12 @@ export default function Auth({ onAuth, startMode = "welcome" }) {
             <div onClick={!loading ? submit : undefined} style={{
               width: "100%", padding: `${SP.lg + 2}px`, borderRadius: 28,
               textAlign: "center", cursor: loading ? "default" : "pointer",
-              background: "linear-gradient(135deg, rgba(210,55,140,.75), rgba(220,110,40,.6))",
-              border: "1.5px solid rgba(220,100,55,.55)",
+              background: "linear-gradient(135deg, rgba(178,70,31,.75), rgba(208,86,42,.6))",
+              border: "1.5px solid rgba(208,86,42,.55)",
               backdropFilter: "blur(20px)",
-              boxShadow: "0 0 40px rgba(210,55,140,.35), 0 0 80px rgba(230,100,40,.15), inset 0 1px 0 rgba(255,255,255,.08)",
+              boxShadow: "0 0 40px rgba(178,70,31,.35), 0 0 80px rgba(208,86,42,.15), inset 0 1px 0 rgba(255,255,255,.08)",
               ...label(TYPE.xs), fontWeight: 400, letterSpacing: ".28em",
-              color: "rgba(252,240,248,.96)",
+              color: "rgba(255,246,234,.96)",
               opacity: loading ? 0.6 : 1, transition: EASE.normal,
               marginTop: SP.xs, touchAction: "manipulation",
             }}>
@@ -290,10 +286,10 @@ export default function Auth({ onAuth, startMode = "welcome" }) {
 
             {mode === "login" && (
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span onClick={() => switchTo("forgot")} style={{ fontFamily: FONT_SANS, fontSize: TYPE.xs + 1, color: "rgba(200,160,180,.5)", cursor: "pointer", textDecoration: "underline" }}>
+                <span onClick={() => switchTo("forgot")} style={{ fontFamily: FONT_SANS, fontSize: TYPE.xs + 1, color: "rgba(201,175,166,.5)", cursor: "pointer", textDecoration: "underline" }}>
                   Забыли пароль?
                 </span>
-                <span onClick={() => switchTo("register")} style={{ fontFamily: FONT_SANS, fontSize: TYPE.xs + 1, color: "rgba(200,160,180,.5)", cursor: "pointer", textDecoration: "underline" }}>
+                <span onClick={() => switchTo("register")} style={{ fontFamily: FONT_SANS, fontSize: TYPE.xs + 1, color: "rgba(201,175,166,.5)", cursor: "pointer", textDecoration: "underline" }}>
                   Создать аккаунт
                 </span>
               </div>

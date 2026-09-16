@@ -29,7 +29,7 @@ export default function Nav({ active, setScreen, theme, THEMES, lang = "ru" }) {
 
   return (
     <div style={{
-      background: "rgba(6,2,8,.75)",
+      background: "rgba(14,8,16,.75)",
       backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
       borderTop: `1px solid rgba(${T.ar},.12)`,
       display: "flex",

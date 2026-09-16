@@ -10,20 +10,20 @@ export default function AppTour({ onDone, theme, THEMES, lang = "ru" }) {
 
   const FEATS = {
     ru: [
-      { ic: "🌕", sec: "Главная", color: "#E64DA8", title: "Выбирайте настроение", desc: "Нажмите на карточку — интерфейс подстроится под вас.", tip: "Настроение меняет цвет интерфейса и рекомендации" },
-      { ic: "◦", sec: "Библиотека", color: "#F08838", title: "Вся библиотека практик", desc: "Медитации, книги и проекты — каждая практика решает конкретный запрос.", tip: "Начните с бесплатной «Женское внутреннее расслабление» 19 мин" },
-      { ic: "◈", sec: "Орбита Психики", color: "#9F7BD8", title: "Визуализация внутреннего мира", desc: "Каждая точка — это нейрон, каждая линия — связь между мыслями и чувствами. Выберите сценарий (тревога, любовь, сила...) и увидите, как двигается психика в этом состоянии.", tip: "Нажмите ♫ и выберите время — музыка и орбита плавно меняются вместе с вами" },
-      { ic: "✦", sec: "Навигатор ситуаций", color: "#FFAF32", title: "Что меня беспокоит?", desc: "Выберите из 12 ситуаций — получите точные практики.", tip: "Можно выбрать несколько ситуаций сразу" },
-      { ic: "◈", sec: "Дневник", color: "rgba(200,160,80,.9)", title: "Намерения и рефлексия", desc: "Пишите в настоящем времени. Фиксируйте инсайты после практик.", tip: "Регулярность важнее объёма — даже 3 строки в день" },
-      { ic: "◈", sec: "Профиль", color: "#7EC8DC", title: "Психологический капитал", desc: "Шесть осей внутреннего роста: безопасность, самоценность, получение, женственность, доверие, подлинность. Каждая практика растит конкретную ось.", tip: "Проходите тест энергии раз в 1–2 недели для калибровки" },
+      { ic: "🌕", sec: "Главная", color: "#e39a3c", title: "Выбирайте настроение", desc: "Нажмите на карточку — интерфейс подстроится под вас.", tip: "Настроение меняет цвет интерфейса и рекомендации" },
+      { ic: "◦", sec: "Библиотека", color: "#E8845E", title: "Вся библиотека практик", desc: "Медитации, книги и проекты — каждая практика решает конкретный запрос.", tip: "Начните с бесплатной «Женское внутреннее расслабление» 19 мин" },
+      { ic: "◈", sec: "Орбита Психики", color: "#8E76B8", title: "Визуализация внутреннего мира", desc: "Каждая точка — это нейрон, каждая линия — связь между мыслями и чувствами. Выберите сценарий (тревога, любовь, сила...) и увидите, как двигается психика в этом состоянии.", tip: "Нажмите ♫ и выберите время — музыка и орбита плавно меняются вместе с вами" },
+      { ic: "✦", sec: "Навигатор ситуаций", color: "#F3CE72", title: "Что меня беспокоит?", desc: "Выберите из 12 ситуаций — получите точные практики.", tip: "Можно выбрать несколько ситуаций сразу" },
+      { ic: "◈", sec: "Дневник", color: "#B9A9DA", title: "Намерения и рефлексия", desc: "Пишите в настоящем времени. Фиксируйте инсайты после практик.", tip: "Регулярность важнее объёма — даже 3 строки в день" },
+      { ic: "◈", sec: "Профиль", color: "#E39A3C", title: "Психологический капитал", desc: "Пять осей внутреннего роста: безопасность, самоценность, женственность, доверие, подлинность. Каждая практика растит конкретную ось.", tip: "Проходите тест энергии раз в 1–2 недели для калибровки" },
     ],
     en: [
-      { ic: "🌕", sec: "Home", color: "#E64DA8", title: "Choose your mood", desc: "Tap a card — the interface will adapt to you.", tip: "Your mood changes the interface color and recommendations" },
-      { ic: "◦", sec: "Library", color: "#F08838", title: "The full practice library", desc: "Meditations, books and projects — each practice addresses a specific need.", tip: "Start with the free \u00ABFeminine inner relaxation\u00BB, 19 min" },
-      { ic: "◈", sec: "Psyche Orbit", color: "#9F7BD8", title: "A visualization of your inner world", desc: "Each dot is a neuron, each line a link between thoughts and feelings. Pick a scenario (anxiety, love, power...) and see how your psyche moves in that state.", tip: "Tap ♫ and pick a duration — music and orbit shift gently with you" },
-      { ic: "✦", sec: "Situation navigator", color: "#FFAF32", title: "What's bothering me?", desc: "Pick from 12 situations — get precise practices.", tip: "You can pick several situations at once" },
-      { ic: "◈", sec: "Journal", color: "rgba(200,160,80,.9)", title: "Intentions and reflection", desc: "Write in present tense. Capture insights after practices.", tip: "Consistency matters more than length — even 3 lines a day" },
-      { ic: "◈", sec: "Profile", color: "#7EC8DC", title: "Psychological capital", desc: "Six axes of inner growth: safety, self-worth, receiving, femininity, trust, authenticity. Each practice grows a specific axis.", tip: "Take the energy test every 1–2 weeks for calibration" },
+      { ic: "🌕", sec: "Home", color: "#e39a3c", title: "Choose your mood", desc: "Tap a card — the interface will adapt to you.", tip: "Your mood changes the interface color and recommendations" },
+      { ic: "◦", sec: "Library", color: "#E8845E", title: "The full practice library", desc: "Meditations, books and projects — each practice addresses a specific need.", tip: "Start with the free \u00ABFeminine inner relaxation\u00BB, 19 min" },
+      { ic: "◈", sec: "Psyche Orbit", color: "#8E76B8", title: "A visualization of your inner world", desc: "Each dot is a neuron, each line a link between thoughts and feelings. Pick a scenario (anxiety, love, power...) and see how your psyche moves in that state.", tip: "Tap ♫ and pick a duration — music and orbit shift gently with you" },
+      { ic: "✦", sec: "Situation navigator", color: "#F3CE72", title: "What's bothering me?", desc: "Pick from 12 situations — get precise practices.", tip: "You can pick several situations at once" },
+      { ic: "◈", sec: "Journal", color: "#B9A9DA", title: "Intentions and reflection", desc: "Write in present tense. Capture insights after practices.", tip: "Consistency matters more than length — even 3 lines a day" },
+      { ic: "◈", sec: "Profile", color: "#E39A3C", title: "Psychological capital", desc: "Five axes of inner growth: safety, self-worth, femininity, trust, authenticity. Each practice grows a specific axis.", tip: "Take the energy test every 1–2 weeks for calibration" },
     ],
   };
   const feats = FEATS[lang] || FEATS.ru;

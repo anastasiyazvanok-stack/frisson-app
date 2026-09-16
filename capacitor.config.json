@@ -1,6 +1,6 @@
 {
   "appId": "com.frisson.app",
-  "appName": "LuxMind",
+  "appName": "Nectar",
   "webDir": "dist",
   "server": {
     "androidScheme": "https"
@@ -8,7 +8,7 @@
   "plugins": {
     "SplashScreen": {
       "launchShowDuration": 2000,
-      "backgroundColor": "#060208",
+      "backgroundColor": "#0E0810",
       "showSpinner": false,
       "launchAutoHide": true,
       "androidScaleType": "CENTER_CROP",
@@ -17,7 +17,7 @@
     },
     "StatusBar": {
       "style": "DARK",
-      "backgroundColor": "#060208"
+      "backgroundColor": "#0E0810"
     },
     "Keyboard": {
       "style": "DARK",
@@ -26,8 +26,8 @@
   },
   "ios": {
     "contentInset": "automatic",
-    "backgroundColor": "#060208",
+    "backgroundColor": "#0E0810",
     "preferredContentMode": "mobile",
-    "scheme": "LuxMind"
+    "scheme": "Nectar"
   }
 }

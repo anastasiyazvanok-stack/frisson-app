@@ -1,8 +1,10 @@
+import { userStorage as localStorage, activateUser, readUser, subscribeUserChanges } from "./lib/userStorage.js";
+import { localDay } from "./utils/dates.js";
 import { useState, useRef, useEffect } from "react";
 import { getThemes } from "./data/themes";
-import { getActivity, markPractice, getName, setName as saveName } from "./data/activity";
-import { supabase, fetchMeditations, fetchSections, getSession, signOut, syncToCloud, loadFromCloud, applyCloudData, collectLocalData, getIsRecoveryMode } from "./lib/supabase";
-import { TYPE, SP, RAD, OP, EASE, FONT_SERIF, FONT_SANS, tx, label, heading } from "./utils/design";
+import { getActivity, getWeekPractices, markPractice, getName, setName as saveName } from "./data/activity";
+import { supabase, fetchMeditations, fetchSections, getSession, signOut, syncToCloud, loadFromCloud, getIsRecoveryMode, clearRecoveryMode } from "./lib/supabase";
+import { TYPE, SP, RAD, OP, EASE, FONT_SERIF, FONT_SANS, tx, label } from "./utils/design";
 import { useLangState, t as tr } from "./utils/i18n";
 import GlobalStyles from "./components/GlobalStyles";
 import Auth, { PasswordResetForm } from "./components/Auth";
@@ -18,111 +20,114 @@ import SubPage from "./components/SubPage";
 import Orbit from "./components/Orbit";
 import Nav from "./components/Nav";
 import AICoach from "./components/AICoach";
+import { LogoLockup } from "./components/Brand";
+
+import { useMemberAccess } from "./lib/memberAccess";
+import AccessPanel from "./components/AccessPanel";
 
 export const VERSION = "5.8.0";
 
+function Loading() {
+  return <div role="status" style={{ background: '#06030a', color: '#eee', height: '100dvh', display: 'grid', placeItems: 'center' }}>Нектар · …</div>;
+}
+
 export default function App() {
   const [lang, setLang] = useLangState();
-  const L = (k, ...a) => tr(lang, k, ...a);
-  const [showAdmin, setShowAdmin] = useState(false);
-  const [userEmail, setUserEmail] = useState(null);
-  const recoveryRef = useRef(
-    localStorage.getItem("lux_pw_reset") === "1" || getIsRecoveryMode()
-  );
-  const [showPasswordReset, setShowPasswordReset] = useState(() => recoveryRef.current);
-
-  // ─── Auth state ───
-  const [authChecked, setAuthChecked] = useState(false);
-  const [userId, setUserId] = useState(null);
-  const syncTimer = useRef(null);
-
-  const queueSync = (uid) => {
-    if (!uid) return;
-    clearTimeout(syncTimer.current);
-    syncTimer.current = setTimeout(() => syncToCloud(uid), 2000);
-  };
+  const [session, setSession] = useState(null);
+  const [checked, setChecked] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [recovery, setRecovery] = useState(getIsRecoveryMode);
+  const [mode, setMode] = useState(null);
+  const [loadError, setLoadError] = useState(null);
+  const [retry, setRetry] = useState(0);
+  const recoveryRef = useRef(getIsRecoveryMode());
 
   useEffect(() => {
-    // Check existing session on mount
-    getSession().then((session) => {
-      if (session?.user) {
-        setUserId(session.user.id);
-        setUserEmail(session.user.email);
-        handleCloudLoad(session.user.id);
-      }
-      setAuthChecked(true);
-    });
-
-    // Listen for auth state changes (login, logout, email verification)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY") {
-        recoveryRef.current = true;
-        setShowPasswordReset(true);
-        setAuthChecked(true);
-      } else if (session?.user) {
-        if (recoveryRef.current) {
-          // SIGNED_IN fires right after PASSWORD_RECOVERY — don't override recovery mode
-          setAuthChecked(true);
-        } else {
-          setShowPasswordReset(false);
-          setUserId(session.user.id);
-          setUserEmail(session.user.email);
-          handleCloudLoad(session.user.id);
-          setAuthChecked(true);
-        }
-      } else {
-        recoveryRef.current = false;
-        setShowPasswordReset(false);
-        setUserId(null);
-        setUserEmail(null);
-        setAuthChecked(true);
-      }
-    });
-
-    // Sync on visibility change (app goes to background)
-    const onHide = () => {
-      if (document.visibilityState === "hidden") {
-        getSession().then((s) => { if (s?.user) syncToCloud(s.user.id); });
-      }
+    let alive = true;
+    let receivedEvent = false;
+    // Keep this callback synchronous: Supabase auth operations must not be
+    // awaited while its auth-state callback holds the session lock.
+    const receive = (event, next) => {
+      if (!alive) return;
+      receivedEvent = true;
+      if (event === 'PASSWORD_RECOVERY') recoveryRef.current = true;
+      if (!next) recoveryRef.current = false;
+      setRecovery(recoveryRef.current);
+      setSession(previous => previous?.user?.id === next?.user?.id ? previous : next);
+      setChecked(true);
     };
-    document.addEventListener("visibilitychange", onHide);
-
-    return () => {
-      subscription.unsubscribe();
-      document.removeEventListener("visibilitychange", onHide);
-      clearTimeout(syncTimer.current);
-    };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(receive);
+    getSession().then(next => { if (alive && !receivedEvent) receive('INITIAL_SESSION', next); })
+      .catch(error => { if (alive) { setLoadError(error); setChecked(true); } });
+    return () => { alive = false; subscription.unsubscribe(); };
   }, []);
 
-  async function handleCloudLoad(uid) {
-    const cloudData = await loadFromCloud(uid);
-    if (cloudData && Object.keys(cloudData).length > 0) {
-      // Cloud has data — apply it (cloud wins to support multi-device)
-      applyCloudData(cloudData);
-    } else {
-      // First login — upload existing localStorage
-      syncToCloud(uid);
-    }
-  }
+  const uid = session?.user?.id;
+  useEffect(() => {
+    let alive = true;
+    activateUser(uid);
+    setReady(false);
+    setLoadError(null);
+    if (!uid) return () => { alive = false; };
+    loadFromCloud(uid).then(() => {
+      if (!alive) return;
+      if (!getName() && session.user.user_metadata?.name) saveName(session.user.user_metadata.name);
+      setReady(uid);
+    }).catch(error => {
+      if (!alive) return;
+      setLoadError(error);
+      // Only an already initialized, account-scoped cache is safe offline.
+      if (readUser(uid).loaded) setReady(uid);
+    });
+    return () => { alive = false; };
+  }, [uid, retry]);
 
-  function handleAuthDone(nameFromReg) {
-    if (nameFromReg) {
-      saveName(nameFromReg);
-      setUserName(nameFromReg);
-      setShowNameInput(false);
-    }
-    // onAuthStateChange will handle userId + cloud load — no duplicate call needed
+  async function logout() {
+    try { if (uid) await syncToCloud(uid); } catch { /* Dirty account cache is retained for retry. */ }
+    const { error } = await signOut();
+    if (error) throw error;
+    clearRecoveryMode(); setRecovery(false); setMode(null);
   }
+  if (recovery && session) return <><GlobalStyles /><PasswordResetForm onDone={() => {
+    clearRecoveryMode(); recoveryRef.current = false; setRecovery(false);
+  }} onCancel={logout} /></>;
+  if (!checked) return <Loading />;
+  if (!uid) return <><GlobalStyles />{mode
+    ? <Auth startMode={mode} onAuth={() => setMode(null)} />
+    : <Onboarding onDone={setMode} lang={lang} setLang={setLang} />}</>;
+  if (ready !== uid) return loadError ? <div role="alert" style={{ padding: 32, color: '#fff', background: '#160a20', minHeight: '100dvh' }}>
+    <p>{lang === 'ru' ? 'Не удалось загрузить ваши данные. Проверьте соединение и попробуйте ещё раз.' : 'Could not load your data. Check your connection and try again.'}</p>
+    <button onClick={() => setRetry(n => n + 1)}>{lang === 'ru' ? 'Повторить' : 'Retry'}</button>
+  </div> : <Loading />;
+  return <UserApp key={uid} userId={uid} userEmail={session.user.email} lang={lang} setLang={setLang} onSignOut={logout} initialSyncError={loadError} />;
+}
 
-  async function handleSignOut() {
+function UserApp({ userId, userEmail, lang, setLang, onSignOut, initialSyncError }) {
+  const membership = useMemberAccess(userId);
+  const L = (k, ...a) => tr(lang, k, ...a);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [syncError, setSyncError] = useState(initialSyncError);
+  const syncTimer = useRef(null);
+  const queueSync = () => {
     clearTimeout(syncTimer.current);
-    if (userId) await syncToCloud(userId);
-    await signOut();
-    setUserId(null);
-  }
-
-  const [onb, setOnb] = useState(() => localStorage.getItem("frisson_onb") === "1");
-  const [afterOnboarding, setAfterOnboarding] = useState(null); // "register" | "login" | null
+    syncTimer.current = setTimeout(() => {
+      syncToCloud(userId).then(() => setSyncError(null)).catch(setSyncError);
+    }, 1000);
+  };
+  useEffect(() => {
+    let alive = true;
+    const flush = () => syncToCloud(userId).then(() => { if (alive) setSyncError(null); })
+      .catch(error => { if (alive) setSyncError(error); });
+    const unsubscribe = subscribeUserChanges(uid => { if (uid === userId) queueSync(); });
+    const onHide = () => { if (document.visibilityState === 'hidden') flush(); };
+    const interval = setInterval(flush, 30000);
+    window.addEventListener('online', flush);
+    document.addEventListener('visibilitychange', onHide);
+    flush();
+    return () => { alive = false; unsubscribe(); clearTimeout(syncTimer.current); clearInterval(interval);
+      window.removeEventListener('online', flush); document.removeEventListener('visibilitychange', onHide); };
+  }, [userId]);
+  async function handleSignOut() { try { await onSignOut(); } catch (error) { setSyncError(error); } }
   const [tour, setTour] = useState(() => localStorage.getItem("frisson_tour") === "1");
   const [screen, setScreenRaw] = useState("home");
   const historyRef = useRef(["home"]);
@@ -145,12 +150,12 @@ export default function App() {
   const [eScore, setEScoreRaw] = useState(() => {
     const v = localStorage.getItem("frisson_escore");
     const savedDate = localStorage.getItem("frisson_escore_date");
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = localDay();
     if (savedDate && savedDate !== todayStr) return null;
     return v !== null && v !== "null" ? parseInt(v) : null;
   });
   const setEScore = (v) => {
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = localDay();
     localStorage.setItem("frisson_escore", v === null ? "null" : String(v));
     localStorage.setItem("frisson_escore_date", todayStr);
     setEScoreRaw(v);
@@ -165,7 +170,7 @@ export default function App() {
     localStorage.setItem("frisson_ehist", JSON.stringify(next));
     return next;
   });
-  const [pLog] = useState([0, 1, 0, 2, 1, 0, 0]);
+
   const [libSec, setLibSec] = useState("all");
   const [openMed, setOpenMed] = useState(null);
   const [medFrom, setMedFrom] = useState(null);
@@ -184,10 +189,11 @@ export default function App() {
   }, []);
 
   const [activity, setActivity] = useState(getActivity);
+  const pLog = getWeekPractices(activity);
   const [userName, setUserName] = useState(getName);
   const [showNameInput, setShowNameInput] = useState(() => !getName());
   const [nameVal, setNameVal] = useState("");
-  const doMarkPractice = (minutes) => { const a = markPractice(minutes); setActivity({ ...a }); queueSync(userId); };
+  const doMarkPractice = (minutes, type) => { const a = markPractice(minutes, type); setActivity({ ...a }); queueSync(userId); };
   const doSetName = (n) => { saveName(n); setUserName(n); setShowNameInput(false); queueSync(userId); };
 
   const scrollRef = useRef(null);
@@ -196,52 +202,25 @@ export default function App() {
   const T = THEMES[theme] || THEMES.full;
   const showNav = screen !== "sub" && screen !== "situations" && screen !== "coach";
 
-  // Auth gate — show loading spinner while checking, then Auth screen if not logged in
-  if (showPasswordReset) return (<><GlobalStyles /><PasswordResetForm onDone={() => {
-    localStorage.removeItem("lux_pw_reset");
-    recoveryRef.current = false;
-    setShowPasswordReset(false);
-    getSession().then(s => { if (s?.user) { setUserId(s.user.id); setUserEmail(s.user.email); } });
-  }} /></>);
   if (showAdmin) return (<><GlobalStyles /><Admin userEmail={userEmail} onClose={() => setShowAdmin(false)} /></>);
 
-  if (!authChecked) return (
-    <><GlobalStyles />
-    <div style={{ width: "100%", height: "100dvh", background: "#06030a", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(230,77,168,.6)", boxShadow: "0 0 20px rgba(230,77,168,.5)", animation: "breathe 1.8s ease-in-out infinite" }} />
-    </div></>
-  );
-  // Non-logged-in users always see onboarding (unless they just finished it)
-  if (!userId && !afterOnboarding) return (
-    <><GlobalStyles /><Onboarding onDone={(mode) => setAfterOnboarding(mode)} lang={lang} setLang={setLang} /></>
-  );
-
-  if (!userId) return (
-    <><GlobalStyles /><Auth startMode={afterOnboarding} onAuth={(name) => {
-      localStorage.setItem("frisson_onb", "1");
-      setOnb(true);
-      setAfterOnboarding(null);
-      handleAuthDone(name);
-    }} /></>
-  );
   if (!tour) return (<><GlobalStyles /><AppTour onDone={() => { localStorage.setItem("frisson_tour", "1"); setTour(true); queueSync(userId); }} theme={theme} THEMES={THEMES} lang={lang} /></>);
 
   if (showNameInput) return (
     <><GlobalStyles />
-    <div style={{ width: "100%", height: "100dvh", background: "linear-gradient(165deg, #1a0418 0%, #2a1408 50%, #0c0820 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: `0 ${SP.xxl}px`, position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "absolute", width: "70%", height: "70%", top: "-15%", left: "-15%", borderRadius: "50%", background: "radial-gradient(circle,rgba(230,77,168,.6),rgba(159,123,216,.4) 55%,transparent 72%)", filter: "blur(55px)", animation: "breathe 18s ease-in-out infinite" }} />
-      <div style={{ position: "absolute", width: "55%", height: "55%", bottom: "-10%", right: "-8%", borderRadius: "50%", background: "radial-gradient(circle,rgba(240,136,56,.5),rgba(208,128,176,.4) 55%,transparent 72%)", filter: "blur(50px)", animation: "breathe 22s 4s ease-in-out infinite" }} />
+    <div style={{ width: "100%", height: "100dvh", background: "linear-gradient(165deg,#150A15 0%,#5C1C2E 50%,#0E0810 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: `0 ${SP.xxl}px`, position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", width: "70%", height: "70%", top: "-15%", left: "-15%", borderRadius: "50%", background: "radial-gradient(circle,rgba(92,28,46,.75),rgba(59,21,51,.5) 55%,transparent 72%)", filter: "blur(55px)", animation: "breathe 18s ease-in-out infinite" }} />
+      <div style={{ position: "absolute", width: "55%", height: "55%", bottom: "-10%", right: "-8%", borderRadius: "50%", background: "radial-gradient(circle,rgba(208,86,42,.65),rgba(178,70,31,.5) 55%,transparent 72%)", filter: "blur(50px)", animation: "breathe 22s 4s ease-in-out infinite" }} />
       <div style={{ position: "relative", zIndex: 1, width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <img src="./brand/ornament-white.png" alt="" style={{ width: 56, height: "auto", opacity: 0.7, filter: "drop-shadow(0 0 20px rgba(230,77,168,.4))", marginBottom: SP.lg }} />
-        <div style={{ ...heading(40), color: "#fff", textAlign: "center", textShadow: "0 0 40px rgba(230,77,168,.5)", marginBottom: SP.sm }}>LuxMind</div>
-        <div style={{ ...label(TYPE.xs), color: "rgba(180,150,165,.5)", letterSpacing: ".3em", marginBottom: 40 }}>{L("ask_name")}</div>
+        <LogoLockup mark={56} size={38} style={{ marginBottom: SP.sm }} />
+        <div style={{ ...label(TYPE.xs), color: "rgba(201,175,166,.5)", letterSpacing: ".3em", marginBottom: 40 }}>{L("ask_name")}</div>
         <input
           autoFocus
           placeholder={L("your_name")}
           value={nameVal}
           onChange={(e) => setNameVal(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && nameVal.trim()) doSetName(nameVal.trim()); }}
-          style={{ width: "100%", maxWidth: 260, padding: `${SP.lg}px ${SP.page}px`, borderRadius: RAD.lg, background: "rgba(0,0,0,.25)", border: "1px solid rgba(200,160,180,.3)", outline: "none", fontFamily: FONT_SERIF, fontSize: TYPE.xl, color: "#fff", textAlign: "center", caretColor: "rgba(230,77,168,.8)", backdropFilter: "blur(12px)" }}
+          style={{ width: "100%", maxWidth: 260, padding: `${SP.lg}px ${SP.page}px`, borderRadius: RAD.lg, background: "rgba(0,0,0,.25)", border: "1px solid rgba(201,175,166,.3)", outline: "none", fontFamily: FONT_SERIF, fontSize: TYPE.xl, color: "#fff", textAlign: "center", caretColor: "rgba(227,154,60,.8)", backdropFilter: "blur(12px)" }}
         />
         <button
           type="button"
@@ -249,11 +228,11 @@ export default function App() {
           style={{
             marginTop: SP.xl, width: "100%", maxWidth: 260, padding: SP.lg, borderRadius: RAD.lg,
             textAlign: "center", cursor: nameVal.trim() ? "pointer" : "default",
-            background: nameVal.trim() ? "linear-gradient(135deg, rgba(230,77,168,.6), rgba(240,136,56,.5))" : "rgba(255,255,255,.03)",
-            border: `1.5px solid ${nameVal.trim() ? "rgba(240,136,56,.7)" : "rgba(255,255,255,.07)"}`,
-            boxShadow: nameVal.trim() ? "0 0 32px rgba(230,77,168,.4)" : "none",
+            background: nameVal.trim() ? "linear-gradient(135deg, rgba(227,154,60,.6), rgba(227,154,60,.5))" : "rgba(255,255,255,.03)",
+            border: `1.5px solid ${nameVal.trim() ? "rgba(227,154,60,.7)" : "rgba(255,255,255,.07)"}`,
+            boxShadow: nameVal.trim() ? "0 0 32px rgba(227,154,60,.4)" : "none",
             ...label(TYPE.xs), fontWeight: 400, letterSpacing: ".25em",
-            color: nameVal.trim() ? "rgba(245,228,233,.96)" : "rgba(230,218,225,.2)",
+            color: nameVal.trim() ? "rgba(247,239,230,.96)" : "rgba(247,239,230,.2)",
             opacity: nameVal.trim() ? 1 : 0.4, transition: EASE.normal,
             touchAction: "manipulation", WebkitAppearance: "none",
           }}
@@ -263,7 +242,7 @@ export default function App() {
   );
 
   const screens = {
-    home: <Home setScreen={setScreen} theme={theme} setTheme={setThemePersisted} eScore={eScore} pLog={pLog} setLibSec={setLibSec} THEMES={THEMES} activity={activity} userName={userName} doMarkPractice={doMarkPractice} lang={lang} goToMed={goToMed} />,
+    home: <Home setScreen={setScreen} theme={theme} setTheme={setThemePersisted} eScore={eScore} setEScore={setEScore} eHist={eHist} setEHist={setEHist} pLog={pLog} setLibSec={setLibSec} THEMES={THEMES} activity={activity} userName={userName} doMarkPractice={doMarkPractice} lang={lang} goToMed={goToMed} />,
     library: <Library setScreen={setScreen} goBack={goBack} theme={theme} initSec={libSec} initMed={openMed} clearMed={() => setOpenMed(null)} medFrom={medFrom} clearMedFrom={() => setMedFrom(null)} THEMES={THEMES} doMarkPractice={doMarkPractice} addGems={addGems} remoteMeds={remoteMeds} remoteSections={remoteSections} lang={lang} />,
     orbit: <Orbit setScreen={setScreen} goBack={goBack} addGems={addGems} doMarkPractice={doMarkPractice} initScenario={openScenario} clearInitScenario={() => setOpenScenario(null)} lang={lang} eScore={eScore} theme={theme} THEMES={THEMES} activity={activity} userName={userName} />,
     journal: <Journal theme={theme} addGems={addGems} THEMES={THEMES} doMarkPractice={doMarkPractice} lang={lang} />,
@@ -276,8 +255,8 @@ export default function App() {
   return (
     <>
       <GlobalStyles />
-      <div style={{ width: "100%", height: "100dvh", background: "#040208", display: "flex", alignItems: "flex-start", justifyContent: "center", overflow: "hidden" }}>
-        <div style={{ width: "100%", maxWidth: 430, height: "100dvh", display: "flex", flexDirection: "column", background: T.bg, transition: EASE.slow, boxShadow: "0 0 60px rgba(6,2,8,.8)", position: "relative", "--txt": T.tr || "242,232,226" }}>
+      <div style={{ width: "100%", height: "100dvh", background: "#0e0810", display: "flex", alignItems: "flex-start", justifyContent: "center", overflow: "hidden" }}>
+        <div style={{ width: "100%", maxWidth: 430, height: "100dvh", display: "flex", flexDirection: "column", background: T.bg, transition: EASE.slow, boxShadow: "0 0 60px rgba(14,8,16,.8)", position: "relative", "--txt": T.tr || "247,239,230" }}>
           {screen !== "orbit" && (
             <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden", zIndex: 0 }}>
               {Array.from({ length: 14 }, (_, i) => {
@@ -288,9 +267,9 @@ export default function App() {
                     position: "absolute",
                     left: `${(i * 53 + 13) % 100}%`,
                     top: `${(i * 37 + 7) % 100}%`,
-                    width: useAlt ? 2.5 : 1.5, height: useAlt ? 2.5 : 1.5, borderRadius: RAD.full,
-                    background: `rgba(${col},.${2 + (i % 3)})`,
-                    boxShadow: `0 0 ${useAlt ? 5 : 3}px rgba(${col},.4)`,
+                    width: useAlt ? 3 : 2, height: useAlt ? 3 : 2, borderRadius: RAD.full,
+                    background: `rgba(${col},.${3 + (i % 3)})`,
+                    boxShadow: `0 0 ${useAlt ? 7 : 4}px rgba(${col},.55)`,
                     animationDelay: `${(i * 0.5) % 8}s`,
                     animationDuration: `${8 + (i % 4)}s`,
                   }} />
@@ -298,7 +277,8 @@ export default function App() {
               })}
             </div>
           )}
-          <div ref={scrollRef} key={screen} className="screen-in" style={{ flex: 1, overflowY: screen === "orbit" ? "hidden" : "auto", overflowX: "hidden", position: "relative", zIndex: 1, display: "flex", flexDirection: "column" }}>{screens[screen]}</div>
+          <div ref={scrollRef} key={screen} className="screen-in" style={{ flex: 1, overflowY: screen === "orbit" ? "hidden" : "auto", overflowX: "hidden", position: "relative", zIndex: 1, display: "flex", flexDirection: "column" }}>{membership.active || screen === "journal" || screen === "profile" ? screens[screen] : <AccessPanel membership={membership} lang={lang} />}</div>
+          {syncError && <div role="status" style={{position:"absolute",top:0,left:0,right:0,zIndex:60,padding:12,background:"#5C1C2E",color:"#fff",fontSize:13}}>Данные сохранены на этом устройстве. Синхронизация с облаком пока не завершена.</div>}
           {/* Edge-swipe back gesture (left edge swipe-right) */}
           {screen !== "orbit" && screen !== "home" && (
             <div
