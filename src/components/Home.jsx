@@ -1,3 +1,4 @@
+import { userStorage as localStorage } from "../lib/userStorage.js";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { getEnergyLevel, themeLabel } from "../data/themes";
 import { getSections, getRecommendations, getMoodMessages } from "../data/content";

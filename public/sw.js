@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nectar-v5.8.1'; // bumped: app icon changed (Seasonal texture) — force a fresh cache
+const CACHE_NAME = 'nectar-v5.8.2'; // bumped: app icon changed (Seasonal texture) — force a fresh cache
 const BASE = '/';
 
 // Aggressive: on install, wipe ALL caches and take over immediately
@@ -22,6 +22,8 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
+  // Never cache account data, API responses, or partial audio responses.
+  if (url.origin !== self.location.origin || url.pathname.startsWith('/api/') || e.request.headers.has('range')) return;
   const isHTML = e.request.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname === BASE;
   const isJS = url.pathname.endsWith('.js');
 

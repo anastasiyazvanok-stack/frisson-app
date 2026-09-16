@@ -1,3 +1,4 @@
+import { userStorage as localStorage } from "../lib/userStorage.js";
 import { useState, useRef, useEffect } from "react";
 import { TYPE, SP, RAD, EASE, FONT_SERIF, FONT_SANS, label } from "../utils/design";
 import { authHeader } from "../lib/supabase";
@@ -36,6 +37,8 @@ export default function AICoach({ goBack, lang = "ru" }) {
   const [messages, setMessages] = useState(() => loadHistory(lang));
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const alive = useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -44,6 +47,7 @@ export default function AICoach({ goBack, lang = "ru" }) {
   }, [messages, loading]);
 
   function saveHistory(msgs) {
+    if (!alive.current) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs.slice(-MAX_SAVED)));
     } catch {}

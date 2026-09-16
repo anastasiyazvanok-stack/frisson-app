@@ -1,3 +1,4 @@
+import { userStorage as localStorage } from "../lib/userStorage.js";
 import { useState, useEffect } from "react";
 import { FONT_SERIF, FONT_SANS, TYPE, SP, RAD, OP, EASE, tx, label, body, heading } from "../utils/design";
 import { getAxes, getPsycap, getOverallScore, getMonthlyDelta, getRecommendation, getScoreHistory, getEventsByDay, getLastAxisActivity, logWeeklyCheckin, MED_TAGS, LAYER_AXES } from "../data/psycap";

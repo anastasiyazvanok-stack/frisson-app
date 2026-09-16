@@ -1,3 +1,4 @@
+import { userStorage as localStorage } from "../lib/userStorage.js";
 // Psychological Capital tracker — 6 axes of inner growth
 // All scores 0-100, persisted in localStorage
 
