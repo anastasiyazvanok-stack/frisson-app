@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nectar-v5.8.2'; // bumped: app icon changed (Seasonal texture) — force a fresh cache
+const CACHE_NAME = 'nectar-v5.9.0'; // Practice library release: refresh application assets
 const BASE = '/';
 
 // Aggressive: on install, wipe ALL caches and take over immediately

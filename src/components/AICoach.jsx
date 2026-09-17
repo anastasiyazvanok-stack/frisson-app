@@ -1,3 +1,4 @@
+import { recommendedPractices } from '../data/practiceCatalog.js';
 import { userStorage as localStorage } from "../lib/userStorage.js";
 import { useState, useRef, useEffect } from "react";
 import { TYPE, SP, RAD, EASE, FONT_SERIF, FONT_SANS, label } from "../utils/design";
@@ -33,7 +34,7 @@ function loadHistory(lang) {
   return [{ role: "assistant", content: GREETING[lang] || GREETING.ru }];
 }
 
-export default function AICoach({ goBack, lang = "ru" }) {
+export default function AICoach({ goBack, goToMed, lang = "ru" }) {
   const [messages, setMessages] = useState(() => loadHistory(lang));
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -131,6 +132,9 @@ export default function AICoach({ goBack, lang = "ru" }) {
               whiteSpace: "pre-wrap",
             }}>
               {m.content}
+              {m.role === 'assistant' && recommendedPractices(m.content, lang).map(med => <button key={med.id} type="button" onClick={() => goToMed?.(med.id, 'coach')} style={{ display: 'block', width: '100%', textAlign: 'left', marginTop: 12, padding: '12px 14px', borderRadius: 14, border: '1px solid rgba(227,154,60,.35)', background: 'rgba(227,154,60,.1)', color: '#f7efe6', cursor: 'pointer', fontFamily: FONT_SANS, lineHeight: 1.5 }}>
+                <span style={{ display: 'block', fontSize: 12, color: '#e39a3c' }}>{lang === 'ru' ? 'Открыть практику' : 'Open practice'} →</span>{med.title}
+              </button>)}
             </div>
           </div>
         ))}

@@ -3,11 +3,12 @@
 export const SYNC_KEYS = [
   'frisson-theme', 'frisson_escore', 'frisson_escore_date', 'frisson_ehist',
   'frisson_gems', 'frisson_activity', 'frisson_psycap_v2', 'frisson_journal',
-  'lux_coach_history', 'frisson_tour', 'frisson_orbit_seen', 'frisson_checkin_last',
+  'nectar_practices', 'lux_coach_history', 'frisson_tour', 'frisson_orbit_seen', 'frisson_checkin_last',
 ];
 let activeUser = null;
 const listeners = new Set();
 const keyFor = uid => `frisson:user:${uid}`;
+export const getActiveUser = () => activeUser;
 export function activateUser(uid) { activeUser = uid || null; }
 export function readUser(uid) {
   if (!uid) return { data: {}, dirty: false, revision: null, loaded: false };
