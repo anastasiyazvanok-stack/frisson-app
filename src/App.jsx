@@ -25,7 +25,7 @@ import { LogoLockup } from "./components/Brand";
 import { useMemberAccess } from "./lib/memberAccess";
 import AccessPanel from "./components/AccessPanel";
 
-export const VERSION = "5.8.0";
+export const VERSION = "5.9.0";
 
 function Loading() {
   return <div role="status" style={{ background: '#06030a', color: '#eee', height: '100dvh', display: 'grid', placeItems: 'center' }}>Нектар · …</div>;
@@ -249,7 +249,7 @@ function UserApp({ userId, userEmail, lang, setLang, onSignOut, initialSyncError
     situations: <Situations setScreen={setScreen} goBack={goBack} theme={theme} goToMed={goToMed} THEMES={THEMES} lang={lang} />,
     profile: <Profile setScreen={setScreen} theme={theme} eScore={eScore} setEScore={setEScore} eHist={eHist} setEHist={setEHist} pLog={pLog} gems={gems} THEMES={THEMES} activity={activity} eScoreHistory={eHist} goToScenario={goToScenario} lang={lang} setLang={setLang} onSignOut={handleSignOut} onAdmin={userEmail === "anastasiyazvanok@gmail.com" ? () => setShowAdmin(true) : undefined} />,
     sub: <SubPage setScreen={setScreen} goBack={goBack} theme={theme} THEMES={THEMES} lang={lang} />,
-    coach: <AICoach goBack={goBack} lang={lang} />,
+    coach: <AICoach goBack={goBack} goToMed={goToMed} lang={lang} />,
   };
 
   return (

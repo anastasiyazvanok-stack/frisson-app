@@ -1,3 +1,5 @@
+import { getPracticeCatalog } from '../data/practiceCatalog.js';
+import { getPracticeState, formatTime } from '../lib/practiceState.js';
 import { userStorage as localStorage } from "../lib/userStorage.js";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { getEnergyLevel, themeLabel } from "../data/themes";
@@ -27,14 +29,10 @@ export default function Home({ setScreen, theme, setTheme, eScore, setEScore, se
   const [showInfo, setShowInfo] = useState(false);
   const recsRef = useRef(null);
 
-  // ─── Mini player ─────────────────────────────────────────────────────────
-  const miniRef = useRef(null);
-  const [miniDet, setMiniDet] = useState(null); // { title, color }
-  const [miniPlay, setMiniPlay] = useState(false);
-  const [miniProg, setMiniProg] = useState(0);
-  const [miniTime, setMiniTime] = useState(0);
-  const [miniDur, setMiniDur] = useState(0);
-
+  const personal = getPracticeState();
+  const catalog = getPracticeCatalog(lang);
+  const recent = catalog.filter(m => personal.completed[m.id]).sort((a,b) => personal.completed[b.id].at-personal.completed[a.id].at).slice(0,3);
+  const resume = catalog.filter(m => m.audio_url && personal.progress[m.id]?.position > 5).sort((a,b) => personal.progress[b.id].at-personal.progress[a.id].at)[0];
   // ─── Today's journal entry preview ───────────────────────────────────────
   const todayJournal = (() => {
     try {
@@ -48,42 +46,6 @@ export default function Home({ setScreen, theme, setTheme, eScore, setEScore, se
     } catch { return null; }
   })();
 
-  useEffect(() => {
-    const a = miniRef.current;
-    if (!a) return;
-    const onTime = () => {
-      setMiniTime(a.currentTime);
-      setMiniProg(a.duration ? (a.currentTime / a.duration) * 100 : 0);
-    };
-    const onLoaded = () => setMiniDur(a.duration);
-    const onEnded = () => { setMiniPlay(false); setMiniProg(100); };
-    a.addEventListener("timeupdate", onTime);
-    a.addEventListener("loadedmetadata", onLoaded);
-    a.addEventListener("ended", onEnded);
-    return () => { a.removeEventListener("timeupdate", onTime); a.removeEventListener("loadedmetadata", onLoaded); a.removeEventListener("ended", onEnded); };
-  }, [miniDet]);
-
-  const playRec = useCallback((r, lc) => {
-    const url = AUDIO_URLS[r.t];
-    if (!url || !miniRef.current) return;
-    const a = miniRef.current;
-    if (miniDet?.title === r.t) {
-      if (miniPlay) { a.pause(); setMiniPlay(false); } else { a.play().catch(() => {}); setMiniPlay(true); }
-      return;
-    }
-    a.src = url; a.load();
-    setMiniDet({ title: r.t, color: lc });
-    setMiniProg(0); setMiniTime(0); setMiniDur(0);
-    a.play().catch(() => {});
-    setMiniPlay(true);
-  }, [miniDet, miniPlay]);
-
-  const miniClose = useCallback(() => {
-    miniRef.current?.pause();
-    setMiniDet(null); setMiniPlay(false); setMiniProg(0);
-  }, []);
-
-  const miniFmt = (s) => { if (!s || isNaN(s)) return "0:00"; return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`; };
   useEffect(() => {
     const list = getMoodMessages(lang)[theme] || getMoodMessages(lang).full;
     setMsg(list[Math.floor(Math.random() * list.length)]);
@@ -112,33 +74,6 @@ export default function Home({ setScreen, theme, setTheme, eScore, setEScore, se
 
   return (
     <div style={{ minHeight: "100%", background: T.bg, paddingBottom: 100, position: "relative", transition: EASE.slow }}>
-      <audio ref={miniRef} preload="none" />
-
-      {/* ─── Mini player ─── */}
-      {miniDet && (
-        <div style={{ position: "fixed", bottom: 80, left: 10, right: 10, zIndex: 120, borderRadius: RAD.lg, background: "rgba(14,8,16,.93)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: `1px solid ${miniDet.color}44`, boxShadow: `0 8px 32px rgba(0,0,0,.55), 0 0 20px ${miniDet.color}18`, overflow: "hidden" }}>
-          {/* Progress */}
-          <div style={{ height: 2, background: "rgba(255,255,255,.08)" }}
-            onClick={(e) => { const a = miniRef.current; if (!a?.duration) return; const r = e.currentTarget.getBoundingClientRect(); a.currentTime = ((e.clientX - r.left) / r.width) * a.duration; }}>
-            <div style={{ height: "100%", width: `${miniProg}%`, background: miniDet.color, transition: "width .5s linear" }} />
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: SP.md, padding: `${SP.md}px ${SP.lg}px` }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: FONT_SERIF, fontSize: TYPE.base, color: tx("var(--txt)", 0.92), overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{miniDet.title}</div>
-              <div style={{ ...label(TYPE.xs - 1), color: tx("var(--txt)", OP.tertiary + 0.05), marginTop: 2 }}>{miniFmt(miniTime)} / {miniFmt(miniDur)}</div>
-            </div>
-            <div onClick={() => { const a = miniRef.current; if (!a) return; if (miniPlay) { a.pause(); setMiniPlay(false); } else { a.play().catch(() => {}); setMiniPlay(true); } }} style={{ width: 38, height: 38, borderRadius: RAD.full, background: `${miniDet.color}28`, border: `1px solid ${miniDet.color}55`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-              {miniPlay ? (
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="1.5" width="4" height="11" rx="1.5" fill={miniDet.color}/><rect x="8" y="1.5" width="4" height="11" rx="1.5" fill={miniDet.color}/></svg>
-              ) : (
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 2L12 7L3 12V2Z" fill={miniDet.color}/></svg>
-              )}
-            </div>
-            <div onClick={miniClose} style={{ width: 28, height: 28, borderRadius: RAD.full, background: "rgba(255,255,255,.06)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, fontSize: 14, color: tx("var(--txt)", 0.4) }}>×</div>
-          </div>
-        </div>
-      )}
-
       <Orb style={{ top: -80, right: -100 }} color={T.o1} opacity={0.16} w={320} h={320} />
       <Orb style={{ bottom: 280, left: -80 }} color={T.o2} opacity={0.2} w={260} h={260} delay={3} />
       <Orb style={{ top: "40%", left: "50%", transform: "translateX(-50%)" }} color={T.o1} opacity={0.06} w={400} h={400} delay={6} />
@@ -247,6 +182,20 @@ export default function Home({ setScreen, theme, setTheme, eScore, setEScore, se
         </div>
       </div>
 
+      {(resume || recent.length > 0) && <section style={{ position: 'relative', zIndex: 1, padding: '0 24px 24px', color: tx('var(--txt)', .9) }}>
+        {resume && <button type="button" onClick={() => goToMed(resume.id, 'home')} style={{ width: '100%', textAlign: 'left', padding: 18, borderRadius: 18, border: `1px solid rgba(${T.ar},.35)`, background: `rgba(${T.ar},.12)`, color: 'inherit', marginBottom: 22, cursor: 'pointer' }}>
+          <div style={{ ...label(11), color: T.accent, marginBottom: 8 }}>{lang === 'ru' ? 'Продолжить практику' : 'Continue practice'} →</div>
+          <div style={{ ...body(17) }}>{resume.title}</div>
+          <div style={{ ...body(12), marginTop: 6, opacity: .7 }}>{formatTime(personal.progress[resume.id].position)}</div>
+        </button>}
+        {recent.length > 0 && <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <div style={{ ...body(19) }}>{lang === 'ru' ? 'Вы уже прослушали' : 'You have listened to'}</div>
+            <button type="button" onClick={() => { setLibSec('listened'); setScreen('library'); }} style={{ border: 0, background: 'transparent', color: T.accent, minHeight: 44, cursor: 'pointer' }}>{lang === 'ru' ? 'Показать все' : 'View all'}</button>
+          </div>
+          {recent.map(m => <button key={m.id} type="button" onClick={() => goToMed(m.id, 'home')} style={{ width: '100%', textAlign: 'left', padding: '14px 16px', marginBottom: 8, borderRadius: 14, border: `1px solid rgba(${T.ar},.15)`, background: `rgba(${T.ar},.04)`, color: 'inherit', fontFamily: FONT_SERIF, fontSize: 17, cursor: 'pointer' }}>✓ {m.title}</button>)}
+        </>}
+      </section>}
       {/* ─── Recommendations ─── */}
       <div ref={recsRef} className="fu3" style={{ padding: `0 ${SP.page}px ${SP.xl}px`, position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: SP.md }}>
@@ -256,7 +205,7 @@ export default function Home({ setScreen, theme, setTheme, eScore, setEScore, se
         {(RECOMMENDATIONS[theme] || RECOMMENDATIONS.full).map((r, ri) => {
           const sec = SECTIONS.find((s) => s.id === r.sec);
           const lc = r.free ? "rgba(243,206,114,.8)" : (sec?.color || T.accent);
-          const isActive = miniDet?.title === r.t;
+          const isActive = false;
           const hasAudio = !!AUDIO_URLS[r.t];
           return (
             <div key={r.t} onClick={() => goToMed ? goToMed(r.t) : setScreen("library")} className="press-card glass-card" style={{
