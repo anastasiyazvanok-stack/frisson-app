@@ -280,7 +280,7 @@ export default function Library({ setScreen, goBack, theme, initSec, initMed, cl
                   <div style={{ ...body(TYPE.base + 1), color: tx("var(--txt)", 0.82) }}>{sec.title}</div>
                 </div>
                 {sec.meds.map((med) => (
-                  <div key={med.n} className="list-item press-card glass-card" style={{ display: "flex", alignItems: "flex-start", gap: SP.md, padding: `${SP.md + 1}px ${SP.md + 2}px`, background: `rgba(${T.ar},.04)`, border: `1px solid rgba(${T.ar},.1)`, borderRadius: RAD.lg, marginBottom: SP.sm, cursor: "pointer", position: "relative", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.04)", animationDelay: `${med.n * 0.05}s` }}>
+                  <div key={med.n} onClick={() => setDet(med)} className="list-item press-card glass-card" style={{ display: "flex", alignItems: "flex-start", gap: SP.md, padding: `${SP.md + 1}px ${SP.md + 2}px`, background: `rgba(${T.ar},.04)`, border: `1px solid rgba(${T.ar},.1)`, borderRadius: RAD.lg, marginBottom: SP.sm, cursor: "pointer", position: "relative", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.04)", animationDelay: `${med.n * 0.05}s` }}>
                     <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: `linear-gradient(to bottom,${sec.color},${sec.color}22)`, borderRadius: "3px 0 0 3px" }} />
                     <div style={{ fontFamily: FONT_SERIF, fontSize: TYPE.xl - 2, color: sec.color, width: 26, textAlign: "center", flexShrink: 0, lineHeight: 1, paddingTop: 2 }}>{med.n}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
