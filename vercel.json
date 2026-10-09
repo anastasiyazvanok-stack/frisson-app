@@ -1,8 +1,9 @@
 {
   "functions": {
-    "api/ai-chat.js":    { "maxDuration": 30 },
-    "api/ai-diary.js":   { "maxDuration": 30 },
-    "api/ai-insights.js":{ "maxDuration": 30 }
+    "api/ai-chat.js":         { "maxDuration": 30 },
+    "api/ai-diary.js":        { "maxDuration": 30 },
+    "api/ai-insights.js":     { "maxDuration": 30 },
+    "api/ai-coach-memory.js": { "maxDuration": 30 }
   },
   "headers": [
     {

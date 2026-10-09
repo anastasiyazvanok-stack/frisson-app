@@ -25,7 +25,7 @@ import { LogoLockup } from "./components/Brand";
 import { useMemberAccess } from "./lib/memberAccess";
 import AccessPanel from "./components/AccessPanel";
 
-export const VERSION = "5.9.0";
+export const VERSION = "5.9.1";
 
 function Loading() {
   return <div role="status" style={{ background: '#06030a', color: '#eee', height: '100dvh', display: 'grid', placeItems: 'center' }}>Нектар · …</div>;
@@ -77,10 +77,27 @@ export default function App() {
       if (!alive) return;
       setLoadError(error);
       // Only an already initialized, account-scoped cache is safe offline.
-      if (readUser(uid).loaded) setReady(uid);
+      try { if (error.code !== 'LOCAL_DATA_ERROR' && error.name !== 'QuotaExceededError' && readUser(uid).loaded) setReady(uid); } catch { /* Preserve unreadable cache. */ }
     });
     return () => { alive = false; };
   }, [uid, retry]);
+
+  useEffect(() => {
+    if (!uid) return;
+    const changedElsewhere = event => {
+      if (ready !== uid || event.key !== `frisson:user:${uid}`) return;
+      try {
+        if (JSON.stringify(JSON.parse(event.oldValue)?.data) === JSON.stringify(JSON.parse(event.newValue)?.data)) return;
+      } catch { /* Stop writes after deletion or corruption as well. */ }
+      activateUser(null);
+      setReady(false);
+      const error = new Error('Account changed in another tab');
+      error.code = 'OTHER_TAB';
+      setLoadError(error);
+    };
+    window.addEventListener('storage', changedElsewhere);
+    return () => window.removeEventListener('storage', changedElsewhere);
+  }, [uid, ready]);
 
   async function logout() {
     try { if (uid) await syncToCloud(uid); } catch { /* Dirty account cache is retained for retry. */ }
@@ -96,8 +113,8 @@ export default function App() {
     ? <Auth startMode={mode} onAuth={() => setMode(null)} />
     : <Onboarding onDone={setMode} lang={lang} setLang={setLang} />}</>;
   if (ready !== uid) return loadError ? <div role="alert" style={{ padding: 32, color: '#fff', background: '#160a20', minHeight: '100dvh' }}>
-    <p>{lang === 'ru' ? 'Не удалось загрузить ваши данные. Проверьте соединение и попробуйте ещё раз.' : 'Could not load your data. Check your connection and try again.'}</p>
-    <button onClick={() => setRetry(n => n + 1)}>{lang === 'ru' ? 'Повторить' : 'Retry'}</button>
+    <p>{loadError.code === 'OTHER_TAB' ? (lang === 'ru' ? 'Данные изменились в другой вкладке. Закройте другие вкладки Нектара и продолжите здесь.' : 'Data changed in another tab. Close other Nectar tabs and continue here.') : (lang === 'ru' ? 'Не удалось безопасно загрузить данные. Не очищайте браузер. Попробуйте ещё раз или обратитесь к Анастасии.' : 'Could not safely load your data. Do not clear browser data. Retry or contact Anastasia.')}</p>
+    <button onClick={() => loadError.code === "OTHER_TAB" ? window.location.reload() : setRetry(n => n + 1)}>{lang === 'ru' ? 'Повторить' : 'Retry'}</button>
   </div> : <Loading />;
   return <UserApp key={uid} userId={uid} userEmail={session.user.email} lang={lang} setLang={setLang} onSignOut={logout} initialSyncError={loadError} />;
 }
@@ -247,7 +264,7 @@ function UserApp({ userId, userEmail, lang, setLang, onSignOut, initialSyncError
     orbit: <Orbit setScreen={setScreen} goBack={goBack} addGems={addGems} doMarkPractice={doMarkPractice} initScenario={openScenario} clearInitScenario={() => setOpenScenario(null)} lang={lang} eScore={eScore} theme={theme} THEMES={THEMES} activity={activity} userName={userName} />,
     journal: <Journal theme={theme} addGems={addGems} THEMES={THEMES} doMarkPractice={doMarkPractice} lang={lang} />,
     situations: <Situations setScreen={setScreen} goBack={goBack} theme={theme} goToMed={goToMed} THEMES={THEMES} lang={lang} />,
-    profile: <Profile setScreen={setScreen} theme={theme} eScore={eScore} setEScore={setEScore} eHist={eHist} setEHist={setEHist} pLog={pLog} gems={gems} THEMES={THEMES} activity={activity} eScoreHistory={eHist} goToScenario={goToScenario} lang={lang} setLang={setLang} onSignOut={handleSignOut} onAdmin={userEmail === "anastasiyazvanok@gmail.com" ? () => setShowAdmin(true) : undefined} />,
+    profile: <Profile userId={userId} userEmail={userEmail} setScreen={setScreen} theme={theme} eScore={eScore} setEScore={setEScore} eHist={eHist} setEHist={setEHist} pLog={pLog} gems={gems} THEMES={THEMES} activity={activity} eScoreHistory={eHist} goToScenario={goToScenario} lang={lang} setLang={setLang} onSignOut={handleSignOut} onAdmin={userEmail === "anastasiyazvanok@gmail.com" ? () => setShowAdmin(true) : undefined} />,
     sub: <SubPage setScreen={setScreen} goBack={goBack} theme={theme} THEMES={THEMES} lang={lang} />,
     coach: <AICoach goBack={goBack} goToMed={goToMed} lang={lang} />,
   };
@@ -278,7 +295,7 @@ function UserApp({ userId, userEmail, lang, setLang, onSignOut, initialSyncError
             </div>
           )}
           <div ref={scrollRef} key={screen} className="screen-in" style={{ flex: 1, overflowY: screen === "orbit" ? "hidden" : "auto", overflowX: "hidden", position: "relative", zIndex: 1, display: "flex", flexDirection: "column" }}>{membership.active || screen === "journal" || screen === "profile" ? screens[screen] : <AccessPanel membership={membership} lang={lang} />}</div>
-          {syncError && <div role="status" style={{position:"absolute",top:0,left:0,right:0,zIndex:60,padding:12,background:"#5C1C2E",color:"#fff",fontSize:13}}>Данные сохранены на этом устройстве. Синхронизация с облаком пока не завершена.</div>}
+          {syncError && <div role="status" style={{position:"absolute",top:0,left:0,right:0,zIndex:60,padding:12,background:"#5C1C2E",color:"#fff",fontSize:13}}>Данные сохранены на этом устройстве. Синхронизация с облаком пока не завершена. Профиль → Сохранение данных.</div>}
           {/* Edge-swipe back gesture (left edge swipe-right) */}
           {screen !== "orbit" && screen !== "home" && (
             <div
@@ -299,3 +316,4 @@ function UserApp({ userId, userEmail, lang, setLang, onSignOut, initialSyncError
     </>
   );
 }
+

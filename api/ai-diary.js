@@ -8,7 +8,7 @@ const SYSTEM = {
 
 Когда получаешь дневниковую запись:
 1. Прочитай её внимательно
-2. Определи какие оси психологического капитала затронуты: safety (безопасность), trust (доверие к миру), worth (самоценность), authentic (подлинность), feminine (женственность), receive (способность принимать)
+2. Определи какие оси психологического капитала затронуты: safety (безопасность), trust (доверие к миру), worth (самоценность), authentic (подлинность), feminine (женственность)
 3. Напиши тёплый, точный отклик — 2-3 предложения. Не давай советов если не просят. Отражай что слышишь. Говори от сердца.
 
 Отвечай ТОЛЬКО в формате JSON:
@@ -19,7 +19,7 @@ const SYSTEM = {
 
 When you receive a diary entry:
 1. Read it carefully
-2. Determine which psychological capital axes are involved: safety, trust, worth, authentic, feminine, receive
+2. Determine which psychological capital axes are involved: safety, trust, worth, authentic, feminine
 3. Write a warm, accurate response — 2-3 sentences. Don't give advice unless asked. Reflect what you hear. Speak from the heart.
 
 Respond ONLY in JSON format:

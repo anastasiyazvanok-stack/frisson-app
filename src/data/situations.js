@@ -306,11 +306,11 @@ const STATES_EN = [
       },
       {
         problem: "I give so much, but inside I feel empty and cold",
-        rec: "Meditation «Return to fullness» — restores inner resource · Meditation «Feminine resource replenishment» — nourishes the feminine part that gives without refilling",
+        rec: "Meditation «Return to fullness» — restores inner resource · Meditation «Replenishing feminine resource» — nourishes the feminine part that gives without refilling",
       },
       {
         problem: "Feminine part has dried up — no taste for life, no desires",
-        rec: "Meditation «Feminine resource replenishment» — awakens desires and restores taste for yourself through feminine resource",
+        rec: "Meditation «Replenishing feminine resource» — awakens desires and restores taste for yourself through feminine resource",
       },
       {
         problem: "Body is sluggish, mind overloaded, rest doesn't restore",
@@ -318,7 +318,7 @@ const STATES_EN = [
       },
       {
         problem: "Feeling life is passing me by, no real joy",
-        rec: "Meditation «Feminine energy» — opens the capacity to experience pleasure and lightness · Meditation «Feminine resource replenishment» — restores the fullness from which joy is born",
+        rec: "Meditation «Feminine energy» — opens the capacity to experience pleasure and lightness · Meditation «Replenishing feminine resource» — restores the fullness from which joy is born",
       },
     ],
   },
@@ -326,23 +326,23 @@ const STATES_EN = [
     title: "Self-worth / Self-value", hex: "#E39A3C", items: [
       {
         problem: "Feeling «I'm not enough» — constant self-devaluation",
-        rec: "Meditation «Receiving from the world» — transforms the deep belief «I'm not worthy» and rewrites your relationship with your own value",
+        rec: "Meditation «Receiving goods from the world» — transforms the deep belief «I'm not worthy» and rewrites your relationship with your own value",
       },
       {
         problem: "Constantly comparing myself to others and feeling I lose",
-        rec: "Meditation «Receiving from the world» — shifts from deficit self-perception · Meditation «Return to fullness» — comparison comes from inner emptiness; this works at the root",
+        rec: "Meditation «Receiving goods from the world» — shifts from deficit self-perception · Meditation «Return to fullness» — comparison comes from inner emptiness; this works at the root",
       },
       {
         problem: "Feeling «I'm a failure», «nothing ever works out for me»",
-        rec: "Meditation «Receiving from the world» — works with childhood beliefs «I'm bad» and «I don't succeed», transforms identity",
+        rec: "Meditation «Receiving goods from the world» — works with childhood beliefs «I'm bad» and «I don't succeed», transforms identity",
       },
       {
         problem: "Childhood wounds and old beliefs blocking life in the present",
-        rec: "Meditation «Return to fullness» — heals emotional wounds from the past · Meditation «Receiving from the world» — rewrites beliefs formed in childhood",
+        rec: "Meditation «Return to fullness» — heals emotional wounds from the past · Meditation «Receiving goods from the world» — rewrites beliefs formed in childhood",
       },
       {
         problem: "Ashamed to take up space, be visible, or ask for help",
-        rec: "Meditation «The right to be real» — restores permission to be yourself and occupy your place · Meditation «Receiving from the world» — releases the feeling «I don't deserve to take up much»",
+        rec: "Meditation «The right to be real» — restores permission to be yourself and occupy your place · Meditation «Receiving goods from the world» — releases the feeling «I don't deserve to take up much»",
       },
       {
         problem: "I ban my own happiness — «others can have it, not me»",
@@ -354,15 +354,15 @@ const STATES_EN = [
     title: "Closedness / Hard to receive", hex: "#F3CE72", items: [
       {
         problem: "I give a lot but don't receive — in love, money, attention",
-        rec: "Meditation «Feminine resource replenishment» — works at the root: difficulty receiving stems from a dried-up feminine part · Meditation «Return to fullness» — teaches you to fill yourself, not only give",
+        rec: "Meditation «Replenishing feminine resource» — works at the root: difficulty receiving stems from a dried-up feminine part · Meditation «Return to fullness» — teaches you to fill yourself, not only give",
       },
       {
         problem: "Ashamed to accept help, gifts, money — «I must do it alone»",
-        rec: "Meditation «Feminine energy» — receiving is a feminine quality; this meditation opens that channel as a norm · Meditation «Receiving from the world» — removes the belief «I must earn everything»",
+        rec: "Meditation «Feminine energy» — receiving is a feminine quality; this meditation opens that channel as a norm · Meditation «Receiving goods from the world» — removes the belief «I must earn everything»",
       },
       {
         problem: "Feeling «I'm not allowed more», «this isn't for me»",
-        rec: "Meditation «New level» — reprograms the inner ceiling · Meditation «Receiving from the world» — releases the belief «I'm not worthy of more»",
+        rec: "Meditation «New level» — reprograms the inner ceiling · Meditation «Receiving goods from the world» — releases the belief «I'm not worthy of more»",
       },
       {
         problem: "The world's kindness feels dangerous — «if I receive, I'll owe» or «it won't last»",
@@ -370,7 +370,7 @@ const STATES_EN = [
       },
       {
         problem: "No room for beauty, self-care, or pleasure in my life",
-        rec: "Meditation «Feminine resource replenishment» — restores inner space for beauty and nourishment · Meditation «Feminine inner relaxation» — releases the tension that makes enjoyment impossible",
+        rec: "Meditation «Replenishing feminine resource» — restores inner space for beauty and nourishment · Meditation «Feminine inner relaxation» — releases the tension that makes enjoyment impossible",
       },
     ],
   },
@@ -418,7 +418,7 @@ const STATES_EN = [
       },
       {
         problem: "Feeling out of contact with myself and my desires",
-        rec: "Meditation «Feminine resource replenishment» — awakens desires through feminine resource · Meditation «Conversation with future self» — restores contact with your own depth",
+        rec: "Meditation «Replenishing feminine resource» — awakens desires through feminine resource · Meditation «Conversation with future self» — restores contact with your own depth",
       },
       {
         problem: "Life is controlled by circumstances and others, not me",
@@ -442,19 +442,19 @@ const STATES_EN = [
       },
       {
         problem: "No sense of pleasure — everything is through tension and anxiety",
-        rec: "Meditation «Feminine inner relaxation» — shifts the baseline state from anxiety to enjoyment · Meditation «A state of feminine allure» — returns pleasure as the norm",
+        rec: "Meditation «Feminine inner relaxation» — shifts the baseline state from anxiety to enjoyment · Meditation «A state of feminine attraction» — returns pleasure as the norm",
       },
       {
         problem: "Wanting to attract, not chase and prove",
-        rec: "Meditation «A state of feminine allure» — awakens inner magnetism through enjoyment · Meditation «Feminine energy» — shifts from masculine achievement logic to feminine attraction logic",
+        rec: "Meditation «A state of feminine attraction» — awakens inner magnetism through enjoyment · Meditation «Feminine energy» — shifts from masculine achievement logic to feminine attraction logic",
       },
       {
         problem: "Hard to receive care, love, compliments — I push them away",
-        rec: "Meditation «Feminine energy» — receiving care is at the core of femininity; this meditation opens that channel · Meditation «Receiving from the world» — removes the belief «I don't deserve to receive»",
+        rec: "Meditation «Feminine energy» — receiving care is at the core of femininity; this meditation opens that channel · Meditation «Receiving goods from the world» — removes the belief «I don't deserve to receive»",
       },
       {
         problem: "Feeling a loss of inner feminine magnetism",
-        rec: "Meditation «A state of feminine allure» — restores allure as an inner state, not an external skill · Meditation «Feminine resource replenishment» — magnetism is born from a nourished feminine part",
+        rec: "Meditation «A state of feminine attraction» — restores allure as an inner state, not an external skill · Meditation «Replenishing feminine resource» — magnetism is born from a nourished feminine part",
       },
     ],
   },
@@ -490,15 +490,15 @@ const STATES_EN = [
       },
       {
         problem: "Goals exist but something inside keeps pulling me back",
-        rec: "Meditation «New level» — works with inner sabotage of growth and fear of expansion · Meditation «Gratitude and new level» — completes the old stage you can't leave without saying goodbye",
+        rec: "Meditation «New level» — works with inner sabotage of growth and fear of expansion · Meditation «Gratitude and a new level» — completes the old stage you can't leave without saying goodbye",
       },
       {
         problem: "Beliefs: «not ready yet», «must earn the right to more first»",
-        rec: "Meditation «Gratitude and new level» — transforms beliefs that keep you at the old level · Meditation «Receiving from the world» — releases the sense «I'm not good enough for this yet»",
+        rec: "Meditation «Gratitude and a new level» — transforms beliefs that keep you at the old level · Meditation «Receiving goods from the world» — releases the sense «I'm not good enough for this yet»",
       },
       {
         problem: "Fear of change — wanting it but afraid of losing stability",
-        rec: "Meditation «Faith as a bridge» — teaches holding faith through the transition · Meditation «Gratitude and new level» — helps release the old with gratitude, not grief",
+        rec: "Meditation «Faith as a bridge» — teaches holding faith through the transition · Meditation «Gratitude and a new level» — helps release the old with gratitude, not grief",
       },
       {
         problem: "When good things come — I get afraid of losing them",
@@ -514,7 +514,7 @@ const STATES_EN = [
     title: "Money and resource", hex: "#D07A55", items: [
       {
         problem: "No income growth — there's a ceiling I want to break through",
-        rec: "Meditation «New level» — removes inner growth limiters · Meditation «Gratitude and new level» — completes the stage you're stuck on, clears space for the next",
+        rec: "Meditation «New level» — removes inner growth limiters · Meditation «Gratitude and a new level» — completes the stage you're stuck on, clears space for the next",
       },
       {
         problem: "Abundance feels foreign, temporary, or undeserved",
@@ -526,11 +526,11 @@ const STATES_EN = [
       },
       {
         problem: "Hard to receive money easily — as a gift, as flow, as something natural",
-        rec: "Meditation «Feminine energy» — the ability to receive, including money, is a feminine quality · Meditation «Receiving from the world» — removes the belief «money must be earned through hard work, not received»",
+        rec: "Meditation «Feminine energy» — the ability to receive, including money, is a feminine quality · Meditation «Receiving goods from the world» — removes the belief «money must be earned through hard work, not received»",
       },
       {
         problem: "Feeling «never enough money» — even when there's objectively plenty",
-        rec: "Meditation «Receiving from the world» — works with deficit thinking and the feeling of lack · Meditation «Trust in the world» — opens the sense that the world supports you, it doesn't withhold",
+        rec: "Meditation «Receiving goods from the world» — works with deficit thinking and the feeling of lack · Meditation «Trust in the world» — opens the sense that the world supports you, it doesn't withhold",
       },
     ],
   },
@@ -542,7 +542,7 @@ const STATES_EN = [
       },
       {
         problem: "Feeling unchosen — again and again",
-        rec: "Meditation «Receiving from the world» — works with the core feeling «I'm not worthy of being chosen» · Meditation «The right to be real» — when not chosen, it's often the mask that's rejected, not you",
+        rec: "Meditation «Receiving goods from the world» — works with the core feeling «I'm not worthy of being chosen» · Meditation «The right to be real» — when not chosen, it's often the mask that's rejected, not you",
       },
       {
         problem: "Fear of losing the man, jealousy, constant suspicion",
@@ -554,7 +554,7 @@ const STATES_EN = [
       },
       {
         problem: "Attracting the «wrong» men — the same types again and again",
-        rec: "Meditation «The right to be real» — you attract who your mask attracts · Meditation «A state of feminine allure» — changes the actual vibrational level of attraction",
+        rec: "Meditation «The right to be real» — you attract who your mask attracts · Meditation «A state of feminine attraction» — changes the actual vibrational level of attraction",
       },
       {
         problem: "There's a relationship, but no depth, warmth, real closeness",
@@ -574,11 +574,11 @@ const STATES_EN = [
       },
       {
         problem: "No relationship but strong desire for love and a partner",
-        rec: "Meditation «A state of feminine allure» — works with inner readiness to attract · Meditation «Feminine energy» — a fulfilled woman attracts, she doesn't search",
+        rec: "Meditation «A state of feminine attraction» — works with inner readiness to attract · Meditation «Feminine energy» — a fulfilled woman attracts, she doesn't search",
       },
       {
         problem: "Feeling «I'm not worthy of a healthy, normal relationship»",
-        rec: "Meditation «The right to be real» — restores the sense that you deserve love as yourself · Meditation «Receiving from the world» — transforms the belief «good things don't come to me»",
+        rec: "Meditation «The right to be real» — restores the sense that you deserve love as yourself · Meditation «Receiving goods from the world» — transforms the belief «good things don't come to me»",
       },
       {
         problem: "The same painful patterns keep repeating",

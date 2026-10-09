@@ -25,3 +25,9 @@ dist-ssr
 .vercel
 public/audio/
 .env*
+
+# Impeccable (design skill) — machine-local only; .impeccable/config.json itself
+# (the shared hook on/off setting) is meant to be committed.
+.claude/settings.local.json
+.impeccable/config.local.json
+.impeccable/hook.cache.json

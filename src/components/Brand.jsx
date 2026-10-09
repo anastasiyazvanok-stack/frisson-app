@@ -8,7 +8,7 @@
 //  draw 2.2u × 5.5u — the drawn values win.)
 // One mark — one colour. Outline is exactly 1 px on screen at any rendered size.
 
-import { FONT_SERIF } from "../utils/design";
+import { FONT_DISPLAY } from "../utils/design";
 
 const S = 512;
 // SVG strokes straddle their path (half inside, half outside) — unlike the brandbook's own
@@ -39,15 +39,16 @@ export function LensMark({ size = 56, color = "#F7EFE6", opacity = 1, style }) {
   );
 }
 
-// Вордмарк: Cormorant Garamond 300, uppercase, letter-spacing .18em, one flat colour.
+// Вордмарк: Bodoni Moda 500, uppercase, letter-spacing .18em, one flat colour.
 // Brandbook forbids gradients, shadows, outlines and skew on the wordmark — don't add a glow.
 // Minimum on-screen size is 96 px wide, which is about fontSize 22.
 export function Wordmark({ size = 34, color = "#F7EFE6", style }) {
   return (
     <div
       style={{
-        fontFamily: FONT_SERIF,
-        fontWeight: 300,
+        fontFamily: FONT_DISPLAY,
+        fontWeight: 500,
+        fontOpticalSizing: "auto",
         fontSize: size,
         letterSpacing: "0.18em",
         textTransform: "uppercase",

@@ -1,4 +1,4 @@
-import { readUser, writeUser, acceptCloud } from './userStorage.js';
+import { readUser, writeUser, acceptCloud, preserveLocal } from './userStorage.js';
 export class SyncConflict extends Error {
   constructor() { super('Changes exist on another device'); this.code = 'SYNC_CONFLICT'; }
 }
@@ -6,9 +6,17 @@ export class SyncConflict extends Error {
 export function createUserSync(client) {
   const inFlight = new Map();
   async function load(uid) {
+    const before = readUser(uid);
+    preserveLocal(uid, before);
     const { data, error } = await client.from('user_data').select('data, updated_at').eq('id', uid).maybeSingle();
     if (error) throw error;
     const local = readUser(uid);
+    // Reject stale responses if a local edit or another sync completed meanwhile.
+    if (JSON.stringify(local) !== JSON.stringify(before)) throw new SyncConflict();
+    const remoteRevision = data?.updated_at ?? null;
+    if (local.revision && (!remoteRevision || Date.parse(remoteRevision) < Date.parse(local.revision))) {
+      throw new SyncConflict();
+    }
     if (local.dirty) {
       if (local.revision !== (data?.updated_at ?? null)) throw new SyncConflict();
       writeUser(uid, { ...local, loaded: true });
@@ -28,6 +36,7 @@ export function createUserSync(client) {
     if (error) { if (error.code === '23505') throw new SyncConflict(); throw error; }
     if (!data) throw new SyncConflict();
     const current = readUser(uid);
+    if (current.revision !== record.revision) throw new SyncConflict();
     writeUser(uid, { ...current, revision: data.updated_at, loaded: true,
       dirty: JSON.stringify(current.data) !== JSON.stringify(record.data) });
   }
@@ -40,3 +49,4 @@ export function createUserSync(client) {
   }
   return { load, sync };
 }
+

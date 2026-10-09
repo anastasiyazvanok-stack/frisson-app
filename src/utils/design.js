@@ -4,6 +4,10 @@
 
 export const FONT_SERIF = "'Cormorant Garamond',Georgia,serif";
 export const FONT_SANS  = "'Manrope',system-ui,sans-serif";
+// High-contrast Didone for display moments (screen titles, hero numbers) —
+// pairs with FONT_SERIF the way an editorial masthead pairs with its body
+// text: dramatic for the headline, legible Garamond-family serif underneath.
+export const FONT_DISPLAY = "'Bodoni Moda',Georgia,serif";
 
 // ─── TYPE SCALE (px) ───
 // 6 steps: xs, sm, base, lg, xl, xxl — nothing else.
@@ -63,6 +67,10 @@ export const EASE = {
   normal: "all .25s ease",
   slow:   "all .4s ease",
   color:  "color .4s ease, background .4s ease",
+  // Ease-out-expo — was duplicated as a literal bounce/spring curve
+  // (cubic-bezier(.34,1.56,.64,1)) at four separate press/tab/chip sites;
+  // real objects decelerate smoothly, they don't overshoot and settle back.
+  expo:   "cubic-bezier(.16,1,.3,1)",
 };
 
 // ─── LINE HEIGHT ───
@@ -175,9 +183,10 @@ export const body = (size = TYPE.base) => ({
 });
 
 export const heading = (size = TYPE.xl) => ({
-  fontFamily: FONT_SERIF,
+  fontFamily: FONT_DISPLAY,
   fontSize: size,
-  fontWeight: 300,
+  fontWeight: 400,
+  fontOpticalSizing: "auto",
   lineHeight: LH.tight,
 });
 
@@ -196,5 +205,5 @@ export const section = (mb = SP.lg) => ({
   zIndex: 1,
 });
 
-const DS = { FONT_SERIF, FONT_SANS, TYPE, SP, RAD, OP, LS, EASE, LH, COLOR, RGB, HAIRLINE, GRAD, BG, tx, label, body, heading, card, section };
+const DS = { FONT_SERIF, FONT_SANS, FONT_DISPLAY, TYPE, SP, RAD, OP, LS, EASE, LH, COLOR, RGB, HAIRLINE, GRAD, BG, tx, label, body, heading, card, section };
 export default DS;

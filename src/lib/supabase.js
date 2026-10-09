@@ -49,8 +49,9 @@ export async function getSession() {
 
 // Bearer header for the AI proxy endpoints (api/ai-*.js) — they require a signed-in
 // session so the Anthropic API key behind them can't be hit by anonymous requests.
-export async function authHeader() {
+export async function authHeader(expectedUser) {
   const session = await getSession();
+  if (expectedUser && session?.user?.id !== expectedUser) throw new Error('Account changed');
   return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
 }
 
