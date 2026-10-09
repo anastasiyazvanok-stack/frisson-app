@@ -9,7 +9,6 @@ const AXIS_NAMES_RU = {
   worth: "Самоценность",
   authentic: "Подлинность",
   feminine: "Женственность",
-  receive: "Способность принимать",
 };
 
 function formatData(capital, activity, lang) {

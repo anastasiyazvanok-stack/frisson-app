@@ -1,7 +1,9 @@
+import { EASE } from "../utils/design";
+
 export default function GlobalStyles() {
   return (
     <style>{`
-      @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Manrope:wght@300;400;500;600;700&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Bodoni+Moda:ital,wght@0,400..900;1,400..900&family=Manrope:wght@300;400;500;600;700&display=swap');
 
       *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
       html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
@@ -57,8 +59,8 @@ export default function GlobalStyles() {
       .fu5{animation:fadeUp .5s .33s cubic-bezier(.22,1,.36,1) both}
 
       /* ─── Interaction (spring bounce-back) ─── */
-      .pc{transition:transform .2s cubic-bezier(.34,1.56,.64,1)}.pc:active{transform:scale(.94)}
-      .press-card{transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .3s ease}.press-card:active{transform:scale(.965)}
+      .pc{transition:transform .2s ${EASE.expo}}.pc:active{transform:scale(.94)}
+      .press-card{transition:transform .2s ${EASE.expo},box-shadow .3s ease}.press-card:active{transform:scale(.965)}
 
       /* ─── Glass effects ─── */
       .glass-card{

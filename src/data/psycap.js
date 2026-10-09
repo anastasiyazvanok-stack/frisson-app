@@ -100,6 +100,14 @@ export const SCENARIO_AXES = {
 };
 
 // ── STATE ───────────────────────────────────────────────────────────────
+// Grace period before decay starts counting, measured from the user's first-ever
+// event — not from account creation. A newcomer who tries the app once and comes
+// back a few weeks later shouldn't find their only progress decayed back to ~0;
+// that reads as "nothing I did mattered" and pushes people away right when they're
+// deciding whether to stick with the app at all. Decay still exists past this
+// window — it isn't disabled, just given room before it starts.
+const DECAY_GRACE_DAYS = 21;
+
 function defaults() {
   const axes = {};
   AXES.forEach((a) => (axes[a.id] = BASELINE));
@@ -110,6 +118,7 @@ function defaults() {
     lastTestScore: null,
     orbitDaily: {},
     lastDecay: Date.now(),
+    firstActivity: null,
     dailyAxisGain: {},   // { axisId: gainToday } — resets each day
     dailyAxisGainDate: null,
   };
@@ -121,6 +130,12 @@ function load() {
     if (!d) return defaults();
     if (!d.axes || !d.events) return defaults();
     AXES.forEach((a) => { if (d.axes[a.id] === undefined) d.axes[a.id] = BASELINE; });
+    // Backfill for data saved before firstActivity existed — derive it from the
+    // oldest event on record so existing users get the grace period retroactively
+    // instead of decay continuing to run against a start date that predates this fix.
+    if (d.firstActivity == null) {
+      d.firstActivity = d.events.length ? Math.min(...d.events.map((e) => e.ts)) : null;
+    }
     return d;
   } catch { return defaults(); }
 }
@@ -130,6 +145,15 @@ function today() { return new Date().toISOString().slice(0, 10); }
 
 function applyDecay(d) {
   const now = Date.now();
+  // Nothing earned yet, or still inside the newcomer grace window — don't start
+  // the decay clock. Keep nudging lastDecay forward so that once grace ends, decay
+  // counts from "now", not from a lastDecay timestamp left over from account
+  // creation (which would otherwise apply every grace-period week as a lump sum
+  // the moment grace ends).
+  if (!d.firstActivity || now - d.firstActivity < DECAY_GRACE_DAYS * 86400000) {
+    d.lastDecay = now;
+    return;
+  }
   const days = Math.floor((now - (d.lastDecay || now)) / 86400000);
   if (days >= 7) {
     const periods = Math.floor(days / 7);
@@ -150,6 +174,7 @@ function calcGain(current, basePoints) {
 // ── CORE: add event and update axes ─────────────────────────────────────
 function addEvent(type, name, axes, basePoints, meta = {}) {
   const d = load();
+  if (!d.firstActivity) d.firstActivity = Date.now();
   applyDecay(d);
   const t = today();
   // Reset daily gain tracker if it's a new day
@@ -234,6 +259,7 @@ export function logEnergyTest(score) {
 // Weekly self-report check-in: 4 sliders (0-100)
 export function logWeeklyCheckin(values) {
   const d = load();
+  if (!d.firstActivity) d.firstActivity = Date.now();
   applyDecay(d);
   // Values: { safety, worth, feminine, trust } — sliders
   // Blend: 70% current + 30% reported

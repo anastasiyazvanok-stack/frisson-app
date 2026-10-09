@@ -310,7 +310,7 @@ export default function Journal({ theme, addGems, THEMES, lang = "ru", doMarkPra
               background: tab === t.id ? `${TAB_COLORS[t.id].hex}20` : "transparent",
               border: `1px solid ${tab === t.id ? TAB_COLORS[t.id].hex + "44" : "transparent"}`,
               color: tab === t.id ? TAB_COLORS[t.id].hex : tx("var(--txt)", OP.tertiary + 0.06),
-              transition: "all .22s cubic-bezier(.34,1.56,.64,1)", minHeight: 40,
+              transition: `all .22s ${EASE.expo}`, minHeight: 40,
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>{t.l}</div>
           ))}

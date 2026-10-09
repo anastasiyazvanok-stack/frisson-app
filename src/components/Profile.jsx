@@ -1,3 +1,4 @@
+import DataSafety from "./DataSafety";
 import { useState } from "react";
 import { getEnergyLevel, themeLabel } from "../data/themes";
 import { TYPE, SP, RAD, OP, LS, EASE, LH, FONT_SERIF, FONT_SANS, tx, label, body, heading, card as cardStyle, section } from "../utils/design";
@@ -13,7 +14,7 @@ import { authHeader } from "../lib/supabase";
 import PsycapTracker from "./PsycapTracker";
 import EnergyTest from "./EnergyTest";
 
-export default function Profile({ setScreen, theme, eScore, setEScore, eHist, setEHist, pLog, gems = 0, THEMES, activity, eScoreHistory, goToScenario, lang = "ru", setLang, onSignOut, onAdmin }) {
+export default function Profile({ userId, userEmail, setScreen, theme, eScore, setEScore, eHist, setEHist, pLog, gems = 0, THEMES, activity, eScoreHistory, goToScenario, lang = "ru", setLang, onSignOut, onAdmin }) {
   const T = THEMES[theme] || THEMES.full;
   const L = (k, ...a) => tr(lang, k, ...a);
   const [showT, setShowT] = useState(false);
@@ -191,13 +192,13 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
       {(() => {
         const src = statsOverride || activity;
         const totalMeds = src?.totalMeds || 0;
-        const totalMedMinutes = src?.totalMedMinutes || 0;
-        const avgMin = totalMeds > 0 ? Math.round(totalMedMinutes / totalMeds) : 0;
+        const totalMedMinutes = Number.isFinite(src?.totalMedMinutes) ? src.totalMedMinutes : null;
+        const avgMin = totalMedMinutes !== null && totalMeds > 0 ? Math.round(totalMedMinutes / totalMeds) : 0;
         // Detect legacy data: average < 1 min/session with >3 sessions = inflated counter from before the fix
         const dataCorrupted = totalMeds > 3 && totalMedMinutes > 0 && avgMin < 1;
         const stats = [
           [`${totalMeds}`, L("stat_meds")],
-          [`${totalMedMinutes}`, lang === "ru" ? "мин медитации" : "med minutes"],
+          [totalMedMinutes === null ? "—" : `${totalMedMinutes}`, lang === "ru" ? "мин медитации" : "med minutes"],
           [`${src?.streak || 0}`, L("stat_streak")],
           [avgMin > 0 ? `${avgMin}` : "—", lang === "ru" ? "ср. минут" : "avg min"],
         ];
@@ -228,6 +229,10 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
         );
       })()}
 
+      {activity?.totalMedMinutes == null && <p style={{ padding: '0 24px', fontSize: 13, opacity: 0.7 }}>
+        {lang === 'ru' ? 'В старых данных минуты медитаций не учитывались отдельно. «—» означает, что точное время неизвестно.' : 'Older data did not track meditation minutes separately. “—” means the exact time is unknown.'}
+      </p>}
+      <DataSafety userId={userId} userEmail={userEmail} lang={lang} />
       {/* Smart insights */}
       {(() => {
         const totalMeds = activity?.totalMeds || 0;
@@ -302,3 +307,4 @@ export default function Profile({ setScreen, theme, eScore, setEScore, eHist, se
     </div>
   );
 }
+

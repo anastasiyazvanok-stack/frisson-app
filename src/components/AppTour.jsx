@@ -43,7 +43,7 @@ export default function AppTour({ onDone, theme, THEMES, lang = "ru" }) {
       </div>
       <div style={{ display: "flex", gap: 6, justifyContent: "center", padding: `${SP.md}px 0`, position: "relative", zIndex: 2 }}>
         {feats.map((_, i) => (
-          <div key={i} style={{ height: SP.xs, borderRadius: 2, transition: EASE.slow, width: step === i ? 28 : SP.xs, background: step === i ? T.accent : `rgba(255,255,255,${OP.disabled})` }} />
+          <div key={i} style={{ height: SP.xs, width: 28, borderRadius: 2, transformOrigin: "left", transform: `scaleX(${step === i ? 1 : SP.xs / 28})`, transition: "transform .4s ease", background: step === i ? T.accent : `rgba(255,255,255,${OP.disabled})` }} />
         ))}
       </div>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: `${SP.page}px ${SP.xxl}px`, position: "relative", zIndex: 2 }}>

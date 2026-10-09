@@ -146,7 +146,7 @@ export default function Home({ setScreen, theme, setTheme, eScore, setEScore, se
           <div style={{ ...label(TYPE.xs), color: tx("var(--txt)", OP.tertiary), marginBottom: SP.xs }}>{L("psych_energy")}</div>
           <div style={{ ...body(TYPE.lg), color: T.text }}>{lv ? lv.l : L("take_test")}</div>
           {lv && <div style={{ height: 3, background: `rgba(255,255,255,.05)`, borderRadius: 2, marginTop: SP.sm, overflow: "hidden" }}>
-            <div className="pulse-glow" style={{ height: "100%", borderRadius: 2, background: `linear-gradient(90deg, ${T.accent}88, ${T.accent})`, width: `${eScore}%`, transition: "width 1.2s ease", "--glow-color": `${T.accent}55` }} />
+            <div className="pulse-glow" style={{ height: "100%", width: "100%", borderRadius: 2, background: `linear-gradient(90deg, ${T.accent}88, ${T.accent})`, transformOrigin: "left", transform: `scaleX(${eScore / 100})`, transition: "transform 1.2s ease", "--glow-color": `${T.accent}55` }} />
           </div>}
         </div>
         <div style={{ width: 28, height: 28, borderRadius: RAD.full, background: `rgba(${T.ar},.08)`, border: `1px solid rgba(${T.ar},.14)`, display: "flex", alignItems: "center", justifyContent: "center", ...body(TYPE.sm), color: T.accent, flexShrink: 0 }}>→</div>
@@ -170,11 +170,11 @@ export default function Home({ setScreen, theme, setTheme, eScore, setEScore, se
                 boxShadow: rich
                   ? `0 0 34px rgba(${m.ar},.55), 0 0 18px rgba(${m.ar2},.45), inset 0 0 16px rgba(${m.ar2},.22)`
                   : on ? `0 0 20px rgba(${m.ar},.25), inset 0 0 12px rgba(${m.ar},.08)` : "none",
-                transition: "all .3s cubic-bezier(.34,1.56,.64,1)",
+                transition: `all .3s ${EASE.expo}`,
                 position: "relative", overflow: "hidden",
               }}>
                 {on && <div style={{ position: "absolute", top: -6, left: "50%", transform: "translateX(-50%)", width: 20, height: 2, borderRadius: 2, background: rich ? m.accent2 : m.accent, boxShadow: `0 0 6px ${rich ? m.accent2 : m.accent}` }} />}
-                <div style={{ fontSize: 24, marginBottom: SP.xs, transition: "transform .3s cubic-bezier(.34,1.56,.64,1)", transform: on ? "scale(1.15)" : "scale(1)", filter: rich ? `drop-shadow(0 0 10px rgba(${m.ar2},.85))` : on ? `drop-shadow(0 0 6px rgba(${m.ar},.5))` : "none" }}>{m.e}</div>
+                <div style={{ fontSize: 24, marginBottom: SP.xs, transition: `transform .3s ${EASE.expo}`, transform: on ? "scale(1.15)" : "scale(1)", filter: rich ? `drop-shadow(0 0 10px rgba(${m.ar2},.85))` : on ? `drop-shadow(0 0 6px rgba(${m.ar},.5))` : "none" }}>{m.e}</div>
                 <div style={{ ...label(TYPE.xs), fontSize: 9, color: rich ? m.accent2 : on ? m.accent : tx("var(--txt)", OP.tertiary), transition: "color .3s ease" }}>{themeLabel(k, lang)}</div>
               </div>
             );

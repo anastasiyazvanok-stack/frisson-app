@@ -1,12 +1,18 @@
 import { recommendedPractices } from '../data/practiceCatalog.js';
-import { userStorage as localStorage } from "../lib/userStorage.js";
+import { userStorage as localStorage, getActiveUser } from "../lib/userStorage.js";
 import { useState, useRef, useEffect } from "react";
 import { TYPE, SP, RAD, EASE, FONT_SERIF, FONT_SANS, label } from "../utils/design";
 import { authHeader } from "../lib/supabase";
+import { getPsycap } from "../data/psycap";
 
 const BG = "linear-gradient(160deg,#120B18 0%,#2A1A3A 48%,#0E0810 100%)";
 const STORAGE_KEY = "lux_coach_history";
+const MEMORY_KEY = "lux_coach_memory";
 const MAX_SAVED = 40;
+// How often (in user turns) to silently refresh the cross-session memory card
+// during a single long conversation — on top of the refresh that always
+// happens when she leaves the chat (see the unmount effect below).
+const MEMORY_REFRESH_EVERY = 6;
 
 const GREETING = {
   ru: "Привет. Я здесь — и слышу тебя. О чём хочешь поговорить сегодня?",
@@ -34,7 +40,28 @@ function loadHistory(lang) {
   return [{ role: "assistant", content: GREETING[lang] || GREETING.ru }];
 }
 
+function loadMemory() {
+  try { return localStorage.getItem(MEMORY_KEY) || ""; } catch { return ""; }
+}
+
+function saveMemory(text) {
+  try { if (text) localStorage.setItem(MEMORY_KEY, text); } catch {}
+}
+
+// Current psychological capital scores (0-100 per axis), read straight from
+// the local tracker — sent alongside chat requests so the coach responds to
+// where she actually is, not a blank slate.
+function buildPsycapContext() {
+  try {
+    return getPsycap()?.axes || null;
+  } catch {
+    return null;
+  }
+}
+
 export default function AICoach({ goBack, goToMed, lang = "ru" }) {
+  const owner = useRef(getActiveUser()).current;
+  const memoryRequest = useRef(0);
   const [messages, setMessages] = useState(() => loadHistory(lang));
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -48,7 +75,7 @@ export default function AICoach({ goBack, goToMed, lang = "ru" }) {
   }, [messages, loading]);
 
   function saveHistory(msgs) {
-    if (!alive.current) return;
+    if (!alive.current || getActiveUser() !== owner) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs.slice(-MAX_SAVED)));
     } catch {}
@@ -60,6 +87,39 @@ export default function AICoach({ goBack, goToMed, lang = "ru" }) {
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
   }
 
+  // Fire-and-forget: asks the model to fold the recent exchange into her
+  // running memory card. Never blocks the UI — if it fails, the next trigger
+  // just tries again from the same previousMemory.
+  function refreshMemory(msgs) {
+    if (getActiveUser() !== owner) return;
+    const requestId = ++memoryRequest.current;
+    const previousMemory = loadMemory();
+    if (msgs.filter((m) => m.role === "user").length < 1) return;
+    (async () => {
+      try {
+        const res = await fetch("/api/ai-coach-memory", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...(await authHeader(owner)) },
+          body: JSON.stringify({ messages: msgs, previousMemory, lang }),
+        });
+        if (res.ok) {
+          const { memory } = await res.json();
+          if (memory && getActiveUser() === owner && memoryRequest.current === requestId) saveMemory(memory);
+        }
+      } catch {}
+    })();
+  }
+
+  // Keep the latest messages reachable from the unmount effect below without
+  // re-subscribing it on every keystroke/message.
+  const messagesRef = useRef(messages);
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
+
+  // Covers every way of leaving the chat — the header back button, the
+  // App-level swipe-back gesture, or switching tabs — not just one of them.
+  // Refresh on explicit navigation, not account teardown: never send A's conversation under B's session.
+  const leaveChat = () => { refreshMemory(messagesRef.current); goBack(); };
+
   async function send() {
     const text = input.trim();
     if (!text || loading) return;
@@ -67,20 +127,28 @@ export default function AICoach({ goBack, goToMed, lang = "ru" }) {
 
     const newMessages = [...messages, { role: "user", content: text }];
     setMessages(newMessages);
+    saveHistory(newMessages);
     setLoading(true);
 
     try {
       const res = await fetch("/api/ai-chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...(await authHeader()) },
-        body: JSON.stringify({ messages: newMessages, lang }),
+        headers: { "Content-Type": "application/json", ...(await authHeader(owner)) },
+        body: JSON.stringify({
+          messages: newMessages,
+          lang,
+          context: { memory: loadMemory(), psycap: buildPsycapContext() },
+        }),
       });
+      if (!alive.current || getActiveUser() !== owner) return;
       if (res.ok) {
         const { message } = await res.json();
         const clean = stripMarkdown(message);
         const updated = [...newMessages, { role: "assistant", content: clean }];
         setMessages(updated);
         saveHistory(updated);
+        const userTurns = updated.filter((m) => m.role === "user").length;
+        if (userTurns > 0 && userTurns % MEMORY_REFRESH_EVERY === 0) refreshMemory(updated);
       } else {
         setMessages((m) => [...m, { role: "assistant", content: lang === "ru" ? "Что-то пошло не так. Попробуй ещё раз." : "Something went wrong. Please try again." }]);
       }
@@ -98,7 +166,7 @@ export default function AICoach({ goBack, goToMed, lang = "ru" }) {
       {/* Header */}
       <div style={{ padding: `max(${SP.xxl}px, env(safe-area-inset-top, ${SP.xxl}px)) ${SP.xl}px ${SP.lg}px`, flexShrink: 0, borderBottom: "1px solid rgba(255,255,255,.05)", backdropFilter: "blur(10px)", position: "relative", zIndex: 2 }}>
         <div style={{ display: "flex", alignItems: "center", gap: SP.md }}>
-          <div onClick={goBack} style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 16, color: "rgba(185,169,218,.7)" }}>←</div>
+          <div onClick={leaveChat} style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 16, color: "rgba(185,169,218,.7)" }}>←</div>
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: FONT_SERIF, fontSize: 20, color: "rgba(247,239,230,.92)", fontWeight: 300 }}>
               {lang === "ru" ? "Анастасия" : "Anastasia"}

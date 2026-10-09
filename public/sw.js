@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nectar-v5.9.0'; // Practice library release: refresh application assets
+const CACHE_NAME = 'nectar-v5.9.1'; // Practice library release: refresh application assets
 const BASE = '/';
 
 // Aggressive: on install, wipe ALL caches and take over immediately
@@ -49,3 +49,4 @@ self.addEventListener('fetch', (e) => {
     })
   );
 });
+

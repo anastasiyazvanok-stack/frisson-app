@@ -89,7 +89,14 @@ function MedForm({ initial, sections, onSave, onClose }) {
   async function uploadAudio(file) {
     setUploading(true);
     const ext = file.name.split(".").pop().toLowerCase();
-    const path = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
+    // Supabase Storage rejects object keys with non-ASCII characters (e.g. Cyrillic
+    // filenames like "Сказка о...wav") with "Invalid key" — only the displayed title
+    // needs to be human-readable, so the storage path can safely collapse to a plain
+    // ASCII slug (or just the timestamp, if the name is Cyrillic-only and nothing survives).
+    const base = file.name.slice(0, file.name.length - ext.length - 1)
+      .normalize("NFKD").replace(/[̀-ͯ]/g, "")
+      .replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase();
+    const path = `${Date.now()}-${base || "file"}.${ext}`;
     // Prefer the browser's own MIME detection (usually correct); fall back to a proper
     // extension → MIME map for formats some OS file pickers misreport (m4a, wma, etc.)
     // instead of the previous naive `audio/${ext}`, which produced invalid types like
